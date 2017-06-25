@@ -1,0 +1,116 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="src\Game.cpp" />
+    <ClCompile Include="src\Globals.cpp" />
+    <ClCompile Include="src\log\Log.cpp">
+      <Filter>log</Filter>
+    </ClCompile>
+    <ClCompile Include="src\log\LogHTML.cpp">
+      <Filter>log</Filter>
+    </ClCompile>
+    <ClCompile Include="src\log\LogRTF.cpp">
+      <Filter>log</Filter>
+    </ClCompile>
+    <ClCompile Include="src\log\LogTermVT100.cpp">
+      <Filter>log</Filter>
+    </ClCompile>
+    <ClCompile Include="src\log\LogTermWindows.cpp">
+      <Filter>log</Filter>
+    </ClCompile>
+    <ClCompile Include="src\preprocessor\ExpressionEvaluator.cpp">
+      <Filter>preprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\preprocessor\Preprocessor.cpp">
+      <Filter>preprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MainScene.cpp" />
+    <ClCompile Include="src\glutil\glutil.cpp">
+      <Filter>glutil</Filter>
+    </ClCompile>
+    <ClCompile Include="src\glutil\GPUProgram.cpp">
+      <Filter>glutil</Filter>
+    </ClCompile>
+    <ClCompile Include="src\glutil\Quad.cpp">
+      <Filter>glutil</Filter>
+    </ClCompile>
+    <ClCompile Include="src\glutil\TextureCreation.cpp">
+      <Filter>glutil</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Model.cpp" />
+    <ClCompile Include="src\TestScene.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Game.h" />
+    <ClInclude Include="src\Globals.h" />
+    <ClInclude Include="src\log\Log.h">
+      <Filter>log</Filter>
+    </ClInclude>
+    <ClInclude Include="src\log\LogHTMLContents.h">
+      <Filter>log</Filter>
+    </ClInclude>
+    <ClInclude Include="src\log\LogRTFContents.h">
+      <Filter>log</Filter>
+    </ClInclude>
+    <ClInclude Include="src\preprocessor\ExpressionEvaluator.h">
+      <Filter>preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\preprocessor\Preprocessor.h">
+      <Filter>preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\preprocessor\PreprocHelpers.h">
+      <Filter>preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MainScene.h" />
+    <ClInclude Include="src\glutil\glutil.h">
+      <Filter>glutil</Filter>
+    </ClInclude>
+    <ClInclude Include="src\glutil\GPUProgram.h">
+      <Filter>glutil</Filter>
+    </ClInclude>
+    <ClInclude Include="src\glutil\Hash.h">
+      <Filter>glutil</Filter>
+    </ClInclude>
+    <ClInclude Include="src\glutil\Quad.h">
+      <Filter>glutil</Filter>
+    </ClInclude>
+    <ClInclude Include="src\glutil\RAII.h">
+      <Filter>glutil</Filter>
+    </ClInclude>
+    <ClInclude Include="src\glutil\TextureCreation.h">
+      <Filter>glutil</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Model.h" />
+    <ClInclude Include="src\SharedDefines.h" />
+    <ClInclude Include="src\TestScene.h" />
+    <ClInclude Include="src\Scene.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="log">
+      <UniqueIdentifier>{1aa00bed-9dbd-42ff-aac1-83e39a755e44}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="preprocessor">
+      <UniqueIdentifier>{43a2cb82-cd1a-43a1-b41e-472783b6199a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="glutil">
+      <UniqueIdentifier>{9573b3c5-26ba-4bad-8d76-0188e2139e5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shaders">
+      <UniqueIdentifier>{5540b0a0-1912-4674-b357-bd9ba9f79ce8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="media\shaders\fsquad.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="media\shaders\fsquad.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="media\shaders\model.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="media\shaders\model.vert">
+      <Filter>shaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>
