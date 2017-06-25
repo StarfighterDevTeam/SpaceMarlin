@@ -156,7 +156,7 @@ bool Model::loadFromAssImpMesh(const aiMesh* mesh, const aiScene* scene, const c
 		if(aiReturn_SUCCESS == mat->GetTexture(aiTextureType_DIFFUSE, 0, &path))
 		{
 			sf::Image img;
-			if(img.loadFromFile(std::string(materialDir) + path.C_Str()))
+			if(img.loadFromFile(std::string(materialsDir) + path.C_Str()))
 			{
 				img.flipVertically();
 

@@ -1,0 +1,9 @@
+obj/
+SpaceMarlin.exe
+SpaceMarlinD.exe
+SpaceMarlin.pdb
+SpaceMarlinD.pdb
+SpaceMarlin.VC.opendb
+SpaceMarlin.sdf
+*.ilk
+*.opensdf
