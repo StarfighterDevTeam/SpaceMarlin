@@ -39,6 +39,7 @@
     </ClCompile>
     <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\TestScene.cpp" />
+    <ClCompile Include="src\GPUProgramManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Game.h" />
@@ -84,6 +85,7 @@
     <ClInclude Include="src\SharedDefines.h" />
     <ClInclude Include="src\TestScene.h" />
     <ClInclude Include="src\Scene.h" />
+    <ClInclude Include="src\GPUProgramManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="log">

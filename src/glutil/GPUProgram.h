@@ -29,8 +29,8 @@ delete p;
 #include <string>
 #include <list>
 
-namespace glutil
-{
+//namespace glutil
+//{
 
 class GPUProgram
 {
@@ -119,25 +119,25 @@ public:
 	bool validate();
 	bool isValidated() const;
 
-	void use();
+	void use() const;
 
 	// Usage example: sendUniform("texunit", value);
-	void sendUniform(Hash h, GLint i);
-	void sendUniform(Hash h, GLfloat f);
-	void sendUniform(Hash h, const glm::vec2& v);
-	void sendUniform(Hash h, const glm::vec3& v);
-	void sendUniform(Hash h, const glm::vec4& v);
-	void sendUniform(Hash h, const glm::mat3& m, bool transpose=false);
-	void sendUniform(Hash h, const glm::mat4& m, bool transpose=false);
+	void sendUniform(Hash h, GLint i) const;
+	void sendUniform(Hash h, GLfloat f) const;
+	void sendUniform(Hash h, const glm::vec2& v) const;
+	void sendUniform(Hash h, const glm::vec3& v) const;
+	void sendUniform(Hash h, const glm::vec4& v) const;
+	void sendUniform(Hash h, const glm::mat3& m, bool transpose=false) const;
+	void sendUniform(Hash h, const glm::mat4& m, bool transpose=false) const;
 
 	// If needed at runtime: sendUniform(uniform_name, value, Hash::AT_RUNTIME)
-	void sendUniform(const char* uniform_name, GLint i,						       Hash::Marker marker);
-	void sendUniform(const char* uniform_name, GLfloat f,					       Hash::Marker marker);
-	void sendUniform(const char* uniform_name, const glm::vec2& v,                 Hash::Marker marker);
-	void sendUniform(const char* uniform_name, const glm::vec3& v,                 Hash::Marker marker);
-	void sendUniform(const char* uniform_name, const glm::vec4& v,                 Hash::Marker marker);
-	void sendUniform(const char* uniform_name, const glm::mat3& m, bool transpose, Hash::Marker marker);
-	void sendUniform(const char* uniform_name, const glm::mat4& m, bool transpose, Hash::Marker marker);
+	void sendUniform(const char* uniform_name, GLint i,						       Hash::Marker marker) const;
+	void sendUniform(const char* uniform_name, GLfloat f,					       Hash::Marker marker) const;
+	void sendUniform(const char* uniform_name, const glm::vec2& v,                 Hash::Marker marker) const;
+	void sendUniform(const char* uniform_name, const glm::vec3& v,                 Hash::Marker marker) const;
+	void sendUniform(const char* uniform_name, const glm::vec4& v,                 Hash::Marker marker) const;
+	void sendUniform(const char* uniform_name, const glm::mat3& m, bool transpose, Hash::Marker marker) const;
+	void sendUniform(const char* uniform_name, const glm::mat4& m, bool transpose, Hash::Marker marker) const;
 
 private:
 	// -------  Helper functions: ----------
@@ -156,6 +156,6 @@ private:
 	friend void gpuprogram_unittest();
 };
 
-}	// namespace glutil
+//}	// namespace glutil
 
 #endif // GPU_PROGRAM_H

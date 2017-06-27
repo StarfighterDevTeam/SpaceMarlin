@@ -1,6 +1,7 @@
 ﻿#include "Game.h"
 #include "MainScene.h"
 #include "TestScene.h"
+#include "GPUProgramManager.h"
 
 #define WIN_TITLE	"SpaceMarlin"
 #define WIN_SIZE_X	1280
@@ -37,6 +38,10 @@ bool Game::init(sf::RenderWindow* window)
 	logInfo("GPU vendor: ", glGetString(GL_VENDOR));
 	//logInfo("OpenGL extensions: ", glGetString(GL_EXTENSIONS));	// TODO: unavailable in Core profile...
 
+	// Init GPUProgramManager
+	gData.gpuProgramMgr = new GPUProgramManager();
+	gData.gpuProgramMgr->init();
+
 	// Init Assimp logging
 	// get a handle to the predefined STDOUT log stream and attach
 	// it to the logging system. It remains active for all further
@@ -67,6 +72,9 @@ void Game::shut()
 	// again. This will definitely release the last resources allocated
 	// by Assimp.
 	aiDetachAllLogStreams();
+
+	// Shut GPUProgramManager
+	gData.gpuProgramMgr->shut();
 }
 
 void Game::run()

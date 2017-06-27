@@ -11,7 +11,7 @@
 class TestScene : public Scene
 {
 private:
-	glutil::GPUProgram* m_modelProgram;
+	GPUProgram*			m_modelProgram;
 	glutil::Quad*		m_quad;
 	Model				m_model;
 

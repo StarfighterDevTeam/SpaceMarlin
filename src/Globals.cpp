@@ -1,5 +1,7 @@
 #include "Globals.h"
 
+#include "GPUProgramManager.h"
+
 Globals gData;
 
 Globals::Globals()
@@ -7,6 +9,7 @@ Globals::Globals()
 	winSizeX=0;
 	winSizeY=0;
 	dTime = sf::seconds(1.f/60.f);
+	gpuProgramMgr = NULL;
 }
 
 #ifdef _WIN32

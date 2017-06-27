@@ -28,7 +28,7 @@ bool TestScene::init()
 	delete [] pixels;
 
 	// ------ Model program -----
-	m_modelProgram = new glutil::GPUProgram("media/shaders/model.vert", "media/shaders/model.frag");
+	m_modelProgram = new GPUProgram("media/shaders/model.vert", "media/shaders/model.frag");
 	if(!m_modelProgram->compileAndAttach())
 		return false;
 	m_modelProgram->bindAttribLocation(MODEL_ATTRIB_POSITIONS,	"pos");

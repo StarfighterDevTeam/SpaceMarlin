@@ -5,24 +5,10 @@
 
 #include "SharedDefines.h"
 
+#include "GPUProgramManager.h"
+
 bool MainScene::init()
 {
-	// ------ Model program -----
-	m_modelProgram = new glutil::GPUProgram("media/shaders/model.vert", "media/shaders/model.frag");
-	if(!m_modelProgram->compileAndAttach())
-		return false;
-	m_modelProgram->bindAttribLocation(MODEL_ATTRIB_POSITIONS,	"pos");
-	m_modelProgram->bindAttribLocation(MODEL_ATTRIB_UVS,		"uv");
-	m_modelProgram->bindAttribLocation(MODEL_ATTRIB_NORMALS,	"normal");
-
-	if(!m_modelProgram->link())
-		return false;
-
-	std::list<std::string> uniformNames;
-	uniformNames.push_back("gModelViewProjMtx");
-	uniformNames.push_back("texAlbedo");
-	m_modelProgram->setUniformNames(uniformNames);
-
 	// ------ Model ------
 	//if(!m_model.loadFromFile("media/models/suzanne_gltuto/suzanne.obj"))
 	if(!m_model.loadFromFile("media/models/marlin/marlin.fbx"))
@@ -34,7 +20,6 @@ bool MainScene::init()
 
 void MainScene::shut()
 {
-	SAFE_DELETE(m_modelProgram);
 	m_model.unload();
 }
 
@@ -52,7 +37,8 @@ void MainScene::draw()
 	// Cull triangles which normal is not towards the camera
 	glEnable(GL_CULL_FACE);
 
-	m_modelProgram->use();
+	const GPUProgram* modelProgram = gData.gpuProgramMgr->getProgram(GPUProgramManager::PROG_MODEL);
+	modelProgram->use();
 
 	const float fNear = 0.1f;
 	const float fFar = 100.f;
@@ -61,15 +47,16 @@ void MainScene::draw()
 	static float gfSpeed = 0.001f;
 	gfCurAngle += gfSpeed * gData.dTime.asMilliseconds();
 	glm::mat4 modelMtx = glm::rotate(glm::mat4(), gfCurAngle, glm::vec3(0.f, 1.f, 0.f));
+	//glm::mat4 modelMtx = glm::mat4(1.0f);
 
 	glm::mat4 projMtx = glm::perspective(glm::radians(45.0f), ((float)gData.winSizeX) / ((float)gData.winSizeY), fNear, fFar); 
 	
 	glm::mat4 viewMtx = glm::lookAt(glm::vec3(0.f, 3.f, -6.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 
 	gModelViewProjMtx = projMtx * viewMtx * modelMtx;
-	m_modelProgram->sendUniform("gModelViewProjMtx", gModelViewProjMtx);
+	modelProgram->sendUniform("gModelViewProjMtx", gModelViewProjMtx);
 
-	m_modelProgram->sendUniform("texAlbedo", 0);
+	modelProgram->sendUniform("texAlbedo", 0);
 
 	// Texture:
 //	glActiveTexture(GL_TEXTURE0);

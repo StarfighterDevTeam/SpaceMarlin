@@ -48,11 +48,15 @@ T clamp(T a, T minVal, T maxVal)
 	#define sprintf_s sprintf
 #endif
 
+class GPUProgramManager;
+
 struct Globals
 {
 	Globals();
-	int winSizeX, winSizeY;
-	sf::Time dTime;
+	int					winSizeX;
+	int					winSizeY;
+	sf::Time			dTime;
+	GPUProgramManager*	gpuProgramMgr;
 };
 
 extern Globals gData;

@@ -11,8 +11,7 @@
 class MainScene : public Scene
 {
 private:
-	glutil::GPUProgram* m_modelProgram;
-	Model				m_model;
+	Model			m_model;
 
 public:
 	virtual bool init() override;
