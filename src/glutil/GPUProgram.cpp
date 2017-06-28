@@ -586,15 +586,19 @@ void GPUProgram::printShaderLog(GLuint id_shader, const std::string& shader_name
 	// Get the log:
 	glGetShaderiv(id_shader, GL_INFO_LOG_LENGTH, &len);
 
-	buf = new GLchar[len];
-	glGetShaderInfoLog(id_shader, len, &len, buf);
+	if(len)
+	{
+		buf = new GLchar[len];
+		glGetShaderInfoLog(id_shader, len, &len, buf);
+	}
 
 	// Print the log
-	cout << "*** " << shader_type << " shader log: \"" << shader_name << "\" (original symbol(s): "
-		 << preproc->getOriginalSymbolsString() << ")" << endl << buf;
+	logInfo("*** ", shader_type, " shader log: \"", shader_name, "\" (original symbol(s): ",
+		preproc->getOriginalSymbolsString(), ")\n", (buf ? buf : "<no log>"));
 
 	// Cleanup
-	delete [] buf;
+	if(buf)
+		delete [] buf;
 }
 
 // ---------------------------------------------------------------------
@@ -607,15 +611,19 @@ void GPUProgram::printProgramLog()
 	// Get the log:
 	glGetProgramiv(id_program, GL_INFO_LOG_LENGTH, &len);
 
-	buf = new GLchar[len];
-	glGetProgramInfoLog(id_program, len, &len, buf);
+	if(len)
+	{
+		buf = new GLchar[len];
+		glGetProgramInfoLog(id_program, len, &len, buf);
+	}
 
 	// Print the log
-	cout << "*** program log: \"" << vertex_filename << "\", \"" << fragment_filename << "\" (original symbol(s): "
-		 << preproc->getOriginalSymbolsString() << ") " << endl << buf;
+	logInfo("*** program log: \"", vertex_filename, "\", \"", fragment_filename, "\" (original symbol(s): ",
+		 preproc->getOriginalSymbolsString(), ")\n", (buf ? buf : "<no log>"));
 
 	// Cleanup
-	delete [] buf;
+	if(buf)
+		delete [] buf;
 }
 
 //}	// namespace glutil

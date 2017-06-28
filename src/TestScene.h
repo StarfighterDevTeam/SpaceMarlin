@@ -4,14 +4,12 @@
 
 #include "Globals.h"
 #include "Scene.h"
-#include "glutil\GPUProgram.h"
 #include "glutil\Quad.h"
 #include "Model.h"
 
 class TestScene : public Scene
 {
 private:
-	GPUProgram*			m_modelProgram;
 	glutil::Quad*		m_quad;
 	Model				m_model;
 

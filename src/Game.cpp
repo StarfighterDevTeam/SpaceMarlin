@@ -2,13 +2,18 @@
 #include "MainScene.h"
 #include "TestScene.h"
 #include "GPUProgramManager.h"
+#include "Drawer.h"
 
 #define WIN_TITLE	"SpaceMarlin"
 #define WIN_SIZE_X	1280
 #define WIN_SIZE_Y	720
 
 //#define _USE_FULLSCREEN
-#define _USE_KHR_DEBUG
+#ifndef NDEBUG
+	#define _USE_KHR_DEBUG
+	//#define _USE_KHR_DEBUG_VERBOSE
+	#define _USE_DEBUG_CONTEXT
+#endif
 
 // Follow GLDEBUGPROC signature
 void GLAPIENTRY debugCallback(GLenum source, GLenum type, GLuint id,
@@ -39,8 +44,9 @@ bool Game::init(sf::RenderWindow* window)
 	//logInfo("OpenGL extensions: ", glGetString(GL_EXTENSIONS));	// TODO: unavailable in Core profile...
 
 	// Init GPUProgramManager
-	gData.gpuProgramMgr = new GPUProgramManager();
-	gData.gpuProgramMgr->init();
+#define INIT_MGR(TMgr, mgr) do {mgr = new TMgr; mgr->init(); } while(0)
+	INIT_MGR(GPUProgramManager, gData.gpuProgramMgr);
+	INIT_MGR(Drawer, gData.drawer);
 
 	// Init Assimp logging
 	// get a handle to the predefined STDOUT log stream and attach
@@ -73,8 +79,10 @@ void Game::shut()
 	// by Assimp.
 	aiDetachAllLogStreams();
 
-	// Shut GPUProgramManager
-	gData.gpuProgramMgr->shut();
+	// Shut managers
+#define SHUT_MGR(mgr) do {mgr->shut(); delete mgr; mgr = NULL;} while(0)
+	SHUT_MGR(gData.drawer);
+	SHUT_MGR(gData.gpuProgramMgr);
 }
 
 void Game::run()
@@ -136,7 +144,7 @@ int main(int argc, char* argv[])
 
 	sf::ContextSettings contextSettings;
 	contextSettings.attributeFlags = sf::ContextSettings::Core;
-#ifdef _USE_KHR_DEBUG
+#ifdef _USE_DEBUG_CONTEXT
 	contextSettings.attributeFlags |= sf::ContextSettings::Debug;
 #endif
 	contextSettings.majorVersion = 4;
@@ -217,7 +225,9 @@ void GLAPIENTRY debugCallback(
 		logWarn("KHR_Debug [LOW]: [", str.c_str(), "]", message);
 		break;
 	case GL_DEBUG_SEVERITY_NOTIFICATION:
+	#ifdef _USE_KHR_DEBUG_VERBOSE
 		logInfo("KHR_Debug [NOTIF]: [", str.c_str(), "]", message);
+	#endif
 		break;
 	}
 }

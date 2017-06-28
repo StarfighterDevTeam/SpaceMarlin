@@ -30,6 +30,16 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_precision.hpp>
 
+#define COLOR_RED		glm::vec4(1,0,0,1)
+#define COLOR_GREEN		glm::vec4(0,1,0,1)
+#define COLOR_BLUE		glm::vec4(0,0,1,1)
+#define COLOR_YELLOW	glm::vec4(1,1,0,1)
+#define COLOR_CYAN		glm::vec4(0,1,1,1)
+#define COLOR_MAGENTA	glm::vec4(1,0,1,1)
+#define COLOR_WHITE		glm::vec4(1,1,1,1)
+#define COLOR_BLACK		glm::vec4(0,0,0,1)
+#define COLOR_GRAY		glm::vec4(0.5f,0.5f,0.5f,1)
+
 #include "log/Log.h"
 
 #define SAFE_DELETE(x) {delete x; x=NULL;}
@@ -49,6 +59,7 @@ T clamp(T a, T minVal, T maxVal)
 #endif
 
 class GPUProgramManager;
+class Drawer;
 
 struct Globals
 {
@@ -57,6 +68,7 @@ struct Globals
 	int					winSizeY;
 	sf::Time			dTime;
 	GPUProgramManager*	gpuProgramMgr;
+	Drawer*				drawer;
 };
 
 extern Globals gData;

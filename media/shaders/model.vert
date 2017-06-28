@@ -1,15 +1,13 @@
-// model.vert
-
-#version 330 core
+#version 400 core
 
 #include "../../src/SharedDefines.h"
 
 precision highp float;
 precision highp int;
 
-layout(location=MODEL_ATTRIB_POSITIONS) in vec3 pos;
-layout(location=MODEL_ATTRIB_UVS)		in vec2 uv;
-layout(location=MODEL_ATTRIB_NORMALS)	in vec3 normal;
+layout(location=PROG_MODEL_ATTRIB_POSITIONS)	in vec3 pos;
+layout(location=PROG_MODEL_ATTRIB_UVS)			in vec2 uv;
+layout(location=PROG_MODEL_ATTRIB_NORMALS)		in vec3 normal;
 
 uniform mat4 gModelViewProjMtx;
 //uniform mat4 gProjectionMtx;
@@ -18,7 +16,7 @@ uniform mat4 gModelViewProjMtx;
 //smooth out vec2 var_texcoords;
 
 //layout (location=0) out vec2 varUv;
-varying vec2 varUv;
+out vec2 varUv;
 
 void main()
 {

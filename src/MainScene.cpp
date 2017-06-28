@@ -6,6 +6,7 @@
 #include "SharedDefines.h"
 
 #include "GPUProgramManager.h"
+#include "Drawer.h"
 
 bool MainScene::init()
 {
@@ -37,7 +38,7 @@ void MainScene::draw()
 	// Cull triangles which normal is not towards the camera
 	glEnable(GL_CULL_FACE);
 
-	const GPUProgram* modelProgram = gData.gpuProgramMgr->getProgram(GPUProgramManager::PROG_MODEL);
+	const GPUProgram* modelProgram = gData.gpuProgramMgr->getProgram(PROG_MODEL);
 	modelProgram->use();
 
 	const float fNear = 0.1f;
@@ -75,4 +76,8 @@ void MainScene::draw()
 //	glUniform1i(uniform_texunit, 0);
 
 	m_model.draw();
+
+	gData.drawer->drawLine(gModelViewProjMtx, glm::vec3(0,0,0), COLOR_RED,		glm::vec3(3,0,0), COLOR_RED		);
+	gData.drawer->drawLine(gModelViewProjMtx, glm::vec3(0,0,0), COLOR_GREEN,	glm::vec3(0,3,0), COLOR_GREEN	);
+	gData.drawer->drawLine(gModelViewProjMtx, glm::vec3(0,0,0), COLOR_BLUE,		glm::vec3(0,0,3), COLOR_BLUE	);
 }

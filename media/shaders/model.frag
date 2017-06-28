@@ -1,6 +1,4 @@
-// model.frag
-
-#version 330 core
+#version 400 core
 
 precision highp float;
 precision mediump int;
@@ -8,7 +6,7 @@ precision mediump int;
 uniform sampler2D texAlbedo;
 
 //layout(location=0) in vec2 varUv;
-varying vec2 varUv;
+in vec2 varUv;
 
 layout(location=0) out vec4 fragColor;
 

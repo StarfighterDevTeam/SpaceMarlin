@@ -3,6 +3,7 @@
 #include "glutil/glutil.h"
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "GPUProgramManager.h"
 #include "SharedDefines.h"
 
 bool TestScene::init()
@@ -27,21 +28,6 @@ bool TestScene::init()
 	m_quad->setPixels(pixels);
 	delete [] pixels;
 
-	// ------ Model program -----
-	m_modelProgram = new GPUProgram("media/shaders/model.vert", "media/shaders/model.frag");
-	if(!m_modelProgram->compileAndAttach())
-		return false;
-	m_modelProgram->bindAttribLocation(MODEL_ATTRIB_POSITIONS,	"pos");
-	m_modelProgram->bindAttribLocation(MODEL_ATTRIB_UVS,		"uv");
-	m_modelProgram->bindAttribLocation(MODEL_ATTRIB_NORMALS,	"normal");
-
-	if(!m_modelProgram->link())
-		return false;
-
-	std::list<std::string> uniformNames;
-	uniformNames.push_back("gModelViewProjMtx");
-	m_modelProgram->setUniformNames(uniformNames);
-
 	// ------ Model ------
 	if(!m_model.loadFromFile("media/models/suzanne_gltuto/suzanne.obj"))
 		return false;
@@ -55,7 +41,6 @@ bool TestScene::init()
 void TestScene::shut()
 {
 	SAFE_DELETE(m_quad);
-	SAFE_DELETE(m_modelProgram);
 }
 
 void TestScene::update()
@@ -74,7 +59,8 @@ void TestScene::draw()
 
 	//m_quad->display();
 
-	m_modelProgram->use();
+	const GPUProgram* modelProgram = gData.gpuProgramMgr->getProgram(PROG_MODEL);
+	modelProgram->use();
 
 	const float fNear = 0.1f;
 	const float fFar = 100.f;
@@ -89,7 +75,7 @@ void TestScene::draw()
 	glm::mat4 viewMtx = glm::lookAt(glm::vec3(0.f, 3.f, -6.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 
 	gModelViewProjMtx = projMtx * viewMtx * modelMtx;
-	m_modelProgram->sendUniform("gModelViewProjMtx", gModelViewProjMtx);
+	modelProgram->sendUniform("gModelViewProjMtx", gModelViewProjMtx);
 
 	// Texture:
 //	glActiveTexture(GL_TEXTURE0);
@@ -164,21 +150,21 @@ void TestScene::createVBOAndVAO()
 	glBufferData(GL_ARRAY_BUFFER, bufferSize, bufferData, GL_STATIC_DRAW);
 
 	// - enable attributes:
-	glEnableVertexAttribArray(MODEL_ATTRIB_POSITIONS);
-	glEnableVertexAttribArray(MODEL_ATTRIB_UVS);
-	glEnableVertexAttribArray(MODEL_ATTRIB_NORMALS);
+	glEnableVertexAttribArray(PROG_MODEL_ATTRIB_POSITIONS);
+	glEnableVertexAttribArray(PROG_MODEL_ATTRIB_UVS);
+	glEnableVertexAttribArray(PROG_MODEL_ATTRIB_NORMALS);
 
 	// - positions pointer:
 	ptrdiff_t offset = NULL;
-	glVertexAttribPointer(MODEL_ATTRIB_POSITIONS,  3, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)offset);
+	glVertexAttribPointer(PROG_MODEL_ATTRIB_POSITIONS,  3, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)offset);
 	offset += sizeof(GLfloat)*m_nbVertices*3;
 
 	// - uvs pointer:
-	glVertexAttribPointer(MODEL_ATTRIB_UVS,  2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)offset);
+	glVertexAttribPointer(PROG_MODEL_ATTRIB_UVS,  2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)offset);
 	offset += sizeof(GLfloat)*m_nbVertices*2;
 
 	// - normals pointer:
-	glVertexAttribPointer(MODEL_ATTRIB_NORMALS,  3, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)offset);
+	glVertexAttribPointer(PROG_MODEL_ATTRIB_NORMALS,  3, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)offset);
 	offset += sizeof(GLfloat)*m_nbVertices*3;
 
 	GL_CHECK();

@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Drawer.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\Globals.cpp" />
     <ClCompile Include="src\glutil\glutil.cpp" />
@@ -30,6 +31,7 @@
     <ClCompile Include="src\TestScene.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Drawer.h" />
     <ClInclude Include="src\Game.h" />
     <ClInclude Include="src\Globals.h" />
     <ClInclude Include="src\glutil\glutil.h" />
@@ -56,6 +58,8 @@
     <None Include="media\shaders\fsquad.vert" />
     <None Include="media\shaders\model.frag" />
     <None Include="media\shaders\model.vert" />
+    <None Include="media\shaders\simple.frag" />
+    <None Include="media\shaders\simple.vert" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B700DAF9-9781-433C-BD0F-EFFC6CB37795}</ProjectGuid>

@@ -40,6 +40,7 @@
     <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\TestScene.cpp" />
     <ClCompile Include="src\GPUProgramManager.cpp" />
+    <ClCompile Include="src\Drawer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Game.h" />
@@ -86,6 +87,7 @@
     <ClInclude Include="src\TestScene.h" />
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\GPUProgramManager.h" />
+    <ClInclude Include="src\Drawer.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="log">
@@ -112,6 +114,12 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="media\shaders\model.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="media\shaders\simple.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="media\shaders\simple.vert">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

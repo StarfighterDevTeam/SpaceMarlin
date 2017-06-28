@@ -10,6 +10,7 @@ Globals::Globals()
 	winSizeY=0;
 	dTime = sf::seconds(1.f/60.f);
 	gpuProgramMgr = NULL;
+	drawer = NULL;
 }
 
 #ifdef _WIN32

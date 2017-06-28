@@ -229,7 +229,7 @@ void Model::draw()
 	}
 
 	// 1rst attribute buffer : vertices
-	glEnableVertexAttribArray(MODEL_ATTRIB_POSITIONS);
+	glEnableVertexAttribArray(PROG_MODEL_ATTRIB_POSITIONS);
 	glBindBuffer(GL_ARRAY_BUFFER, m_positionsBuffer);
 	glVertexAttribPointer(
 		0,                  // attribute
@@ -241,7 +241,7 @@ void Model::draw()
 	);
 
 	// 2nd attribute buffer : UVs
-	glEnableVertexAttribArray(MODEL_ATTRIB_UVS);
+	glEnableVertexAttribArray(PROG_MODEL_ATTRIB_UVS);
 	glBindBuffer(GL_ARRAY_BUFFER, m_uvsBuffer);
 	glVertexAttribPointer(
 		1,                                // attribute
@@ -253,7 +253,7 @@ void Model::draw()
 	);
 
 	// 3rd attribute buffer : normals
-	glEnableVertexAttribArray(MODEL_ATTRIB_NORMALS);
+	glEnableVertexAttribArray(PROG_MODEL_ATTRIB_NORMALS);
 	glBindBuffer(GL_ARRAY_BUFFER, m_normalsBuffer);
 	glVertexAttribPointer(
 		2,                                // attribute
@@ -275,7 +275,7 @@ void Model::draw()
 		(void*)0           // element array buffer offset
 	);
 
-	glDisableVertexAttribArray(MODEL_ATTRIB_POSITIONS);
-	glDisableVertexAttribArray(MODEL_ATTRIB_UVS);
-	glDisableVertexAttribArray(MODEL_ATTRIB_NORMALS);
+	glDisableVertexAttribArray(PROG_MODEL_ATTRIB_POSITIONS);
+	glDisableVertexAttribArray(PROG_MODEL_ATTRIB_UVS);
+	glDisableVertexAttribArray(PROG_MODEL_ATTRIB_NORMALS);
 }
