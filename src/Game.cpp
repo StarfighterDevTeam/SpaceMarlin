@@ -4,6 +4,12 @@
 #include "GPUProgramManager.h"
 #include "Drawer.h"
 
+#ifdef _WIN32
+	#include <Windows.h>
+#else
+	#include <unistd.h>
+#endif
+
 #define WIN_TITLE	"SpaceMarlin"
 #define WIN_SIZE_X	1280
 #define WIN_SIZE_Y	720
@@ -112,6 +118,7 @@ void Game::run()
 
 void Game::update()
 {
+	gData.gpuProgramMgr->update();
 	m_scenes[m_curScene]->update();
 }
 
@@ -133,9 +140,39 @@ struct LogRAII
 	}
 } gLogRAII;
 
+std::string getExePath()
+{
+#ifdef _WIN32
+	char buff[MAX_PATH] = "";
+	GetModuleFileNameA(GetModuleHandle(NULL), buff, sizeof(buff));
+#else
+    char buff[PATH_MAX] = "";
+    ssize_t len = ::readlink("/proc/self/exe", buff, sizeof(buff)-1);
+    if(len != -1)
+		buff[len] = '\0';
+#endif
+	for(int i=(int)strlen(buff)-1 ; i >= 0 ; i--)
+	{
+		if(buff[i] == '/' || buff[i] == '\\')
+		{
+			buff[i] = '\0';
+			break;
+		}
+	}
+	return buff;
+}
+
 int main(int argc, char* argv[])
 {
 	Log::open(argc, argv);
+
+	gData.exePath = getExePath();
+	gData.assetsPath = gData.exePath + SDIR_SEP "media";
+	gData.shadersPath = gData.exePath + SDIR_SEP "media" SDIR_SEP "shaders";
+
+	logInfo("gData.exePath = ", gData.exePath);
+	logInfo("gData.assetsPath = ", gData.assetsPath);
+	logInfo("gData.shadersPath = ", gData.shadersPath);
 
 	sf::Uint32 style = sf::Style::Default;
 #ifdef _USE_FULLSCREEN

@@ -58,6 +58,14 @@ T clamp(T a, T minVal, T maxVal)
 	#define sprintf_s sprintf
 #endif
 
+#ifdef _WIN32
+	#define DIR_SEP '\\'
+	#define SDIR_SEP "\\"
+#else
+	#define DIR_SEP '/'
+	#define SDIR_SEP "/"
+#endif
+
 class GPUProgramManager;
 class Drawer;
 
@@ -69,6 +77,9 @@ struct Globals
 	sf::Time			dTime;
 	GPUProgramManager*	gpuProgramMgr;
 	Drawer*				drawer;
+	std::string			exePath;
+	std::string			assetsPath;
+	std::string			shadersPath;
 };
 
 extern Globals gData;
