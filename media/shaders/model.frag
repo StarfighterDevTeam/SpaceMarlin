@@ -4,6 +4,7 @@ precision highp float;
 precision mediump int;
 
 uniform sampler2D texAlbedo;
+uniform float gTime;
 
 //layout(location=0) in vec2 varUv;
 in vec2 varUv;
@@ -18,5 +19,7 @@ void main()
 	vec4 tAlbedo = texture2D(texAlbedo, varUv);
 	
 	fragColor = vec4(tAlbedo.rgb, 1);
-	//fragColor = vec4(varUv.xy,0, 1);
+	//fragColor.r = cos(gTime);
+	if(tAlbedo.a < 0.5)
+		discard;
 }

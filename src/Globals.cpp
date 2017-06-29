@@ -9,6 +9,7 @@ Globals::Globals()
 	winSizeX=0;
 	winSizeY=0;
 	dTime = sf::seconds(1.f/60.f);
+	clock.restart();
 	gpuProgramMgr = NULL;
 	drawer = NULL;
 }

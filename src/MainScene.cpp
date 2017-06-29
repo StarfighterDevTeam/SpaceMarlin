@@ -58,6 +58,7 @@ void MainScene::draw()
 	modelProgram->sendUniform("gModelViewProjMtx", gModelViewProjMtx);
 
 	modelProgram->sendUniform("texAlbedo", 0);
+	modelProgram->sendUniform("gTime", gData.frameTime.asSeconds());
 
 	// Texture:
 //	glActiveTexture(GL_TEXTURE0);

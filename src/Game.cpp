@@ -118,6 +118,7 @@ void Game::run()
 
 void Game::update()
 {
+	gData.frameTime = gData.clock.getElapsedTime();
 	gData.gpuProgramMgr->update();
 	m_scenes[m_curScene]->update();
 }

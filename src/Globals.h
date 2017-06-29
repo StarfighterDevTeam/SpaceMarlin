@@ -75,6 +75,8 @@ struct Globals
 	int					winSizeX;
 	int					winSizeY;
 	sf::Time			dTime;
+	sf::Clock			clock;
+	sf::Time			frameTime;
 	GPUProgramManager*	gpuProgramMgr;
 	Drawer*				drawer;
 	std::string			exePath;

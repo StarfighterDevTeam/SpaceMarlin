@@ -86,6 +86,7 @@ GPUProgram* GPUProgramManager::createProgram(GPUProgramId id)
 				program->setUniformNames(
 					"gModelViewProjMtx",
 					"texAlbedo",
+					"gTime",
 					NULL);
 				bOk = true;
 			}
