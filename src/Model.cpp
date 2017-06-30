@@ -3,6 +3,8 @@
 #include <assimp/Importer.hpp>      // C++ importer interface
 #include <assimp/scene.h>           // Output data structure
 #include <assimp/postprocess.h>     // Post processing flags
+#include "Camera.h"
+#include "GPUProgramManager.h"
 
 #include "glutil/glutil.h"
 
@@ -220,8 +222,27 @@ void Model::unload()
 	m_bLoaded = false;
 }
 
-void Model::draw()
+void Model::draw(const Camera& camera)
 {
+	// OpenGL
+	// X: left
+	// Y: top
+	// Z: front
+	// 
+	// Blender:
+	// X: front
+	// Y: left
+	// Z: top
+
+	glm::mat4 patchedModelMtx = glm::rotate(glm::rotate(m_modelMtx, glm::radians(-90.f), glm::vec3(0.f, 1.f, 0.f)), glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f));
+
+	glm::mat4 modelViewProjMtx = camera.getViewProjMtx() * patchedModelMtx;
+	const GPUProgram* modelProgram = gData.gpuProgramMgr->getProgram(PROG_MODEL);
+	modelProgram->use();
+	modelProgram->sendUniform("gModelViewProjMtx", modelViewProjMtx);
+	modelProgram->sendUniform("texAlbedo", 0);
+	modelProgram->sendUniform("gTime", gData.frameTime.asSeconds());
+
 	if(m_albedoTex != INVALID_GL_ID)
 	{
 		glActiveTexture(GL_TEXTURE0);

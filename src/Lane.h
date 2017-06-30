@@ -4,12 +4,14 @@
 
 #include "Globals.h"
 
+class Camera;
+
 class Lane
 {
 public:
 	void		init();
 	void		shut();
-	void		draw(const glm::mat4& modelViewProjMtx);
+	void		draw(const Camera& camera);
 	void		update();
 
 private:

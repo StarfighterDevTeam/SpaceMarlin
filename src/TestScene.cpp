@@ -93,7 +93,7 @@ void TestScene::draw()
 //	glUseProgram(id_program);
 //	glUniform1i(uniform_texunit, 0);
 
-	m_model.draw();
+//	m_model.draw();
 
 	// Draw the VAO:
 	glBindVertexArray(m_idVAO);

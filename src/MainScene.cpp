@@ -10,20 +10,22 @@
 bool MainScene::init()
 {
 	// Marlin
-	if(!m_marlin.loadFromFile("media/models/marlin/marlin.fbx"))
+	if(!m_bob.loadFromFile("media/models/marlin/marlin.fbx"))
 		return false;
 
 	// Lane
 	m_lane.init();
 
-	m_camera.setToDefault();
+	m_camera.setPosition(glm::vec3(0.f, 3.f, -8.f));
+	m_camera.setFront(glm::normalize(-m_camera.getPosition()));
+	m_camera.setUp(glm::vec3(0.f, 1.f, 0.f));
 
 	return true;
 }
 
 void MainScene::shut()
 {
-	m_marlin.unload();
+	m_bob.unload();
 	m_lane.shut();
 }
 
@@ -42,27 +44,21 @@ void MainScene::draw()
 	// Cull triangles which normal is not towards the camera
 	glEnable(GL_CULL_FACE);
 
-	const GPUProgram* modelProgram = gData.gpuProgramMgr->getProgram(PROG_MODEL);
-	modelProgram->use();
-
-	glm::mat4 modelViewProjMtx;
-	static float gfCurAngle = 0.f;
-	static float gfSpeed = 0.001f;
-	gfCurAngle += gfSpeed * gData.dTime.asMilliseconds();
-	glm::mat4 modelMtx = glm::rotate(glm::mat4(), gfCurAngle, glm::vec3(0.f, 1.f, 0.f));
+	//static float gfCurAngle = 0.f;
+	//static float gfSpeed = 0.001f;
+	//gfCurAngle += gfSpeed * gData.dTime.asMilliseconds();
+	//m_bob.setModelMtx(glm::rotate(glm::mat4(), gfCurAngle, glm::vec3(0.f, 1.f, 0.f)));
+	m_bob.setModelMtx(glm::mat4());
+	m_bob.setPosition(glm::vec3(0.f, cosf(4.f*gData.frameTime.asSeconds()), 0.f));
 	
-	modelViewProjMtx = m_camera.getViewProjMtx() * modelMtx;
-	modelProgram->sendUniform("gModelViewProjMtx", modelViewProjMtx);
+	glm::mat4 modelViewProjMtx = m_camera.getViewProjMtx() * m_bob.getModelMtx();
+	
+	m_bob.draw(m_camera);
 
-	modelProgram->sendUniform("texAlbedo", 0);
-	modelProgram->sendUniform("gTime", gData.frameTime.asSeconds());
-
-	m_marlin.draw();
-
-	m_lane.draw(modelViewProjMtx);
+	m_lane.draw(m_camera);
 
 	// Debug model gizmo
-	gData.drawer->drawLine(modelViewProjMtx, glm::vec3(0,0,0), COLOR_RED,	glm::vec3(3,0,0), COLOR_RED		);
-	gData.drawer->drawLine(modelViewProjMtx, glm::vec3(0,0,0), COLOR_GREEN,	glm::vec3(0,3,0), COLOR_GREEN	);
-	gData.drawer->drawLine(modelViewProjMtx, glm::vec3(0,0,0), COLOR_BLUE,	glm::vec3(0,0,3), COLOR_BLUE	);
+	gData.drawer->drawLine(m_camera, glm::vec3(0,0,0), COLOR_RED,	glm::vec3(3,0,0), COLOR_RED		);
+	gData.drawer->drawLine(m_camera, glm::vec3(0,0,0), COLOR_GREEN,	glm::vec3(0,3,0), COLOR_GREEN	);
+	gData.drawer->drawLine(m_camera, glm::vec3(0,0,0), COLOR_BLUE,	glm::vec3(0,0,3), COLOR_BLUE	);
 }

@@ -1,6 +1,7 @@
 #include "Drawer.h"
 #include "GPUProgramManager.h"
 #include "SharedDefines.h"
+#include "Camera.h"
 
 void Drawer::init()
 {
@@ -24,11 +25,11 @@ void Drawer::shut()
 	glDeleteVertexArrays(1, &m_lineVertexArrayID);
 }
 
-void Drawer::drawLine(const glm::mat4& modelViewProjMtx, glm::vec3 pos0, glm::vec4 col0, glm::vec3 pos1, glm::vec4 col1)
+void Drawer::drawLine(const Camera& camera, glm::vec3 pos0, glm::vec4 col0, glm::vec3 pos1, glm::vec4 col1)
 {
 	const GPUProgram* program = gData.gpuProgramMgr->getProgram(PROG_SIMPLE);
 	program->use();
-	program->sendUniform("gModelViewProjMtx", modelViewProjMtx);
+	program->sendUniform("gModelViewProjMtx", camera.getViewProjMtx());
 	
 	glBindVertexArray(m_lineVertexArrayID);
 	glBindBuffer(GL_ARRAY_BUFFER, m_lineBufferID);

@@ -13,7 +13,7 @@
 class MainScene : public Scene
 {
 private:
-	Model			m_marlin;
+	Model			m_bob;
 	Lane			m_lane;
 	Camera			m_camera;
 
