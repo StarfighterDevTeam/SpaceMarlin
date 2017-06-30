@@ -12,6 +12,7 @@ Globals::Globals()
 	clock.restart();
 	gpuProgramMgr = NULL;
 	drawer = NULL;
+	soundMgr = NULL;
 }
 
 #ifdef _WIN32
