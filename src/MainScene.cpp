@@ -11,7 +11,7 @@
 bool MainScene::init()
 {
 	// Marlin
-	if(!m_bob.loadFromFile("media/models/marlin/marlin.fbx"))
+	if(!m_bob.loadFromFile((gData.assetsPath + "/models/marlin/marlin.fbx").c_str()))
 		return false;
 
 	// Lane

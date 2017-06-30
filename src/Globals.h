@@ -57,6 +57,7 @@ T clamp(T a, T minVal, T maxVal)
 
 #ifndef _WIN32
 	#define sprintf_s sprintf
+	#define strncpy_s strncpy
 #endif
 
 #ifdef _WIN32

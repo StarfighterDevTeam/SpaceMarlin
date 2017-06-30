@@ -28,7 +28,10 @@ bool Model::loadFromFile(const char * path)
 	for(int i=(int)strlen(path)-1 ; i >= 0 ; i--)
 	{
 		if(path[i] == '/' || path[i] == '\\')
-			strncpy(materialsDir, path, i+1);
+		{
+			strncpy_s(materialsDir, path, i+1);
+			break;
+		}
 	}
 
 	return loadFromAssImpMesh(mesh, scene, materialsDir);
