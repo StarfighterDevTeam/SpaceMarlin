@@ -41,6 +41,8 @@
     <ClCompile Include="src\TestScene.cpp" />
     <ClCompile Include="src\GPUProgramManager.cpp" />
     <ClCompile Include="src\Drawer.cpp" />
+    <ClCompile Include="src\Lane.cpp" />
+    <ClCompile Include="src\Camera.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Game.h" />
@@ -88,6 +90,8 @@
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\GPUProgramManager.h" />
     <ClInclude Include="src\Drawer.h" />
+    <ClInclude Include="src\Lane.h" />
+    <ClInclude Include="src\Camera.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="log">

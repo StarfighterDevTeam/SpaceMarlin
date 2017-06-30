@@ -7,11 +7,15 @@
 #include "glutil\GPUProgram.h"
 #include "glutil\Quad.h"
 #include "Model.h"
+#include "Lane.h"
+#include "Camera.h"
 
 class MainScene : public Scene
 {
 private:
-	Model			m_model;
+	Model			m_marlin;
+	Lane			m_lane;
+	Camera			m_camera;
 
 public:
 	virtual bool init() override;

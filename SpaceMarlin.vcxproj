@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\Drawer.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\Globals.cpp" />
@@ -19,6 +20,7 @@
     <ClCompile Include="src\glutil\Quad.cpp" />
     <ClCompile Include="src\glutil\TextureCreation.cpp" />
     <ClCompile Include="src\GPUProgramManager.cpp" />
+    <ClCompile Include="src\Lane.cpp" />
     <ClCompile Include="src\log\Log.cpp" />
     <ClCompile Include="src\log\LogHTML.cpp" />
     <ClCompile Include="src\log\LogRTF.cpp" />
@@ -31,6 +33,7 @@
     <ClCompile Include="src\TestScene.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Drawer.h" />
     <ClInclude Include="src\Game.h" />
     <ClInclude Include="src\Globals.h" />
@@ -41,6 +44,7 @@
     <ClInclude Include="src\glutil\RAII.h" />
     <ClInclude Include="src\glutil\TextureCreation.h" />
     <ClInclude Include="src\GPUProgramManager.h" />
+    <ClInclude Include="src\Lane.h" />
     <ClInclude Include="src\log\Log.h" />
     <ClInclude Include="src\log\LogHTMLContents.h" />
     <ClInclude Include="src\log\LogRTFContents.h" />

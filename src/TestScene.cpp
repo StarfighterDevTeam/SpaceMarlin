@@ -1,7 +1,6 @@
 #include "TestScene.h"
 
 #include "glutil/glutil.h"
-#include <glm/gtc/matrix_transform.hpp>
 
 #include "GPUProgramManager.h"
 #include "SharedDefines.h"
