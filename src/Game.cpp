@@ -4,6 +4,7 @@
 #include "GPUProgramManager.h"
 #include "Drawer.h"
 #include "SoundManager.h"
+#include "InputManager.h"
 
 #ifdef _WIN32
 	#include <Windows.h>
@@ -55,6 +56,7 @@ bool Game::init(sf::RenderWindow* window)
 	INIT_MGR(gData.gpuProgramMgr);
 	INIT_MGR(gData.drawer);
 	INIT_MGR(gData.soundMgr);
+	INIT_MGR(gData.inputMgr);
 
 	// Init Assimp logging
 	// get a handle to the predefined STDOUT log stream and attach
@@ -92,6 +94,7 @@ void Game::shut()
 	SHUT_MGR(gData.drawer);
 	SHUT_MGR(gData.gpuProgramMgr);
 	SHUT_MGR(gData.soundMgr);
+	SHUT_MGR(gData.inputMgr);
 }
 
 void Game::run()
@@ -124,6 +127,7 @@ void Game::update()
 	gData.frameTime = gData.clock.getElapsedTime();
 	gData.gpuProgramMgr->update();
 	gData.soundMgr->update();
+	gData.inputMgr->update();
 	m_scenes[m_curScene]->update();
 }
 

@@ -6,6 +6,7 @@
 
 #include "GPUProgramManager.h"
 #include "Drawer.h"
+#include "InputManager.h"
 
 bool MainScene::init()
 {
@@ -48,8 +49,16 @@ void MainScene::draw()
 	//static float gfSpeed = 0.001f;
 	//gfCurAngle += gfSpeed * gData.dTime.asMilliseconds();
 	//m_bob.setModelMtx(glm::rotate(glm::mat4(), gfCurAngle, glm::vec3(0.f, 1.f, 0.f)));
-	m_bob.setModelMtx(glm::mat4());
-	m_bob.setPosition(glm::vec3(0.f, cosf(4.f*gData.frameTime.asSeconds()), 0.f));
+	float offsetX = 0.f;
+	if(gData.inputMgr->isLeftPressed())
+		offsetX += gData.frameTime.asSeconds() * 0.01f;
+	if(gData.inputMgr->isRightPressed())
+		offsetX -= gData.frameTime.asSeconds() * 0.01f;
+
+	m_bob.setPosition(glm::vec3(
+		m_bob.getPosition().x + offsetX,
+		cosf(4.f*gData.frameTime.asSeconds()),
+		0.f));
 	
 	glm::mat4 modelViewProjMtx = m_camera.getViewProjMtx() * m_bob.getModelMtx();
 	

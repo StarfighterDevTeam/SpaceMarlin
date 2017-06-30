@@ -20,6 +20,7 @@
     <ClCompile Include="src\glutil\Quad.cpp" />
     <ClCompile Include="src\glutil\TextureCreation.cpp" />
     <ClCompile Include="src\GPUProgramManager.cpp" />
+    <ClCompile Include="src\InputManager.cpp" />
     <ClCompile Include="src\Lane.cpp" />
     <ClCompile Include="src\log\Log.cpp" />
     <ClCompile Include="src\log\LogHTML.cpp" />
@@ -45,6 +46,7 @@
     <ClInclude Include="src\glutil\RAII.h" />
     <ClInclude Include="src\glutil\TextureCreation.h" />
     <ClInclude Include="src\GPUProgramManager.h" />
+    <ClInclude Include="src\InputManager.h" />
     <ClInclude Include="src\Lane.h" />
     <ClInclude Include="src\log\Log.h" />
     <ClInclude Include="src\log\LogHTMLContents.h" />

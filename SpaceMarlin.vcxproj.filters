@@ -44,6 +44,7 @@
     <ClCompile Include="src\Lane.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\SoundManager.cpp" />
+    <ClCompile Include="src\InputManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Game.h" />
@@ -94,6 +95,7 @@
     <ClInclude Include="src\Lane.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\SoundManager.h" />
+    <ClInclude Include="src\InputManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="log">

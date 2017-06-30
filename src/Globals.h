@@ -70,6 +70,7 @@ T clamp(T a, T minVal, T maxVal)
 class GPUProgramManager;
 class Drawer;
 class SoundManager;
+class InputManager;
 
 struct Globals
 {
@@ -82,6 +83,7 @@ struct Globals
 	GPUProgramManager*	gpuProgramMgr;
 	Drawer*				drawer;
 	SoundManager*		soundMgr;
+	InputManager*		inputMgr;
 	std::string			exePath;
 	std::string			assetsPath;
 	std::string			shadersPath;
