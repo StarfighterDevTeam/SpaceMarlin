@@ -8,3 +8,5 @@ SpaceMarlin.sdf
 *.ilk
 *.opensdf
 *.suo
+*.iobj
+*.ipdb
