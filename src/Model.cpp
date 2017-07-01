@@ -201,14 +201,13 @@ void Model::draw(const Camera& camera)
 	// Z: back
 
 	// Blender:			in OpenGL space:
-	// X: front			-Z:  0, 0,-1
-	// Y: left			-X: -1, 0, 0
-	// Z: top			Y:   0, 1, 0
+	// X: back			Z: 0, 0,1
+	// Y: right			X: 1, 0, 0
+	// Z: top			Y: 0, 1, 0
 
-	//glm::mat4 patchedModelMtx = glm::rotate(glm::rotate(m_modelMtx, glm::radians(-90.f), glm::vec3(0.f, 1.f, 0.f)), glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f));
 	mat4 blenderToOpenGLMtx;
-	blenderToOpenGLMtx[0] = vec4( 0,  0, -1,  0);
-	blenderToOpenGLMtx[1] = vec4(-1,  0,  0,  0);
+	blenderToOpenGLMtx[0] = vec4( 0,  0,  1,  0);
+	blenderToOpenGLMtx[1] = vec4( 1,  0,  0,  0);
 	blenderToOpenGLMtx[2] = vec4( 0,  1,  0,  0);
 	blenderToOpenGLMtx[3] = vec4( 0,  0,  0,  1);
 
