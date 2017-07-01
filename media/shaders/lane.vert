@@ -5,25 +5,14 @@
 precision highp float;
 precision highp int;
 
-layout(location=PROG_MODEL_ATTRIB_POSITIONS)	in vec3 pos;
-layout(location=PROG_MODEL_ATTRIB_UVS)			in vec2 uv;
-layout(location=PROG_MODEL_ATTRIB_NORMALS)		in vec3 normal;
+layout(location=PROG_LANE_ATTRIB_POSITIONS)	in vec3 pos;
 
 uniform mat4 gModelViewProjMtx;
-//uniform mat4 gProjectionMtx;
-//in vec2 vertex_texcoords;
 
-//smooth out vec2 var_texcoords;
-
-//layout (location=0) out vec2 varUv;
 out vec2 varUv;
 
 void main()
 {
-	//var_texcoords = vertex_texcoords;
-	//gl_Position = vec4(vertex_position, 0.0, 1.0);
-	
-	varUv = uv;
-	//gl_Position = vec4(pos, 0.0, 1.0);
+	varUv = pos.xz;
 	gl_Position = gModelViewProjMtx * vec4(pos, 1.0);
 }

@@ -205,9 +205,9 @@ void Model::draw(const Camera& camera)
 	}
 
 	glBindVertexArray(m_vertexArrayId);
-	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
-
+	
 	// Vertex buffer
+	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
 	glEnableVertexAttribArray(PROG_MODEL_ATTRIB_POSITIONS);
 	glEnableVertexAttribArray(PROG_MODEL_ATTRIB_UVS);
 	glEnableVertexAttribArray(PROG_MODEL_ATTRIB_NORMALS);

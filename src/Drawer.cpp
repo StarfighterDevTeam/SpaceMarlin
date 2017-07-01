@@ -44,7 +44,7 @@ void Drawer::drawLine(const Camera& camera, glm::vec3 pos0, glm::vec4 col0, glm:
 	glEnableVertexAttribArray(PROG_SIMPLE_ATTRIB_POSITIONS);
 	glEnableVertexAttribArray(PROG_SIMPLE_ATTRIB_COLORS);
 
-	glVertexAttribPointer(PROG_SIMPLE_ATTRIB_POSITIONS,	sizeof(VtxSimple::pos)/sizeof(float),	GL_FLOAT, GL_FALSE, sizeof(VtxSimple), (const GLvoid*)offsetof(VtxSimple, pos));
+	glVertexAttribPointer(PROG_SIMPLE_ATTRIB_POSITIONS,	sizeof(VtxSimple::pos)/sizeof(float),	GL_FLOAT, GL_FALSE, sizeof(VtxSimple),	(const GLvoid*)offsetof(VtxSimple, pos));
 	glVertexAttribPointer(PROG_SIMPLE_ATTRIB_COLORS,	sizeof(VtxSimple::color)/sizeof(float),	GL_FLOAT, GL_FALSE, sizeof(VtxSimple),	(const GLvoid*)offsetof(VtxSimple, color));
 
 	// - draw

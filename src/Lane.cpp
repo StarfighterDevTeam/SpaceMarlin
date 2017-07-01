@@ -2,6 +2,13 @@
 #include "Drawer.h"
 #include "GPUProgramManager.h"
 
+#include "Camera.h"
+#include "GPUProgramManager.h"
+
+#include "glutil/glutil.h"
+
+#include "SharedDefines.h"
+
 void Lane::init()
 {
 	assert(!m_vertices.size());
@@ -12,69 +19,94 @@ void Lane::init()
 	vtx.pos = glm::vec3(+gfQuadSize,0,+gfQuadSize); m_vertices.push_back(vtx);
 	vtx.pos = glm::vec3(-gfQuadSize,0,+gfQuadSize); m_vertices.push_back(vtx);
 
+	m_indices.push_back(0);
+	m_indices.push_back(1);
+	m_indices.push_back(2);
+
+	m_indices.push_back(0);
+	m_indices.push_back(2);
+	m_indices.push_back(3);
+
 	// Send to GPU
-#if 0
 	{
 		glGenVertexArrays(1, &m_vertexArrayId);
 		glBindVertexArray(m_vertexArrayId);
 
-		// Load into VBOs
-
+		// Load into the VBO
 		glGenBuffers(1, &m_vertexBufferId);
 		glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
-		glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(VtxLane), &m_vertices[0].pos, GL_STATIC_DRAW);
-
-		glGenBuffers(1, &m_uvsBufferId);
-		glBindBuffer(GL_ARRAY_BUFFER, m_uvsBufferId);
-		glBufferData(GL_ARRAY_BUFFER, m_uvs.size() * sizeof(glm::vec2), &m_uvs[0], GL_STATIC_DRAW);
-
-		glGenBuffers(1, &m_normalsBufferId);
-		glBindBuffer(GL_ARRAY_BUFFER, m_normalsBufferId);
-		glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(glm::vec3), &m_normals[0], GL_STATIC_DRAW);
-
-		assert(	(  m_boneIndices.size() &&  m_boneWeights.size() ) ||
-				( !m_boneIndices.size() && !m_boneWeights.size() )
-			);
-		if(m_boneIndices.size())
-		{
-			glGenBuffers(1, &m_boneIndicesBufferId);
-			glBindBuffer(GL_ARRAY_BUFFER, m_boneIndicesBufferId);
-			glBufferData(GL_ARRAY_BUFFER, m_boneIndices.size() * sizeof(glm::u8vec4), &m_boneIndices[0], GL_STATIC_DRAW);
-		}
-
-		if(m_boneWeights.size())
-		{
-			glGenBuffers(1, &m_boneWeightsBufferId);
-			glBindBuffer(GL_ARRAY_BUFFER, m_boneWeightsBufferId);
-			glBufferData(GL_ARRAY_BUFFER, m_boneWeights.size() * sizeof(glm::u8vec4), &m_boneWeights[0], GL_STATIC_DRAW);
-		}
+		glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(VtxLane), &m_vertices[0], GL_STATIC_DRAW);
 
 		// Generate a buffer for the indices as well
 		glGenBuffers(1, &m_indexBufferId);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned short), &m_indices[0] , GL_STATIC_DRAW);
 	}
-#endif
 }
 
 void Lane::shut()
 {
+	assert(m_indices.size());
+	assert(m_vertices.size());
+
+	m_indices.clear();
 	m_vertices.clear();
+
+	glDeleteBuffers(1, &m_vertexBufferId); m_vertexBufferId = INVALID_GL_ID;
+	glDeleteVertexArrays(1, &m_vertexArrayId); m_vertexArrayId = INVALID_GL_ID;
 }
 
 void Lane::draw(const Camera& camera)
 {
 	static float gfQuadSize = 1.f;
-	const glm::vec3 quadPos[] = {
-		glm::vec3(-gfQuadSize,0,-gfQuadSize),
-		glm::vec3(+gfQuadSize,0,-gfQuadSize),
-		glm::vec3(+gfQuadSize,0,+gfQuadSize),
-		glm::vec3(-gfQuadSize,0,+gfQuadSize),
+	const vec3 quadPos[] = {
+		vec3(-gfQuadSize,0,-gfQuadSize),
+		vec3(+gfQuadSize,0,-gfQuadSize),
+		vec3(+gfQuadSize,0,+gfQuadSize),
+		vec3(-gfQuadSize,0,+gfQuadSize),
 	};
 	gData.drawer->drawLine(camera, quadPos[0], COLOR_BLUE, quadPos[1], COLOR_BLUE);
 	gData.drawer->drawLine(camera, quadPos[1], COLOR_BLUE, quadPos[2], COLOR_BLUE);
 	gData.drawer->drawLine(camera, quadPos[2], COLOR_BLUE, quadPos[3], COLOR_BLUE);
 	gData.drawer->drawLine(camera, quadPos[3], COLOR_BLUE, quadPos[0], COLOR_BLUE);
+
+	mat4 modelMtx;
+	mat4 modelViewProjMtx = camera.getViewProjMtx() * modelMtx;
+	const GPUProgram* laneProgram = gData.gpuProgramMgr->getProgram(PROG_LANE);
+	laneProgram->use();
+	laneProgram->sendUniform("gModelViewProjMtx", modelViewProjMtx);
+	//laneProgram->sendUniform("texAlbedo", 0);
+	laneProgram->sendUniform("gTime", gData.frameTime.asSeconds());
+
+	//if(m_albedoTex != INVALID_GL_ID)
+	//{
+	//	glActiveTexture(GL_TEXTURE0);
+	//	glBindTexture(GL_TEXTURE_2D, m_albedoTex);
+	//}
+
+	glBindVertexArray(m_vertexArrayId);
+	
+	// Vertex buffer
+	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
+	glEnableVertexAttribArray(PROG_LANE_ATTRIB_POSITIONS);
+
+	glVertexAttribPointer(PROG_LANE_ATTRIB_POSITIONS	, sizeof(VtxLane::pos)			/sizeof(GLfloat),	GL_FLOAT,			GL_FALSE,	sizeof(VtxLane), (const GLvoid*)offsetof(VtxLane, pos));
+
+	// Index buffer
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
+
+	glDisable(GL_CULL_FACE);
+
+	// Draw the triangles !
+	glDrawElements(
+		GL_TRIANGLES,				 // mode
+		(GLsizei)m_indices.size(),    // count
+		GL_UNSIGNED_SHORT,			  // type
+		(void*)0					// element array buffer offset
+	);
+
+	glEnable(GL_CULL_FACE);
+	glDisableVertexAttribArray(PROG_LANE_ATTRIB_POSITIONS);
 }
 
 void Lane::update()
