@@ -9,10 +9,12 @@
 #include "Model.h"
 #include "Lane.h"
 #include "Camera.h"
+#include "Skybox.h"
 
 class MainScene : public Scene
 {
 private:
+	Skybox			m_skybox;
 	Model			m_bob;
 	Lane			m_lane;
 	Camera			m_camera;

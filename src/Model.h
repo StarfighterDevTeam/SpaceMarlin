@@ -21,7 +21,7 @@ protected:
 	GLuint						m_indexBufferId;
 	GLuint						m_vertexBufferId;
 
-	GLuint						m_albedoTex;
+	GLuint						m_albedoTexId;
 
 	glm::mat4					m_modelMtx;
 	

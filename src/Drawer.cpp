@@ -15,6 +15,14 @@ void Drawer::init()
 
 		const GLsizeiptr total_size = 2*sizeof(VtxSimple);	// 2 vertices, each one having (x, y, z) and (r, g, b, a).
 		glBufferData(GL_ARRAY_BUFFER, total_size, NULL, GL_STREAM_DRAW);
+
+		glEnableVertexAttribArray(PROG_SIMPLE_ATTRIB_POSITIONS);
+		glEnableVertexAttribArray(PROG_SIMPLE_ATTRIB_COLORS);
+
+		glVertexAttribPointer(PROG_SIMPLE_ATTRIB_POSITIONS,	sizeof(VtxSimple::pos)/sizeof(float),	GL_FLOAT, GL_FALSE, sizeof(VtxSimple),	(const GLvoid*)offsetof(VtxSimple, pos));
+		glVertexAttribPointer(PROG_SIMPLE_ATTRIB_COLORS,	sizeof(VtxSimple::color)/sizeof(float),	GL_FLOAT, GL_FALSE, sizeof(VtxSimple),	(const GLvoid*)offsetof(VtxSimple, color));
+
+		glBindVertexArray(0);
 	}
 }
 
@@ -32,8 +40,9 @@ void Drawer::drawLine(const Camera& camera, glm::vec3 pos0, glm::vec4 col0, glm:
 	program->sendUniform("gModelViewProjMtx", camera.getViewProjMtx());
 	
 	glBindVertexArray(m_lineVertexArrayID);
-	glBindBuffer(GL_ARRAY_BUFFER, m_lineBufferID);
 	
+	glBindBuffer(GL_ARRAY_BUFFER, m_lineBufferID);
+
 	VtxSimple vertices[] = {
 		{pos0, col0},
 		{pos1, col1},
@@ -41,15 +50,8 @@ void Drawer::drawLine(const Camera& camera, glm::vec3 pos0, glm::vec4 col0, glm:
 	const size_t nbVertices = _countof(vertices);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), (const GLvoid*)vertices, GL_STREAM_DRAW);
 	
-	glEnableVertexAttribArray(PROG_SIMPLE_ATTRIB_POSITIONS);
-	glEnableVertexAttribArray(PROG_SIMPLE_ATTRIB_COLORS);
-
-	glVertexAttribPointer(PROG_SIMPLE_ATTRIB_POSITIONS,	sizeof(VtxSimple::pos)/sizeof(float),	GL_FLOAT, GL_FALSE, sizeof(VtxSimple),	(const GLvoid*)offsetof(VtxSimple, pos));
-	glVertexAttribPointer(PROG_SIMPLE_ATTRIB_COLORS,	sizeof(VtxSimple::color)/sizeof(float),	GL_FLOAT, GL_FALSE, sizeof(VtxSimple),	(const GLvoid*)offsetof(VtxSimple, color));
-
 	// - draw
 	glDrawArrays(GL_LINES, 0, nbVertices);
 
-	glDisableVertexAttribArray(PROG_SIMPLE_ATTRIB_POSITIONS);
-	glDisableVertexAttribArray(PROG_SIMPLE_ATTRIB_COLORS);
+	glBindVertexArray(0);
 }

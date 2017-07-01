@@ -12,6 +12,8 @@
 
 #define PROG_LANE_ATTRIB_POSITIONS		0
 
+#define PROG_SKYBOX_ATTRIB_POSITIONS	0
+
 #ifdef __cplusplus
 	#define U8VEC4 glm::u8vec4
 #else

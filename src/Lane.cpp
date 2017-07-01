@@ -1,12 +1,8 @@
 #include "Lane.h"
 #include "Drawer.h"
 #include "GPUProgramManager.h"
-
 #include "Camera.h"
-#include "GPUProgramManager.h"
-
 #include "glutil/glutil.h"
-
 #include "SharedDefines.h"
 
 void Lane::init()
@@ -41,6 +37,13 @@ void Lane::init()
 		glGenBuffers(1, &m_indexBufferId);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned short), &m_indices[0] , GL_STATIC_DRAW);
+
+		// Vertex buffer
+		glEnableVertexAttribArray(PROG_LANE_ATTRIB_POSITIONS);
+
+		glVertexAttribPointer(PROG_LANE_ATTRIB_POSITIONS	, sizeof(VtxLane::pos)			/sizeof(GLfloat),	GL_FLOAT,			GL_FALSE,	sizeof(VtxLane), (const GLvoid*)offsetof(VtxLane, pos));
+
+		glBindVertexArray(0);
 	}
 }
 
@@ -53,6 +56,7 @@ void Lane::shut()
 	m_vertices.clear();
 
 	glDeleteBuffers(1, &m_vertexBufferId); m_vertexBufferId = INVALID_GL_ID;
+	glDeleteBuffers(1, &m_indexBufferId); m_indexBufferId = INVALID_GL_ID;
 	glDeleteVertexArrays(1, &m_vertexArrayId); m_vertexArrayId = INVALID_GL_ID;
 }
 
@@ -86,15 +90,6 @@ void Lane::draw(const Camera& camera)
 
 	glBindVertexArray(m_vertexArrayId);
 	
-	// Vertex buffer
-	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
-	glEnableVertexAttribArray(PROG_LANE_ATTRIB_POSITIONS);
-
-	glVertexAttribPointer(PROG_LANE_ATTRIB_POSITIONS	, sizeof(VtxLane::pos)			/sizeof(GLfloat),	GL_FLOAT,			GL_FALSE,	sizeof(VtxLane), (const GLvoid*)offsetof(VtxLane, pos));
-
-	// Index buffer
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
-
 	glDisable(GL_CULL_FACE);
 
 	// Draw the triangles !
@@ -106,7 +101,6 @@ void Lane::draw(const Camera& camera)
 	);
 
 	glEnable(GL_CULL_FACE);
-	glDisableVertexAttribArray(PROG_LANE_ATTRIB_POSITIONS);
 }
 
 void Lane::update()

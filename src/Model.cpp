@@ -113,10 +113,25 @@ bool Model::loadFromAssImpMesh(const aiMesh* mesh, const aiScene* scene, const c
 		glGenBuffers(1, &m_indexBufferId);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned short), &m_indices[0] , GL_STATIC_DRAW);
+
+		// Vertex buffer
+		glEnableVertexAttribArray(PROG_MODEL_ATTRIB_POSITIONS);
+		glEnableVertexAttribArray(PROG_MODEL_ATTRIB_UVS);
+		glEnableVertexAttribArray(PROG_MODEL_ATTRIB_NORMALS);
+		glEnableVertexAttribArray(PROG_MODEL_ATTRIB_BONE_INDICES);
+		glEnableVertexAttribArray(PROG_MODEL_ATTRIB_BONE_WEIGHTS);
+
+		glVertexAttribPointer(PROG_MODEL_ATTRIB_POSITIONS	, sizeof(VtxModel::pos)			/sizeof(GLfloat),	GL_FLOAT,			GL_FALSE,	sizeof(VtxModel), (const GLvoid*)offsetof(VtxModel, pos));
+		glVertexAttribPointer(PROG_MODEL_ATTRIB_UVS			, sizeof(VtxModel::uv)			/sizeof(GLfloat),	GL_FLOAT,			GL_FALSE,	sizeof(VtxModel), (const GLvoid*)offsetof(VtxModel, uv));
+		glVertexAttribPointer(PROG_MODEL_ATTRIB_NORMALS		, sizeof(VtxModel::normal)		/sizeof(GLfloat),	GL_FLOAT,			GL_FALSE,	sizeof(VtxModel), (const GLvoid*)offsetof(VtxModel, normal));
+		glVertexAttribPointer(PROG_MODEL_ATTRIB_BONE_INDICES, sizeof(VtxModel::boneIndices)	/sizeof(GLubyte),	GL_UNSIGNED_BYTE,	GL_TRUE,	sizeof(VtxModel), (const GLvoid*)offsetof(VtxModel, boneIndices));
+		glVertexAttribPointer(PROG_MODEL_ATTRIB_BONE_WEIGHTS, sizeof(VtxModel::boneWeights)	/sizeof(GLubyte),	GL_UNSIGNED_BYTE,	GL_TRUE,	sizeof(VtxModel), (const GLvoid*)offsetof(VtxModel, boneWeights));
+
+		glBindVertexArray(0);
 	}
 
 	// ----------------- Handle material ---------------
-	m_albedoTex = INVALID_GL_ID;
+	m_albedoTexId = INVALID_GL_ID;
 
 	if(mesh->mMaterialIndex >= 0 && mesh->mMaterialIndex < scene->mNumMaterials)
 	{
@@ -129,8 +144,8 @@ bool Model::loadFromAssImpMesh(const aiMesh* mesh, const aiScene* scene, const c
 			{
 				img.flipVertically();
 
-				glGenTextures(1, &m_albedoTex);
-				glBindTexture(GL_TEXTURE_2D, m_albedoTex);
+				glGenTextures(1, &m_albedoTexId);
+				glBindTexture(GL_TEXTURE_2D, m_albedoTexId);
 
 				// Set the filter
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -165,13 +180,14 @@ void Model::unload()
 	m_indices.clear();
 	m_vertices.clear();
 
-	if(m_albedoTex != INVALID_GL_ID)
+	if(m_albedoTexId != INVALID_GL_ID)
 	{
-		glDeleteTextures(1, &m_albedoTex);
-		m_albedoTex = INVALID_GL_ID;
+		glDeleteTextures(1, &m_albedoTexId);
+		m_albedoTexId = INVALID_GL_ID;
 	}
 	
 	glDeleteBuffers(1, &m_vertexBufferId); m_vertexBufferId = INVALID_GL_ID;
+	glDeleteBuffers(1, &m_indexBufferId); m_indexBufferId = INVALID_GL_ID;
 	glDeleteVertexArrays(1, &m_vertexArrayId); m_vertexArrayId = INVALID_GL_ID;
 
 	m_bLoaded = false;
@@ -198,30 +214,13 @@ void Model::draw(const Camera& camera)
 	modelProgram->sendUniform("texAlbedo", 0);
 	modelProgram->sendUniform("gTime", gData.frameTime.asSeconds());
 
-	if(m_albedoTex != INVALID_GL_ID)
+	if(m_albedoTexId != INVALID_GL_ID)
 	{
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, m_albedoTex);
+		glBindTexture(GL_TEXTURE_2D, m_albedoTexId);
 	}
 
 	glBindVertexArray(m_vertexArrayId);
-	
-	// Vertex buffer
-	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
-	glEnableVertexAttribArray(PROG_MODEL_ATTRIB_POSITIONS);
-	glEnableVertexAttribArray(PROG_MODEL_ATTRIB_UVS);
-	glEnableVertexAttribArray(PROG_MODEL_ATTRIB_NORMALS);
-	glEnableVertexAttribArray(PROG_MODEL_ATTRIB_BONE_INDICES);
-	glEnableVertexAttribArray(PROG_MODEL_ATTRIB_BONE_WEIGHTS);
-
-	glVertexAttribPointer(PROG_MODEL_ATTRIB_POSITIONS	, sizeof(VtxModel::pos)			/sizeof(GLfloat),	GL_FLOAT,			GL_FALSE,	sizeof(VtxModel), (const GLvoid*)offsetof(VtxModel, pos));
-	glVertexAttribPointer(PROG_MODEL_ATTRIB_UVS			, sizeof(VtxModel::uv)			/sizeof(GLfloat),	GL_FLOAT,			GL_FALSE,	sizeof(VtxModel), (const GLvoid*)offsetof(VtxModel, uv));
-	glVertexAttribPointer(PROG_MODEL_ATTRIB_NORMALS		, sizeof(VtxModel::normal)		/sizeof(GLfloat),	GL_FLOAT,			GL_FALSE,	sizeof(VtxModel), (const GLvoid*)offsetof(VtxModel, normal));
-	glVertexAttribPointer(PROG_MODEL_ATTRIB_BONE_INDICES, sizeof(VtxModel::boneIndices)	/sizeof(GLubyte),	GL_UNSIGNED_BYTE,	GL_TRUE,	sizeof(VtxModel), (const GLvoid*)offsetof(VtxModel, boneIndices));
-	glVertexAttribPointer(PROG_MODEL_ATTRIB_BONE_WEIGHTS, sizeof(VtxModel::boneWeights)	/sizeof(GLubyte),	GL_UNSIGNED_BYTE,	GL_TRUE,	sizeof(VtxModel), (const GLvoid*)offsetof(VtxModel, boneWeights));
-
-	// Index buffer
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
 
 	// Draw the triangles !
 	glDrawElements(
@@ -230,10 +229,4 @@ void Model::draw(const Camera& camera)
 		GL_UNSIGNED_SHORT,			  // type
 		(void*)0					// element array buffer offset
 	);
-
-	glDisableVertexAttribArray(PROG_MODEL_ATTRIB_POSITIONS);
-	glDisableVertexAttribArray(PROG_MODEL_ATTRIB_UVS);
-	glDisableVertexAttribArray(PROG_MODEL_ATTRIB_NORMALS);
-	glDisableVertexAttribArray(PROG_MODEL_ATTRIB_BONE_INDICES);
-	glDisableVertexAttribArray(PROG_MODEL_ATTRIB_BONE_WEIGHTS);
 }

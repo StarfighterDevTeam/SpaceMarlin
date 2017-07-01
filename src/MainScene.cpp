@@ -10,7 +10,27 @@
 
 bool MainScene::init()
 {
-	// Marlin
+	// Skybox
+	std::string cubemapFilenames[6] = {
+		gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "purple-nebula-complex_right1.png",
+		gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "purple-nebula-complex_left2.png",
+		gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "purple-nebula-complex_top3.png",
+		gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "purple-nebula-complex_bottom4.png",
+		gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "purple-nebula-complex_front5.png",
+		gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "purple-nebula-complex_back6.png",
+	};
+	
+	if(!m_skybox.loadFromFiles(
+		cubemapFilenames[0].c_str(),
+		cubemapFilenames[1].c_str(),
+		cubemapFilenames[2].c_str(),
+		cubemapFilenames[3].c_str(),
+		cubemapFilenames[4].c_str(),
+		cubemapFilenames[5].c_str()
+		))
+		return false;
+
+	// Bob
 	if(!m_bob.loadFromFile((gData.assetsPath + "/models/marlin/marlin.fbx").c_str()))
 		return false;
 
@@ -26,6 +46,7 @@ bool MainScene::init()
 
 void MainScene::shut()
 {
+	m_skybox.unload();
 	m_bob.unload();
 	m_lane.shut();
 }
@@ -33,17 +54,6 @@ void MainScene::shut()
 void MainScene::update()
 {
 	m_lane.update();
-}
-
-void MainScene::draw()
-{
-	// Enable depth test
-	glEnable(GL_DEPTH_TEST);
-	// Accept fragment if it closer to the camera than the former one
-	glDepthFunc(GL_LESS);
-
-	// Cull triangles which normal is not towards the camera
-	glEnable(GL_CULL_FACE);
 
 	//static float gfCurAngle = 0.f;
 	//static float gfSpeed = 0.001f;
@@ -59,7 +69,22 @@ void MainScene::draw()
 		m_bob.getPosition().x + offsetX,
 		cosf(4.f*gData.frameTime.asSeconds()),
 		0.f));
-	
+}
+
+void MainScene::draw()
+{
+	glEnable(GL_DEPTH_TEST);
+
+	// Accept fragment if it closer to the camera than the former one
+	glDepthFunc(GL_LESS);
+
+	// Cull triangles which normal is not towards the camera
+	glEnable(GL_CULL_FACE);
+
+	static bool gbDrawSkybox = true;
+	if(gbDrawSkybox)
+		m_skybox.draw(m_camera);
+
 	glm::mat4 modelViewProjMtx = m_camera.getViewProjMtx() * m_bob.getModelMtx();
 	
 	m_bob.draw(m_camera);

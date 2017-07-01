@@ -31,6 +31,7 @@
     <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\preprocessor\ExpressionEvaluator.cpp" />
     <ClCompile Include="src\preprocessor\Preprocessor.cpp" />
+    <ClCompile Include="src\Skybox.cpp" />
     <ClCompile Include="src\SoundManager.cpp" />
     <ClCompile Include="src\TestScene.cpp" />
   </ItemGroup>
@@ -58,6 +59,7 @@
     <ClInclude Include="src\preprocessor\PreprocHelpers.h" />
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\SharedDefines.h" />
+    <ClInclude Include="src\Skybox.h" />
     <ClInclude Include="src\SoundManager.h" />
     <ClInclude Include="src\TestScene.h" />
   </ItemGroup>
@@ -71,6 +73,8 @@
     <None Include="media\shaders\model.vert" />
     <None Include="media\shaders\simple.frag" />
     <None Include="media\shaders\simple.vert" />
+    <None Include="media\shaders\skybox.frag" />
+    <None Include="media\shaders\skybox.vert" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B700DAF9-9781-433C-BD0F-EFFC6CB37795}</ProjectGuid>

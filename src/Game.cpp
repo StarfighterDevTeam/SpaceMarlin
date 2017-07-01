@@ -29,6 +29,12 @@ void GLAPIENTRY debugCallback(GLenum source, GLenum type, GLuint id,
 
 bool Game::init(sf::RenderWindow* window)
 {
+#ifdef NDEBUG
+	logInfo("Release version");
+#else
+	logInfo("Debug version");
+#endif
+
 	// Init SFML RenderWindow
 	m_window = window;
 	m_window->setVerticalSyncEnabled(true);

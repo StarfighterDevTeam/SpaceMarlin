@@ -129,6 +129,24 @@ GPUProgram* GPUProgramManager::createProgram(GPUProgramId id)
 			}
 		}
 		break;
+	case PROG_SKYBOX:
+		program = new GPUProgram(
+			(gData.shadersPath + SDIR_SEP "skybox.vert").c_str(),
+			(gData.shadersPath + SDIR_SEP "skybox.frag").c_str());
+		if(program->compileAndAttach())
+		{
+			program->bindAttribLocation(PROG_SKYBOX_ATTRIB_POSITIONS,	"pos");
+
+			if(program->link())
+			{
+				program->setUniformNames(
+					"gModelViewProjMtx",
+					"texSky",
+					NULL);
+				bOk = true;
+			}
+		}
+		break;
 	default:
 		assert(false && "shouldn't happen");
 		return NULL;
