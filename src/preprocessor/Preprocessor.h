@@ -177,12 +177,12 @@ public:
 	const char* preprocess(const char* original_source, const char* filename);
 	const char* preprocessFromFile(const char* filename);
 
+	// Loading a text file to a buffer:
+	static const char* loadText(const char* filename);
+
 private:
 	// Remove comments, set all newlines to '\n', and add a final '\n' if there is none
 	const char* removeComments(const char* original_source, const char* filename);
-
-	// Loading a text file to a buffer:
-	const char* loadText(const char* filename) const;
 
 	// Retrieving a directory starting from a file name:
 	std::string retrieveDirectory(const char* filename) const;

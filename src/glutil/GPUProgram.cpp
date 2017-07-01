@@ -13,6 +13,7 @@ using namespace glm;
 
 // Define this to print preprocessed source
 //#define DEBUG_PRINT_PREPROCESSED_SRC
+#define _USE_CUSTOM_PREPROCESSOR
 
 #define UNKNOWN_UNIFORM -2	// This is the value returned by getUniformLocation()
 							// when the uniform asked is not found, i.e. when
@@ -35,15 +36,19 @@ GPUProgram::GPUProgram(const char* vertex_filename, const char* fragment_filenam
 	id_fragment = glCreateShader(GL_FRAGMENT_SHADER);	assert(id_fragment != 0);
 	id_program = glCreateProgram();						assert(id_program != 0);
 
+	preproc = NULL;
+#ifdef _USE_CUSTOM_PREPROCESSOR
 	// Create preprocessor:
 	preproc = new Preprocessor(true);
+#endif
 }
 
 GPUProgram::~GPUProgram()
 {
 	delete [] uniforms;
 
-	delete preproc;
+	if(preproc)
+		delete preproc;
 
 	glDeleteProgram(id_program);
 	glDeleteShader(id_vertex);
@@ -543,7 +548,7 @@ void GPUProgram::sendUniform(const char* uniform_name, const mat4& m, bool trans
 bool GPUProgram::loadShaderSource(const char* filename, GLuint id_shader)
 {
 	// - load text from the file and preprocess it:
-	const char* preprocessed = preproc->preprocessFromFile(filename);
+	const char* preprocessed = preproc ? preproc->preprocessFromFile(filename) : Preprocessor::loadText(filename);;
 	if(preprocessed == NULL)
 		return false;
 
@@ -594,7 +599,8 @@ void GPUProgram::printShaderLog(GLuint id_shader, const std::string& shader_name
 
 	// Print the log
 	logInfo("*** ", shader_type, " shader log: \"", shader_name, "\" (original symbol(s): ",
-		preproc->getOriginalSymbolsString(), ")\n", (buf ? buf : "<no log>"));
+		(preproc ? preproc->getOriginalSymbolsString() : "<no custom preproc>"), ")\n",
+		(buf ? buf : "<no log>"));
 
 	// Cleanup
 	if(buf)

@@ -365,7 +365,7 @@ const char* Preprocessor::preprocessFromFile(const char* filename)
 
 // ---------------------------------------------------------------------
 // Load a text file:
-const char* Preprocessor::loadText(const char* filename) const
+const char* Preprocessor::loadText(const char* filename)
 {
 	ifstream f(filename);
 	if(!f)
