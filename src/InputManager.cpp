@@ -1,11 +1,18 @@
 #include "Globals.h"
 #include "InputManager.h"
 
-static const sf::Keyboard::Key keyboardUpKey		= sf::Keyboard::Up;
-static const sf::Keyboard::Key keyboardDownKey		= sf::Keyboard::Down;
-static const sf::Keyboard::Key keyboardLeftKey		= sf::Keyboard::Left;
-static const sf::Keyboard::Key keyboardRightKey		= sf::Keyboard::Right;
-static const sf::Keyboard::Key keyboardDebugCamKey	= sf::Keyboard::F1;
+static const sf::Keyboard::Key keyboardUpKey			= sf::Keyboard::Up;
+static const sf::Keyboard::Key keyboardDownKey			= sf::Keyboard::Down;
+static const sf::Keyboard::Key keyboardLeftKey			= sf::Keyboard::Left;
+static const sf::Keyboard::Key keyboardRightKey			= sf::Keyboard::Right;
+
+static const sf::Keyboard::Key keyboardDebugCamKey		= sf::Keyboard::F1;
+static const sf::Keyboard::Key keyboardDebugCamFrontKey	= sf::Keyboard::Z;
+static const sf::Keyboard::Key keyboardDebugCamBackKey	= sf::Keyboard::S;
+static const sf::Keyboard::Key keyboardDebugCamLeftKey	= sf::Keyboard::Q;
+static const sf::Keyboard::Key keyboardDebugCamRightKey	= sf::Keyboard::D;
+static const sf::Keyboard::Key keyboardDebugCamUpKey	= sf::Keyboard::PageUp;
+static const sf::Keyboard::Key keyboardDebugCamDownKey	= sf::Keyboard::PageDown;
 
 #ifdef SFML_RPI
 	static const bool joystickYAxisReversed = true;
@@ -58,4 +65,34 @@ bool InputManager::isLeftPressed()
 bool InputManager::isRightPressed()
 {
 	return sf::Keyboard::isKeyPressed(keyboardRightKey) || sf::Joystick::getAxisPosition(0, sf::Joystick::PovX) > joystickAxisThreshold;
+}
+
+bool InputManager::isDebugCamFrontPressed()
+{
+	return sf::Keyboard::isKeyPressed(keyboardDebugCamFrontKey);
+}
+
+bool InputManager::isDebugCamBackPressed()
+{
+	return sf::Keyboard::isKeyPressed(keyboardDebugCamBackKey);
+}
+
+bool InputManager::isDebugCamLeftPressed()
+{
+	return sf::Keyboard::isKeyPressed(keyboardDebugCamLeftKey);
+}
+
+bool InputManager::isDebugCamRightPressed()
+{
+	return sf::Keyboard::isKeyPressed(keyboardDebugCamRightKey);
+}
+
+bool InputManager::isDebugCamUpPressed()
+{
+	return sf::Keyboard::isKeyPressed(keyboardDebugCamUpKey);
+}
+
+bool InputManager::isDebugCamDownPressed()
+{
+	return sf::Keyboard::isKeyPressed(keyboardDebugCamDownKey);
 }

@@ -15,6 +15,13 @@ public:
 	bool	isDownPressed();
 	bool	isLeftPressed();
 	bool	isRightPressed();
+
+	bool	isDebugCamFrontPressed();
+	bool	isDebugCamBackPressed();
+	bool	isDebugCamLeftPressed();
+	bool	isDebugCamRightPressed();
+	bool	isDebugCamUpPressed();
+	bool	isDebugCamDownPressed();
 };
 
 #endif // _INPUT_MANAGER_H

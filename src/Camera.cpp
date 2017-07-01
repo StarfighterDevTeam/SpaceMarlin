@@ -1,4 +1,6 @@
 #include "Camera.h"
+#include "InputManager.h"
+#include <glm/gtx/euler_angles.hpp>
 
 void Camera::init()
 {
@@ -15,27 +17,52 @@ void Camera::update()
 	ivec2 curMousePos = ivec2(sf::Mouse::getPosition().x, sf::Mouse::getPosition().y);
 	if(m_isFlyOver)
 	{
-		if(curMousePos != m_prevMousePos && sf::Mouse::isButtonPressed(sf::Mouse::Left))
+		// Rotation with left click
+		if(sf::Mouse::isButtonPressed(sf::Mouse::Left) && curMousePos != m_prevMousePos)
 		{
-			static float gfCamRotSpeed = 0.0002f;
+			static float gfCamRotSpeed = 0.0001f;
 			const float fDeltaRotX = gfCamRotSpeed * gData.frameTime.asSeconds() * (curMousePos.x - m_prevMousePos.x);
-			m_front = glm::rotate(mat4(), fDeltaRotX, vec3(0,1,0)) * vec4(m_front,1);
-
 			const float fDeltaRotY = gfCamRotSpeed * gData.frameTime.asSeconds() * (curMousePos.y - m_prevMousePos.y);
-			m_front = glm::rotate(mat4(), fDeltaRotY, vec3(-1,0,0)) * vec4(m_front,1);
-
-			m_dirty = true;
+			
+			const vec3 cameraSpaceOffset = vec3(fDeltaRotX, -fDeltaRotY, 0);
+			const mat3 cameraToWorldRotMtx = glm::transpose(mat3(m_viewMtx));
+			const vec3 worldSpaceOffset = cameraToWorldRotMtx * cameraSpaceOffset;
+			setFront(glm::normalize(m_front + worldSpaceOffset));
+			const vec3 X = glm::cross(m_front, m_up);
+			setUp(glm::cross(X, m_front));
 		}
-		// TODO: fix rotation, implement translation, use the pad...
-		/*float cameraSpeed = 0.05f; // adjust accordingly
-		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-			cameraPos += cameraSpeed * cameraFront;
-		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-			cameraPos -= cameraSpeed * cameraFront;
-		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-			cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-			cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;*/
+
+		// Roll (rotation with right click)
+		if(sf::Mouse::isButtonPressed(sf::Mouse::Right) && curMousePos != m_prevMousePos)
+		{
+			static float gfCamRotSpeed = 0.0001f;
+			const float fAngle = gfCamRotSpeed * gData.frameTime.asSeconds() * (curMousePos.x - m_prevMousePos.x);
+			const mat3 cameraSpaceRotMtx = glm::orientate3(fAngle);
+			const mat3 worldToCameraRotMtx = mat3(m_viewMtx);
+			const mat3 cameraToWorldRotMtx = glm::transpose(worldToCameraRotMtx);
+			setUp(cameraToWorldRotMtx * cameraSpaceRotMtx * worldToCameraRotMtx * m_up);
+		}
+
+		// Translation
+		// - front/back
+		static float gfCamTransSpeed = 0.01f;
+		if(gData.inputMgr->isDebugCamFrontPressed())
+			setPosition(m_position + gfCamTransSpeed * gData.frameTime.asSeconds() * m_front);
+		if(gData.inputMgr->isDebugCamBackPressed())
+			setPosition(m_position - gfCamTransSpeed * gData.frameTime.asSeconds() * m_front);
+
+		// - left/right
+		const vec3 X = glm::cross(m_front, m_up);
+		if(gData.inputMgr->isDebugCamLeftPressed())
+			setPosition(m_position - gfCamTransSpeed * gData.frameTime.asSeconds() * X);
+		if(gData.inputMgr->isDebugCamRightPressed())
+			setPosition(m_position + gfCamTransSpeed * gData.frameTime.asSeconds() * X);
+
+		// - up/down
+		if(gData.inputMgr->isDebugCamUpPressed())
+			setPosition(m_position + gfCamTransSpeed * gData.frameTime.asSeconds() * m_up);
+		if(gData.inputMgr->isDebugCamDownPressed())
+			setPosition(m_position - gfCamTransSpeed * gData.frameTime.asSeconds() * m_up);
 	}
 	m_prevMousePos = curMousePos;
 }
