@@ -55,9 +55,9 @@ void Camera::setToDefault()
 	m_near = 0.1f;
 	m_far = 100.f;
 
-	m_position = glm::vec3(0.f, 3.f, -6.f);
+	m_position = vec3(0.f, 3.f, 6.f);
 	m_front = glm::normalize(-m_position);
-	m_up = glm::vec3(0.f, 1.f, 0.f);
+	m_up = vec3(0.f, 1.f, 0.f);
 
 	m_dirty = true;
 }
@@ -73,19 +73,19 @@ void Camera::updateInternal()
 	}
 }
 
-const glm::mat4& Camera::getProjMtx() const
+const mat4& Camera::getProjMtx() const
 {
 	const_cast<Camera*>(this)->updateInternal();
 	return m_projMtx;
 }
 
-const glm::mat4& Camera::getViewMtx() const
+const mat4& Camera::getViewMtx() const
 {
 	const_cast<Camera*>(this)->updateInternal();
 	return m_viewMtx;
 }
 
-const glm::mat4& Camera::getViewProjMtx() const
+const mat4& Camera::getViewProjMtx() const
 {
 	const_cast<Camera*>(this)->updateInternal();
 	return m_viewProjMtx;

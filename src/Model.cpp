@@ -196,18 +196,23 @@ void Model::unload()
 void Model::draw(const Camera& camera)
 {
 	// OpenGL
-	// X: left
+	// X: right
 	// Y: top
-	// Z: front
-	// 
-	// Blender:
-	// X: front
-	// Y: left
-	// Z: top
+	// Z: back
 
-	glm::mat4 patchedModelMtx = glm::rotate(glm::rotate(m_modelMtx, glm::radians(-90.f), glm::vec3(0.f, 1.f, 0.f)), glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f));
+	// Blender:			in OpenGL space:
+	// X: front			-Z:  0, 0,-1
+	// Y: left			-X: -1, 0, 0
+	// Z: top			Y:   0, 1, 0
 
-	glm::mat4 modelViewProjMtx = camera.getViewProjMtx() * patchedModelMtx;
+	//glm::mat4 patchedModelMtx = glm::rotate(glm::rotate(m_modelMtx, glm::radians(-90.f), glm::vec3(0.f, 1.f, 0.f)), glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f));
+	mat4 blenderToOpenGLMtx;
+	blenderToOpenGLMtx[0] = vec4( 0,  0, -1,  0);
+	blenderToOpenGLMtx[1] = vec4(-1,  0,  0,  0);
+	blenderToOpenGLMtx[2] = vec4( 0,  1,  0,  0);
+	blenderToOpenGLMtx[3] = vec4( 0,  0,  0,  1);
+
+	mat4 modelViewProjMtx = camera.getViewProjMtx() * m_modelMtx * blenderToOpenGLMtx;
 	const GPUProgram* modelProgram = gData.gpuProgramMgr->getProgram(PROG_MODEL);
 	modelProgram->use();
 	modelProgram->sendUniform("gModelViewProjMtx", modelViewProjMtx);

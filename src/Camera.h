@@ -21,21 +21,21 @@ public:
 	void				setNear(float _near)		{m_near = _near;	m_dirty=true;}
 	void				setFar(float _far)			{m_far = _far;		m_dirty=true;}
 	
-	void				setPosition(glm::vec3 pos)	{m_position = pos;	m_dirty=true;}
-	void				setFront(glm::vec3 front)	{m_front = front;	m_dirty=true;}
-	void				setUp(glm::vec3 up)			{m_up = up;			m_dirty=true;}
+	void				setPosition(vec3 pos)		{m_position = pos;	m_dirty=true;}
+	void				setFront(vec3 front)		{m_front = front;	m_dirty=true;}
+	void				setUp(vec3 up)				{m_up = up;			m_dirty=true;}
 
 	float				getFovRad()			const	{return m_fovRad;}
 	float				getNear()			const	{return m_near;}
 	float				getFar()			const	{return m_far;}
 
-	glm::vec3			getPosition()		const	{return m_position;}
-	glm::vec3			getFront()			const	{return m_front;}
-	glm::vec3			getUp()				const	{return m_up;}
+	vec3				getPosition()		const	{return m_position;}
+	vec3				getFront()			const	{return m_front;}
+	vec3				getUp()				const	{return m_up;}
 	
-	const glm::mat4&	getProjMtx() const;
-	const glm::mat4&	getViewMtx() const;
-	const glm::mat4&	getViewProjMtx() const;
+	const mat4&			getProjMtx() const;
+	const mat4&			getViewMtx() const;
+	const mat4&			getViewProjMtx() const;
 
 	void				setFlyOver(bool isFlyOver)	{m_isFlyOver = isFlyOver;}
 	bool				isFlyOver() const			{return m_isFlyOver;}
