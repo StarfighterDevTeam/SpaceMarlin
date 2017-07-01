@@ -110,6 +110,25 @@ GPUProgram* GPUProgramManager::createProgram(GPUProgramId id)
 			}
 		}
 		break;
+	case PROG_LANE:
+		program = new GPUProgram(
+			(gData.shadersPath + SDIR_SEP "lane.vert").c_str(),
+			(gData.shadersPath + SDIR_SEP "lane.frag").c_str());
+		if(program->compileAndAttach())
+		{
+			program->bindAttribLocation(PROG_LANE_ATTRIB_POSITIONS,	"pos");
+
+			if(program->link())
+			{
+				program->setUniformNames(
+					"gModelViewProjMtx",
+					"texAlbedo",
+					"gTime",
+					NULL);
+				bOk = true;
+			}
+		}
+		break;
 	default:
 		assert(false && "shouldn't happen");
 		return NULL;
@@ -170,6 +189,7 @@ void GPUProgramManager::directoryWatchFunc()
 
 void GPUProgramManager::WatchedProgram::set(GPUProgramId progId, GPUProgram* program)
 {
+	assert(program);
 	m_programId = progId;
 	m_program = program;
 

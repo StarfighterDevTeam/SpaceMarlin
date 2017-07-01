@@ -41,31 +41,27 @@ bool Model::loadFromAssImpMesh(const aiMesh* mesh, const aiScene* scene, const c
 {
 	assert(!m_bLoaded);
 
-	// Fill vertices positions
-	m_positions.reserve(mesh->mNumVertices);
-	for(unsigned int i=0; i<mesh->mNumVertices; i++){
+	// Fill vertices
+	m_vertices.resize(mesh->mNumVertices);
+	for(unsigned int i=0; i<mesh->mNumVertices; i++)
+	{
 		aiVector3D pos = mesh->mVertices[i];
-		m_positions.push_back(glm::vec3(pos.x, pos.y, pos.z));
-	}
+		m_vertices[i].pos = glm::vec3(pos.x, pos.y, pos.z);
 
-	// Fill vertices texture coordinates
-	m_uvs.reserve(mesh->mNumVertices);
-	for(unsigned int i=0; i<mesh->mNumVertices; i++){
 		aiVector3D UVW = mesh->mTextureCoords[0][i]; // Assume only 1 set of UV coords; AssImp supports 8 UV sets.
-		m_uvs.push_back(glm::vec2(UVW.x, UVW.y));
-	}
+		m_vertices[i].uv = glm::vec2(UVW.x, UVW.y);
 
-	// Fill vertices normals
-	m_normals.reserve(mesh->mNumVertices);
-	for(unsigned int i=0; i<mesh->mNumVertices; i++){
 		aiVector3D n = mesh->mNormals[i];
-		m_normals.push_back(glm::vec3(n.x, n.y, n.z));
-	}
+		m_vertices[i].normal = glm::vec3(n.x, n.y, n.z);
 
+		m_vertices[i].boneIndices = glm::u8vec4(0, 0, 0, 0);
+		m_vertices[i].boneWeights = glm::u8vec4(0, 0, 0, 0);
+	}
 
 	// Fill face indices
 	m_indices.reserve(3*mesh->mNumFaces);
-	for (unsigned int i=0; i<mesh->mNumFaces; i++){
+	for (unsigned int i=0; i<mesh->mNumFaces; i++)
+	{
 		// Assume the model has only triangles.
 		m_indices.push_back(mesh->mFaces[i].mIndices[0]);
 		m_indices.push_back(mesh->mFaces[i].mIndices[1]);
@@ -75,12 +71,6 @@ bool Model::loadFromAssImpMesh(const aiMesh* mesh, const aiScene* scene, const c
 	// Fill vertex skinning weights
 	if(mesh->HasBones())
 	{
-		m_boneIndices.resize(mesh->mNumVertices);
-		m_boneWeights.resize(mesh->mNumVertices);
-
-		memset(&m_boneIndices[0], 0, m_boneIndices.size() * sizeof(m_boneIndices[0]));
-		memset(&m_boneWeights[0], 0, m_boneWeights.size() * sizeof(m_boneWeights[0]));
-
 		for(unsigned int boneId = 0; boneId < mesh->mNumBones; boneId++)
 		{
 			const aiBone* bone = mesh->mBones[boneId];
@@ -88,8 +78,8 @@ bool Model::loadFromAssImpMesh(const aiMesh* mesh, const aiScene* scene, const c
 			{
 				const aiVertexWeight& boneWeight = bone->mWeights[weightId];
 
-				glm::u8vec4& vertexBoneIndices = m_boneIndices[boneWeight.mVertexId];
-				glm::u8vec4& vertexBoneWeights = m_boneWeights[boneWeight.mVertexId];
+				glm::u8vec4& vertexBoneIndices = m_vertices[boneWeight.mVertexId].boneIndices;
+				glm::u8vec4& vertexBoneWeights = m_vertices[boneWeight.mVertexId].boneWeights;
 
 				bool bFoundEmptySlot = false;
 				for(int i=0 ; i < 4 ; i++)
@@ -111,43 +101,17 @@ bool Model::loadFromAssImpMesh(const aiMesh* mesh, const aiScene* scene, const c
 
 	// Send to GPU
 	{
-		glGenVertexArrays(1, &m_vertexArrayID);
-		glBindVertexArray(m_vertexArrayID);
+		glGenVertexArrays(1, &m_vertexArrayId);
+		glBindVertexArray(m_vertexArrayId);
 
-		// Load into VBOs
-
-		glGenBuffers(1, &m_positionsBuffer);
-		glBindBuffer(GL_ARRAY_BUFFER, m_positionsBuffer);
-		glBufferData(GL_ARRAY_BUFFER, m_positions.size() * sizeof(glm::vec3), &m_positions[0], GL_STATIC_DRAW);
-
-		glGenBuffers(1, &m_uvsBuffer);
-		glBindBuffer(GL_ARRAY_BUFFER, m_uvsBuffer);
-		glBufferData(GL_ARRAY_BUFFER, m_uvs.size() * sizeof(glm::vec2), &m_uvs[0], GL_STATIC_DRAW);
-
-		glGenBuffers(1, &m_normalsBuffer);
-		glBindBuffer(GL_ARRAY_BUFFER, m_normalsBuffer);
-		glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(glm::vec3), &m_normals[0], GL_STATIC_DRAW);
-
-		assert(	(  m_boneIndices.size() &&  m_boneWeights.size() ) ||
-				( !m_boneIndices.size() && !m_boneWeights.size() )
-			);
-		if(m_boneIndices.size())
-		{
-			glGenBuffers(1, &m_boneIndicesBuffer);
-			glBindBuffer(GL_ARRAY_BUFFER, m_boneIndicesBuffer);
-			glBufferData(GL_ARRAY_BUFFER, m_boneIndices.size() * sizeof(glm::u8vec4), &m_boneIndices[0], GL_STATIC_DRAW);
-		}
-
-		if(m_boneWeights.size())
-		{
-			glGenBuffers(1, &m_boneWeightsBuffer);
-			glBindBuffer(GL_ARRAY_BUFFER, m_boneWeightsBuffer);
-			glBufferData(GL_ARRAY_BUFFER, m_boneWeights.size() * sizeof(glm::u8vec4), &m_boneWeights[0], GL_STATIC_DRAW);
-		}
+		// Load into the VBO
+		glGenBuffers(1, &m_vertexBufferId);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
+		glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(VtxModel), &m_vertices[0], GL_STATIC_DRAW);
 
 		// Generate a buffer for the indices as well
-		glGenBuffers(1, &m_indicesBuffer);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indicesBuffer);
+		glGenBuffers(1, &m_indexBufferId);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned short), &m_indices[0] , GL_STATIC_DRAW);
 	}
 
@@ -199,11 +163,7 @@ void Model::unload()
 		return;
 
 	m_indices.clear();
-	m_positions.clear();
-	m_uvs.clear();
-	m_normals.clear();
-	m_boneIndices.clear();
-	m_boneWeights.clear();
+	m_vertices.clear();
 
 	if(m_albedoTex != INVALID_GL_ID)
 	{
@@ -211,16 +171,8 @@ void Model::unload()
 		m_albedoTex = INVALID_GL_ID;
 	}
 	
-#define RELEASE_BUFFER(bufferName) if(bufferName) { glDeleteBuffers(1, &bufferName); bufferName = INVALID_GL_ID; }
-	RELEASE_BUFFER(m_positionsBuffer);
-	RELEASE_BUFFER(m_uvsBuffer);
-	RELEASE_BUFFER(m_normalsBuffer);
-	RELEASE_BUFFER(m_indicesBuffer);
-	RELEASE_BUFFER(m_boneIndicesBuffer);
-	RELEASE_BUFFER(m_boneWeightsBuffer);
-#undef RELEASE_BUFFER
-
-	glDeleteVertexArrays(1, &m_vertexArrayID); m_vertexArrayID = INVALID_GL_ID;
+	glDeleteBuffers(1, &m_vertexBufferId); m_vertexBufferId = INVALID_GL_ID;
+	glDeleteVertexArrays(1, &m_vertexArrayId); m_vertexArrayId = INVALID_GL_ID;
 
 	m_bLoaded = false;
 }
@@ -252,54 +204,36 @@ void Model::draw(const Camera& camera)
 		glBindTexture(GL_TEXTURE_2D, m_albedoTex);
 	}
 
-	// 1rst attribute buffer : vertices
+	glBindVertexArray(m_vertexArrayId);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
+
+	// Vertex buffer
 	glEnableVertexAttribArray(PROG_MODEL_ATTRIB_POSITIONS);
-	glBindBuffer(GL_ARRAY_BUFFER, m_positionsBuffer);
-	glVertexAttribPointer(
-		0,                  // attribute
-		3,                  // size
-		GL_FLOAT,           // type
-		GL_FALSE,           // normalized?
-		0,                  // stride
-		(void*)0            // array buffer offset
-	);
-
-	// 2nd attribute buffer : UVs
 	glEnableVertexAttribArray(PROG_MODEL_ATTRIB_UVS);
-	glBindBuffer(GL_ARRAY_BUFFER, m_uvsBuffer);
-	glVertexAttribPointer(
-		1,                                // attribute
-		2,                                // size
-		GL_FLOAT,                         // type
-		GL_FALSE,                         // normalized?
-		0,                                // stride
-		(void*)0                          // array buffer offset
-	);
-
-	// 3rd attribute buffer : normals
 	glEnableVertexAttribArray(PROG_MODEL_ATTRIB_NORMALS);
-	glBindBuffer(GL_ARRAY_BUFFER, m_normalsBuffer);
-	glVertexAttribPointer(
-		2,                                // attribute
-		3,                                // size
-		GL_FLOAT,                         // type
-		GL_FALSE,                         // normalized?
-		0,                                // stride
-		(void*)0                          // array buffer offset
-	);
+	glEnableVertexAttribArray(PROG_MODEL_ATTRIB_BONE_INDICES);
+	glEnableVertexAttribArray(PROG_MODEL_ATTRIB_BONE_WEIGHTS);
+
+	glVertexAttribPointer(PROG_MODEL_ATTRIB_POSITIONS	, sizeof(VtxModel::pos)			/sizeof(GLfloat),	GL_FLOAT,			GL_FALSE,	sizeof(VtxModel), (const GLvoid*)offsetof(VtxModel, pos));
+	glVertexAttribPointer(PROG_MODEL_ATTRIB_UVS			, sizeof(VtxModel::uv)			/sizeof(GLfloat),	GL_FLOAT,			GL_FALSE,	sizeof(VtxModel), (const GLvoid*)offsetof(VtxModel, uv));
+	glVertexAttribPointer(PROG_MODEL_ATTRIB_NORMALS		, sizeof(VtxModel::normal)		/sizeof(GLfloat),	GL_FLOAT,			GL_FALSE,	sizeof(VtxModel), (const GLvoid*)offsetof(VtxModel, normal));
+	glVertexAttribPointer(PROG_MODEL_ATTRIB_BONE_INDICES, sizeof(VtxModel::boneIndices)	/sizeof(GLubyte),	GL_UNSIGNED_BYTE,	GL_TRUE,	sizeof(VtxModel), (const GLvoid*)offsetof(VtxModel, boneIndices));
+	glVertexAttribPointer(PROG_MODEL_ATTRIB_BONE_WEIGHTS, sizeof(VtxModel::boneWeights)	/sizeof(GLubyte),	GL_UNSIGNED_BYTE,	GL_TRUE,	sizeof(VtxModel), (const GLvoid*)offsetof(VtxModel, boneWeights));
 
 	// Index buffer
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indicesBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
 
 	// Draw the triangles !
 	glDrawElements(
-		GL_TRIANGLES,      // mode
+		GL_TRIANGLES,				 // mode
 		(GLsizei)m_indices.size(),    // count
-		GL_UNSIGNED_SHORT,   // type
-		(void*)0           // element array buffer offset
+		GL_UNSIGNED_SHORT,			  // type
+		(void*)0					// element array buffer offset
 	);
 
 	glDisableVertexAttribArray(PROG_MODEL_ATTRIB_POSITIONS);
 	glDisableVertexAttribArray(PROG_MODEL_ATTRIB_UVS);
 	glDisableVertexAttribArray(PROG_MODEL_ATTRIB_NORMALS);
+	glDisableVertexAttribArray(PROG_MODEL_ATTRIB_BONE_INDICES);
+	glDisableVertexAttribArray(PROG_MODEL_ATTRIB_BONE_WEIGHTS);
 }

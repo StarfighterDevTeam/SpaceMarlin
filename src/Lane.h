@@ -3,6 +3,7 @@
 #define _LANE_H
 
 #include "Globals.h"
+#include "SharedDefines.h"
 
 class Camera;
 
@@ -15,7 +16,12 @@ public:
 	void		update();
 
 private:
-	
+	std::vector<unsigned short>	m_indices;
+	std::vector<VtxLane>		m_vertices;
+
+	GLuint						m_vertexArrayId;
+	GLuint						m_indexBufferId;
+	GLuint						m_vertexBufferId;
 };
 
 #endif

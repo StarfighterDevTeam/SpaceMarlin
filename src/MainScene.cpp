@@ -17,7 +17,7 @@ bool MainScene::init()
 	// Lane
 	m_lane.init();
 
-	m_camera.setPosition(glm::vec3(0.f, 3.f, -8.f));
+	m_camera.setPosition(glm::vec3(2.f, 3.f, -8.f));
 	m_camera.setFront(glm::normalize(-m_camera.getPosition()));
 	m_camera.setUp(glm::vec3(0.f, 1.f, 0.f));
 

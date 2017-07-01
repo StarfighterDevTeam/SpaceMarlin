@@ -13,7 +13,7 @@ void Drawer::init()
 		glGenBuffers(1, &m_lineBufferID);
 		glBindBuffer(GL_ARRAY_BUFFER, m_lineBufferID);
 
-		const GLsizeiptr total_size = 2*(sizeof(glm::vec3) + sizeof(glm::vec4));	// 2 vertices, each one having (x, y, z) and (r, g, b, a).
+		const GLsizeiptr total_size = 2*sizeof(VtxSimple);	// 2 vertices, each one having (x, y, z) and (r, g, b, a).
 		glBufferData(GL_ARRAY_BUFFER, total_size, NULL, GL_STREAM_DRAW);
 	}
 }
@@ -44,9 +44,8 @@ void Drawer::drawLine(const Camera& camera, glm::vec3 pos0, glm::vec4 col0, glm:
 	glEnableVertexAttribArray(PROG_SIMPLE_ATTRIB_POSITIONS);
 	glEnableVertexAttribArray(PROG_SIMPLE_ATTRIB_COLORS);
 
-	GLintptr offset = 0;
-	glVertexAttribPointer(PROG_SIMPLE_ATTRIB_POSITIONS,	3, GL_FLOAT, GL_FALSE, sizeof(VtxSimple), (const GLvoid*)offset);	offset += sizeof(glm::vec3);
-	glVertexAttribPointer(PROG_SIMPLE_ATTRIB_COLORS,	4, GL_FLOAT, GL_FALSE, sizeof(VtxSimple), (const GLvoid*)offset);	offset += sizeof(glm::vec4);
+	glVertexAttribPointer(PROG_SIMPLE_ATTRIB_POSITIONS,	sizeof(VtxSimple::pos)/sizeof(float),	GL_FLOAT, GL_FALSE, sizeof(VtxSimple), (const GLvoid*)offsetof(VtxSimple, pos));
+	glVertexAttribPointer(PROG_SIMPLE_ATTRIB_COLORS,	sizeof(VtxSimple::color)/sizeof(float),	GL_FLOAT, GL_FALSE, sizeof(VtxSimple),	(const GLvoid*)offsetof(VtxSimple, color));
 
 	// - draw
 	glDrawArrays(GL_LINES, 0, nbVertices);

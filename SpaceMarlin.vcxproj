@@ -64,6 +64,8 @@
   <ItemGroup>
     <None Include="media\shaders\fsquad.frag" />
     <None Include="media\shaders\fsquad.vert" />
+    <None Include="media\shaders\lane.frag" />
+    <None Include="media\shaders\lane.vert" />
     <None Include="media\shaders\model.frag" />
     <None Include="media\shaders\model.vert" />
     <None Include="media\shaders\simple.frag" />
