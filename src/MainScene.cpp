@@ -1,15 +1,15 @@
 #include "MainScene.h"
-
 #include "glutil/glutil.h"
-
 #include "SharedDefines.h"
-
 #include "GPUProgramManager.h"
 #include "Drawer.h"
 #include "InputManager.h"
 
 bool MainScene::init()
 {
+	if(!Scene::init())
+		return false;
+
 	// Skybox
 	std::string cubemapFilenames[6] = {
 		gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "purple-nebula-complex_right1.png",
@@ -46,6 +46,8 @@ bool MainScene::init()
 
 void MainScene::shut()
 {
+	Scene::shut();
+
 	m_skybox.unload();
 	m_bob.unload();
 	m_lane.shut();
@@ -53,6 +55,8 @@ void MainScene::shut()
 
 void MainScene::update()
 {
+	Scene::update();
+
 	m_lane.update();
 
 	//static float gfCurAngle = 0.f;
@@ -73,6 +77,8 @@ void MainScene::update()
 
 void MainScene::draw()
 {
+	Scene::draw();
+
 	glEnable(GL_DEPTH_TEST);
 
 	// Accept fragment if it closer to the camera than the former one
@@ -95,4 +101,9 @@ void MainScene::draw()
 	gData.drawer->drawLine(m_camera, glm::vec3(0,0,0), COLOR_RED,	glm::vec3(3,0,0), COLOR_RED		);
 	gData.drawer->drawLine(m_camera, glm::vec3(0,0,0), COLOR_GREEN,	glm::vec3(0,3,0), COLOR_GREEN	);
 	gData.drawer->drawLine(m_camera, glm::vec3(0,0,0), COLOR_BLUE,	glm::vec3(0,0,3), COLOR_BLUE	);
+}
+
+void MainScene::onEvent(const sf::Event& event)
+{
+	Scene::onEvent(event);
 }

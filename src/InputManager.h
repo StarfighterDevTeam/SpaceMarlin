@@ -9,6 +9,8 @@ public:
 	void	shut();
 	void	update();
 
+	static bool eventIsDebugCamReleased(const sf::Event& evt);
+
 	bool	isUpPressed();
 	bool	isDownPressed();
 	bool	isLeftPressed();

@@ -46,6 +46,7 @@
     <ClCompile Include="src\SoundManager.cpp" />
     <ClCompile Include="src\InputManager.cpp" />
     <ClCompile Include="src\Skybox.cpp" />
+    <ClCompile Include="src\Scene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Game.h" />

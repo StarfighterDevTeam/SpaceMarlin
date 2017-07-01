@@ -3,6 +3,7 @@
 #define _SCENE_H
 
 #include "Globals.h"
+#include "Camera.h"
 
 enum SceneId
 {
@@ -14,11 +15,15 @@ enum SceneId
 
 class Scene
 {
+protected:
+	Camera			m_camera;
+
 public:
-	virtual bool init() = 0;
-	virtual void shut() = 0;
-	virtual void update() = 0;
-	virtual void draw() = 0;
+	virtual bool init();
+	virtual void shut();
+	virtual void update();
+	virtual void draw();
+	virtual void onEvent(const sf::Event& event);
 };
 
 #endif // _SCENE_H

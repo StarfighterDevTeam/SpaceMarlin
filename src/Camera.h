@@ -9,6 +9,12 @@ class Camera
 public:
 	Camera()										{setToDefault();}
 
+	void				init();
+	void				shut();
+	void				update();
+	void				draw();
+	void				onEvent(const sf::Event& event);
+
 	void				setToDefault();
 
 	void				setFovRad(float fovRad)		{m_fovRad = fovRad;	m_dirty=true;}
@@ -31,21 +37,27 @@ public:
 	const glm::mat4&	getViewMtx() const;
 	const glm::mat4&	getViewProjMtx() const;
 
+	void				setFlyOver(bool isFlyOver)	{m_isFlyOver = isFlyOver;}
+	bool				isFlyOver() const			{return m_isFlyOver;}
+
 private:
 	void				updateInternal();
 
+	bool				m_isFlyOver;
 	float				m_fovRad;
 	float				m_near;
 	float				m_far;
 
-	glm::vec3			m_position;
-	glm::vec3			m_front;
-	glm::vec3			m_up;
+	vec3				m_position;
+	vec3				m_front;
+	vec3				m_up;
+
+	ivec2				m_prevMousePos;
 
 	mutable	bool		m_dirty;
-	mutable	glm::mat4	m_projMtx;
-	mutable	glm::mat4	m_viewMtx;
-	mutable	glm::mat4	m_viewProjMtx;
+	mutable	mat4		m_projMtx;
+	mutable	mat4		m_viewMtx;
+	mutable	mat4		m_viewProjMtx;
 };
 
 #endif // _CAMERA_H

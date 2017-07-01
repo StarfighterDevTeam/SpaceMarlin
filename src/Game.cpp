@@ -121,6 +121,8 @@ void Game::run()
 				gData.winSizeY = event.size.height;
 				glViewport(0, 0, event.size.width, event.size.height);
 			}
+
+			m_scenes[m_curScene]->onEvent(event);
 		}
 
 		update();

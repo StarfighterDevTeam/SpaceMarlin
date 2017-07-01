@@ -5,6 +5,7 @@ static const sf::Keyboard::Key keyboardUpKey		= sf::Keyboard::Up;
 static const sf::Keyboard::Key keyboardDownKey		= sf::Keyboard::Down;
 static const sf::Keyboard::Key keyboardLeftKey		= sf::Keyboard::Left;
 static const sf::Keyboard::Key keyboardRightKey		= sf::Keyboard::Right;
+static const sf::Keyboard::Key keyboardDebugCamKey	= sf::Keyboard::F1;
 
 #ifdef SFML_RPI
 	static const bool joystickYAxisReversed = true;
@@ -28,6 +29,11 @@ void InputManager::shut()
 
 void InputManager::update()
 {
+}
+
+bool InputManager::eventIsDebugCamReleased(const sf::Event& evt)
+{
+	return	(evt.type == sf::Event::KeyReleased && evt.key.code == keyboardDebugCamKey);
 }
 
 bool InputManager::isUpPressed()

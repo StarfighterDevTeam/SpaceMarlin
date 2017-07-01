@@ -1,7 +1,56 @@
 #include "Camera.h"
 
+void Camera::init()
+{
+	setToDefault();
+	m_prevMousePos = ivec2(sf::Mouse::getPosition().x, sf::Mouse::getPosition().y);
+}
+
+void Camera::shut()
+{
+}
+
+void Camera::update()
+{
+	ivec2 curMousePos = ivec2(sf::Mouse::getPosition().x, sf::Mouse::getPosition().y);
+	if(m_isFlyOver)
+	{
+		if(curMousePos != m_prevMousePos && sf::Mouse::isButtonPressed(sf::Mouse::Left))
+		{
+			static float gfCamRotSpeed = 0.0002f;
+			const float fDeltaRotX = gfCamRotSpeed * gData.frameTime.asSeconds() * (curMousePos.x - m_prevMousePos.x);
+			m_front = glm::rotate(mat4(), fDeltaRotX, vec3(0,1,0)) * vec4(m_front,1);
+
+			const float fDeltaRotY = gfCamRotSpeed * gData.frameTime.asSeconds() * (curMousePos.y - m_prevMousePos.y);
+			m_front = glm::rotate(mat4(), fDeltaRotY, vec3(-1,0,0)) * vec4(m_front,1);
+
+			m_dirty = true;
+		}
+		// TODO: fix rotation, implement translation, use the pad...
+		/*float cameraSpeed = 0.05f; // adjust accordingly
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+			cameraPos += cameraSpeed * cameraFront;
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+			cameraPos -= cameraSpeed * cameraFront;
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+			cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+			cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;*/
+	}
+	m_prevMousePos = curMousePos;
+}
+
+void Camera::draw()
+{
+}
+
+void Camera::onEvent(const sf::Event& event)
+{
+}
+
 void Camera::setToDefault()
 {
+	m_isFlyOver = false;
 	m_fovRad = 45.f;
 	m_near = 0.1f;
 	m_far = 100.f;

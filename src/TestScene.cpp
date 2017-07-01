@@ -7,6 +7,9 @@
 
 bool TestScene::init()
 {
+	if(!Scene::init())
+		return false;
+
 	// ------- Quad ---------
 	const int sx = 80;
 	const int sy = 60;
@@ -39,15 +42,20 @@ bool TestScene::init()
 
 void TestScene::shut()
 {
+	Scene::init();
+
 	SAFE_DELETE(m_quad);
 }
 
 void TestScene::update()
 {
+	Scene::update();
 }
 
 void TestScene::draw()
 {
+	Scene::draw();
+
 	// Enable depth test
 	glEnable(GL_DEPTH_TEST);
 	// Accept fragment if it closer to the camera than the former one

@@ -148,7 +148,9 @@ void Skybox::draw(const Camera& camera)
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_skyTexId);
 
-	program->sendUniform("gModelViewProjMtx", camera.getViewProjMtx());
+	mat4 modelViewProjMtx = camera.getViewProjMtx();
+	modelViewProjMtx[3] = vec4(0,0,0,1);
+	program->sendUniform("gModelViewProjMtx", modelViewProjMtx);
 	program->sendUniform("texSky", 0);
 
 	glBindVertexArray(m_vertexArrayId);

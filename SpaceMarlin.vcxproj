@@ -31,6 +31,7 @@
     <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\preprocessor\ExpressionEvaluator.cpp" />
     <ClCompile Include="src\preprocessor\Preprocessor.cpp" />
+    <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="src\Skybox.cpp" />
     <ClCompile Include="src\SoundManager.cpp" />
     <ClCompile Include="src\TestScene.cpp" />
