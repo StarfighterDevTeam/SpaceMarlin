@@ -5,6 +5,8 @@
 #define SFML_STATIC
 #define _USE_MATH_DEFINES
 
+#pragma warning(error : 4715)	// "not all control paths return a value"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
