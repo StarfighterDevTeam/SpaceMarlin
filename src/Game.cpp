@@ -209,7 +209,12 @@ int main(int argc, char* argv[])
 
 	Game game;
 	if(!game.init(&window))
+	{
+#ifdef _WIN32
+		system("pause");
+#endif
 		return EXIT_FAILURE;
+	}
 	game.run();
 	game.shut();
 	return 0;
