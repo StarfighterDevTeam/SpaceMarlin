@@ -2,6 +2,8 @@
 #ifndef _INPUT_MANAGER_H
 #define _INPUT_MANAGER_H
 
+#include "Globals.h"
+
 class InputManager
 {
 public:

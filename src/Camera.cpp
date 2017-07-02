@@ -18,7 +18,7 @@ void Camera::update()
 	if(m_isFlyOver)
 	{
 		// Rotation with left click
-		if(sf::Mouse::isButtonPressed(sf::Mouse::Left) && curMousePos != m_prevMousePos)
+		if(gData.window->hasFocus() && sf::Mouse::isButtonPressed(sf::Mouse::Left) && curMousePos != m_prevMousePos)
 		{
 			static float gfCamRotSpeed = 0.0001f;
 			const float fDeltaRotX = gfCamRotSpeed * gData.frameTime.asSeconds() * (curMousePos.x - m_prevMousePos.x);

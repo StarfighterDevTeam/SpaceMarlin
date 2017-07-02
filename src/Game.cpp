@@ -36,10 +36,11 @@ bool Game::init(sf::RenderWindow* window)
 #endif
 
 	// Init SFML RenderWindow
-	m_window = window;
-	m_window->setVerticalSyncEnabled(true);
-	gData.winSizeX = (int)m_window->getSize().x;
-	gData.winSizeY = (int)m_window->getSize().y;
+	gData.window = window;
+	gData.window->setVerticalSyncEnabled(true);
+	gData.winSizeX = (int)gData.window->getSize().x;
+	gData.winSizeY = (int)gData.window->getSize().y;
+	
 	
 	// Init GLEW
 	GLenum err = glewInit();
@@ -109,7 +110,7 @@ void Game::run()
 	while (running)
 	{
 		sf::Event event;
-		while (m_window->pollEvent(event))
+		while (gData.window->pollEvent(event))
 		{
 			if (event.type == sf::Event::Closed)
 			{
@@ -146,7 +147,7 @@ void Game::draw()
 
 	m_scenes[m_curScene]->draw();
 
-	m_window->display();
+	gData.window->display();
 }
 
 struct LogRAII

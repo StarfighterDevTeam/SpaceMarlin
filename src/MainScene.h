@@ -19,6 +19,13 @@ private:
 	Model			m_bob;
 	Lane			m_lane;
 
+	float m_bobSurfaceSpeedLateral;
+	float m_bobAirSpeedLateral;
+	float m_bobJumpSpeedVertical;
+	float m_bobOffsetX;
+	float m_bobOffsetZ;
+	bool m_bobIsJumping;
+
 public:
 	virtual bool init() override;
 	virtual void shut() override;
