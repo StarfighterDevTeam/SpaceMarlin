@@ -27,9 +27,9 @@ static const int joystickButtonJump		= 1;
 
 void InputManager::init()
 {
-	m_IsUpReleased =				false;
+	m_isUpReleased =				false;
 	m_wasUpReleasedLastFrame =		false;
-	m_IsDownReleased =				false;
+	m_isDownReleased =				false;
 	m_wasDownReleasedLastFrame =	false;
 }
 
@@ -39,10 +39,10 @@ void InputManager::shut()
 
 void InputManager::update()
 {
-	m_wasUpReleasedLastFrame = m_IsUpReleased;
-	m_IsUpReleased = !isUpPressed();
-	m_wasDownReleasedLastFrame = m_IsDownReleased;
-	m_IsDownReleased = !isDownPressed();
+	m_wasUpReleasedLastFrame = m_isUpReleased;
+	m_isUpReleased = !isUpPressed();
+	m_wasDownReleasedLastFrame = m_isDownReleased;
+	m_isDownReleased = !isDownPressed();
 }
 
 bool InputManager::eventIsDebugCamReleased(const sf::Event& evt)

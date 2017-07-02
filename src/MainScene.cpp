@@ -61,6 +61,7 @@ bool MainScene::init()
 	m_bobAirSpeedLateral =			+250.f;
 	m_bobJumpSpeedVertical =		+1000.f;
 	m_bobDiveSpeedVertical =		-1000.f;
+	m_bobDiveSpeedLateral =			+250.f;
 	m_bobGravitySpeedVertical =		-40.f;
 	m_bobArchimedSpeedVertical =	+40.f;
 	m_bobOffsetX = 0;
@@ -100,7 +101,7 @@ void MainScene::updateBob()
 	bool bobIsJumping = m_bobOffsetZ > 0;
 	bool bobIsDiving = m_bobOffsetZ < 0;
 
-	//Deleceration
+	//Deceleration
 	m_bobSpeedX = 0;
 
 	//Move left
@@ -110,9 +111,13 @@ void MainScene::updateBob()
 		{
 			m_bobSpeedX -= m_bobSurfaceSpeedLateral * gData.dTime.asSeconds();
 		}
-		else//if m_bobIsJumping
+		else if (m_bobOffsetZ > 0)
 		{
 			m_bobSpeedX -= m_bobAirSpeedLateral * gData.dTime.asSeconds();
+		}
+		else//if (m_bobOffsetZ < 0)
+		{
+			m_bobSpeedX -= m_bobDiveSpeedLateral * gData.dTime.asSeconds();
 		}
 	}
 
@@ -123,9 +128,13 @@ void MainScene::updateBob()
 		{
 			m_bobSpeedX += m_bobSurfaceSpeedLateral * gData.dTime.asSeconds();
 		}
-		else//if m_bobIsJumping
+		else if (m_bobOffsetZ > 0)
 		{
 			m_bobSpeedX += m_bobAirSpeedLateral * gData.dTime.asSeconds();
+		}
+		else//if (m_bobOffsetZ < 0)
+		{
+			m_bobSpeedX += m_bobDiveSpeedLateral * gData.dTime.asSeconds();
 		}
 	}
 
