@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Background.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\Drawer.cpp" />
     <ClCompile Include="src\Game.cpp" />
@@ -37,6 +38,7 @@
     <ClCompile Include="src\TestScene.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Background.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Drawer.h" />
     <ClInclude Include="src\Game.h" />
@@ -66,6 +68,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
+    <None Include="media\shaders\background.frag" />
+    <None Include="media\shaders\background.vert" />
     <None Include="media\shaders\fsquad.frag" />
     <None Include="media\shaders\fsquad.vert" />
     <None Include="media\shaders\lane.frag" />

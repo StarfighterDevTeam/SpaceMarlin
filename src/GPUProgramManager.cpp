@@ -129,6 +129,25 @@ GPUProgram* GPUProgramManager::createProgram(GPUProgramId id)
 			}
 		}
 		break;
+	case PROG_BACKGROUND:
+		program = new GPUProgram(
+			(gData.shadersPath + SDIR_SEP "background.vert").c_str(),
+			(gData.shadersPath + SDIR_SEP "background.frag").c_str());
+		if(program->compileAndAttach())
+		{
+			program->bindAttribLocation(PROG_BACKGROUND_ATTRIB_POSITIONS,	"pos");
+
+			if(program->link())
+			{
+				program->setUniformNames(
+					"gModelViewProjMtx",
+					"texPerlin",
+					"gTime",
+					NULL);
+				bOk = true;
+			}
+		}
+		break;
 	case PROG_SKYBOX:
 		program = new GPUProgram(
 			(gData.shadersPath + SDIR_SEP "skybox.vert").c_str(),

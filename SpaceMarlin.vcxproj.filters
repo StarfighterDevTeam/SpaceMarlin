@@ -47,6 +47,7 @@
     <ClCompile Include="src\InputManager.cpp" />
     <ClCompile Include="src\Skybox.cpp" />
     <ClCompile Include="src\Scene.cpp" />
+    <ClCompile Include="src\Background.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Game.h" />
@@ -99,6 +100,7 @@
     <ClInclude Include="src\SoundManager.h" />
     <ClInclude Include="src\InputManager.h" />
     <ClInclude Include="src\Skybox.h" />
+    <ClInclude Include="src\Background.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="log">
@@ -144,6 +146,12 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="media\shaders\skybox.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="media\shaders\background.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="media\shaders\background.vert">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

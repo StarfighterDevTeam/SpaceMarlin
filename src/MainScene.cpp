@@ -5,6 +5,8 @@
 #include "Drawer.h"
 #include "InputManager.h"
 
+//#define _USE_SKYBOX
+
 bool MainScene::init()
 {
 	if(!Scene::init())
@@ -39,6 +41,9 @@ bool MainScene::init()
 		))
 		return false;
 
+	if(!m_background.load())
+		return false;
+
 	// Bob
 	if(!m_bob.loadFromFile((gData.assetsPath + "/models/marlin/marlin.fbx").c_str()))
 		return false;
@@ -57,6 +62,7 @@ void MainScene::shut()
 {
 	Scene::shut();
 
+	m_background.unload();
 	m_skybox.unload();
 	m_bob.unload();
 	m_lane.shut();
@@ -96,9 +102,11 @@ void MainScene::draw()
 	// Cull triangles which normal is not towards the camera
 	glEnable(GL_CULL_FACE);
 
-	static bool gbDrawSkybox = true;
-	if(gbDrawSkybox)
-		m_skybox.draw(m_camera);
+#ifdef _USE_SKYBOX
+	m_skybox.draw(m_camera);
+#else
+	m_background.draw(m_camera);
+#endif
 
 	glm::mat4 modelViewProjMtx = m_camera.getViewProjMtx() * m_bob.getModelMtx();
 	
