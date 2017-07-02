@@ -6,6 +6,11 @@
 
 class InputManager
 {
+private:
+	bool m_wasUpReleasedLastFrame;
+	bool m_IsUpReleased;
+	bool m_wasDownReleasedLastFrame;
+	bool m_IsDownReleased;
 public:
 	void	init();
 	void	shut();
@@ -14,7 +19,9 @@ public:
 	static bool eventIsDebugCamReleased(const sf::Event& evt);
 
 	bool	isUpPressed();
+	bool	isUpTapped();
 	bool	isDownPressed();
+	bool	isDownTapped();
 	bool	isLeftPressed();
 	bool	isRightPressed();
 

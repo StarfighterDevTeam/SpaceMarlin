@@ -130,7 +130,7 @@ void MainScene::updateBob()
 	}
 
 	//Jump
-	if (gData.inputMgr->isUpPressed())
+	if (gData.inputMgr->isUpTapped())
 	{
 		if (m_bobOffsetZ == 0)//Bob must be on the surface to jump
 		{
@@ -139,7 +139,7 @@ void MainScene::updateBob()
 	}
 
 	//Dive
-	if (gData.inputMgr->isDownPressed())
+	if (gData.inputMgr->isDownTapped())
 	{
 		if (m_bobOffsetZ == 0)//Bob must be on the surface to dive
 		{

@@ -27,6 +27,10 @@ static const int joystickButtonJump		= 1;
 
 void InputManager::init()
 {
+	m_IsUpReleased =				false;
+	m_wasUpReleasedLastFrame =		false;
+	m_IsDownReleased =				false;
+	m_wasDownReleasedLastFrame =	false;
 }
 
 void InputManager::shut()
@@ -35,6 +39,10 @@ void InputManager::shut()
 
 void InputManager::update()
 {
+	m_wasUpReleasedLastFrame = m_IsUpReleased;
+	m_IsUpReleased = !isUpPressed();
+	m_wasDownReleasedLastFrame = m_IsDownReleased;
+	m_IsDownReleased = !isDownPressed();
 }
 
 bool InputManager::eventIsDebugCamReleased(const sf::Event& evt)
@@ -49,11 +57,21 @@ bool InputManager::isUpPressed()
 			(joystickYAxisReversed && sf::Joystick::getAxisPosition(0, sf::Joystick::PovY) < -joystickAxisThreshold));
 }
 
+bool InputManager::isUpTapped()
+{
+	return m_wasUpReleasedLastFrame && isUpPressed();
+}
+
 bool InputManager::isDownPressed()
 {
 	return	gData.window->hasFocus() && ((sf::Keyboard::isKeyPressed(keyboardDownKey)) ||
 			(!joystickYAxisReversed && sf::Joystick::getAxisPosition(0, sf::Joystick::PovY) < -joystickAxisThreshold) ||
 			(joystickYAxisReversed && sf::Joystick::getAxisPosition(0, sf::Joystick::PovY) > joystickAxisThreshold));
+}
+
+bool InputManager::isDownTapped()
+{
+	return m_wasDownReleasedLastFrame && isDownPressed();
 }
 
 bool InputManager::isLeftPressed()
