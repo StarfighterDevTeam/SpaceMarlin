@@ -5,8 +5,11 @@ SpaceMarlin.pdb
 SpaceMarlinD.pdb
 SpaceMarlin.VC.opendb
 SpaceMarlin.sdf
+assimp_log.txt
 *.ilk
 *.opensdf
 *.suo
 *.iobj
 *.ipdb
+*.VC.db
+*.VC.VC.opendb
