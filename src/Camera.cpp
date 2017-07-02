@@ -73,6 +73,8 @@ void Camera::draw()
 
 void Camera::onEvent(const sf::Event& event)
 {
+	if (event.type == sf::Event::Resized)
+		m_dirty = true;
 }
 
 void Camera::setToDefault()
