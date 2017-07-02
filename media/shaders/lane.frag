@@ -7,6 +7,7 @@ precision mediump int;
 uniform float gTime;
 
 in vec2 varUv;
+in vec3 varColor;
 
 layout(location=0) out vec4 fragColor;
 
@@ -17,5 +18,6 @@ void main()
 	//fragColor = vec4(tAlbedo.rgb, 1);
 	//if(tAlbedo.a < 0.5)
 	//	discard;
-	fragColor = vec4(0, 0, 1, 1);
+	//fragColor = vec4(0, 0, 1, 1);
+	fragColor = vec4(varColor, 1);
 }

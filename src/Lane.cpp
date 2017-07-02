@@ -8,20 +8,34 @@
 void Lane::init()
 {
 	assert(!m_vertices.size());
-	static float gfQuadSize = 1.f;
+	const float fHalfSize = 10.f;
 	VtxLane vtx;
-	vtx.pos = glm::vec3(-gfQuadSize,0,-gfQuadSize); m_vertices.push_back(vtx);
-	vtx.pos = glm::vec3(+gfQuadSize,0,-gfQuadSize); m_vertices.push_back(vtx);
-	vtx.pos = glm::vec3(+gfQuadSize,0,+gfQuadSize); m_vertices.push_back(vtx);
-	vtx.pos = glm::vec3(-gfQuadSize,0,+gfQuadSize); m_vertices.push_back(vtx);
+	vtx.pos.y = 0.f;
+	const int sz = 100;
+	const int sx = 100;
+	for(int z=0 ; z < sz ; z++)
+	{
+		vtx.pos.z = (z-sz/2) * fHalfSize / sz;
+		for(int x=0 ; x < sx ; x++)
+		{
+			vtx.pos.x = (x-sx/2) * fHalfSize / sx;
+			m_vertices.push_back(vtx);
+		}
+	}
 
-	m_indices.push_back(0);
-	m_indices.push_back(1);
-	m_indices.push_back(2);
+	for(int z = 0 ; z < sz-1 ; z++)
+	{
+		for(int x = 0 ; x < sx-1 ; x++)
+		{
+			m_indices.push_back((x+0) + (z+0)*sx);
+			m_indices.push_back((x+0) + (z+1)*sx);
+			m_indices.push_back((x+1) + (z+1)*sx);
 
-	m_indices.push_back(0);
-	m_indices.push_back(2);
-	m_indices.push_back(3);
+			m_indices.push_back((x+0) + (z+0)*sx);
+			m_indices.push_back((x+1) + (z+1)*sx);
+			m_indices.push_back((x+1) + (z+0)*sx);
+		}
+	}
 
 	// Send to GPU
 	{
