@@ -31,6 +31,7 @@ bool MainScene::init()
 	//	gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "debug_back.png",
 	//};
 	
+#ifdef _USE_SKYBOX
 	if(!m_skybox.loadFromFiles(
 		cubemapFilenames[0].c_str(),
 		cubemapFilenames[1].c_str(),
@@ -40,9 +41,10 @@ bool MainScene::init()
 		cubemapFilenames[5].c_str()
 		))
 		return false;
-
+#else
 	if(!m_background.load())
 		return false;
+#endif
 
 	// Bob
 	if(!m_bob.loadFromFile((gData.assetsPath + "/models/marlin/marlin.fbx").c_str()))
