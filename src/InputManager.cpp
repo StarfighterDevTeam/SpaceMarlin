@@ -1,4 +1,3 @@
-#include "Globals.h"
 #include "InputManager.h"
 
 static const sf::Keyboard::Key keyboardUpKey			= sf::Keyboard::Up;
@@ -45,54 +44,54 @@ bool InputManager::eventIsDebugCamReleased(const sf::Event& evt)
 
 bool InputManager::isUpPressed()
 {
-	return	(sf::Keyboard::isKeyPressed(keyboardUpKey)) ||
+	return	gData.window->hasFocus() && ((sf::Keyboard::isKeyPressed(keyboardUpKey)) ||
 			(!joystickYAxisReversed && sf::Joystick::getAxisPosition(0, sf::Joystick::PovY) > joystickAxisThreshold) ||
-			(joystickYAxisReversed && sf::Joystick::getAxisPosition(0, sf::Joystick::PovY) < -joystickAxisThreshold);
+			(joystickYAxisReversed && sf::Joystick::getAxisPosition(0, sf::Joystick::PovY) < -joystickAxisThreshold));
 }
 
 bool InputManager::isDownPressed()
 {
-	return	(sf::Keyboard::isKeyPressed(keyboardDownKey)) ||
+	return	gData.window->hasFocus() && ((sf::Keyboard::isKeyPressed(keyboardDownKey)) ||
 			(!joystickYAxisReversed && sf::Joystick::getAxisPosition(0, sf::Joystick::PovY) < -joystickAxisThreshold) ||
-			(joystickYAxisReversed && sf::Joystick::getAxisPosition(0, sf::Joystick::PovY) > joystickAxisThreshold);
+			(joystickYAxisReversed && sf::Joystick::getAxisPosition(0, sf::Joystick::PovY) > joystickAxisThreshold));
 }
 
 bool InputManager::isLeftPressed()
 {
-	return sf::Keyboard::isKeyPressed(keyboardLeftKey) || sf::Joystick::getAxisPosition(0, sf::Joystick::PovX) < -joystickAxisThreshold;
+	return gData.window->hasFocus() && (sf::Keyboard::isKeyPressed(keyboardLeftKey) || sf::Joystick::getAxisPosition(0, sf::Joystick::PovX) < -joystickAxisThreshold);
 }
 
 bool InputManager::isRightPressed()
 {
-	return sf::Keyboard::isKeyPressed(keyboardRightKey) || sf::Joystick::getAxisPosition(0, sf::Joystick::PovX) > joystickAxisThreshold;
+	return gData.window->hasFocus() && (sf::Keyboard::isKeyPressed(keyboardRightKey) || sf::Joystick::getAxisPosition(0, sf::Joystick::PovX) > joystickAxisThreshold);
 }
 
 bool InputManager::isDebugCamFrontPressed()
 {
-	return sf::Keyboard::isKeyPressed(keyboardDebugCamFrontKey);
+	return gData.window->hasFocus() && (sf::Keyboard::isKeyPressed(keyboardDebugCamFrontKey));
 }
 
 bool InputManager::isDebugCamBackPressed()
 {
-	return sf::Keyboard::isKeyPressed(keyboardDebugCamBackKey);
+	return gData.window->hasFocus() && (sf::Keyboard::isKeyPressed(keyboardDebugCamBackKey));
 }
 
 bool InputManager::isDebugCamLeftPressed()
 {
-	return sf::Keyboard::isKeyPressed(keyboardDebugCamLeftKey);
+	return gData.window->hasFocus() && (sf::Keyboard::isKeyPressed(keyboardDebugCamLeftKey));
 }
 
 bool InputManager::isDebugCamRightPressed()
 {
-	return sf::Keyboard::isKeyPressed(keyboardDebugCamRightKey);
+	return gData.window->hasFocus() && (sf::Keyboard::isKeyPressed(keyboardDebugCamRightKey));
 }
 
 bool InputManager::isDebugCamUpPressed()
 {
-	return sf::Keyboard::isKeyPressed(keyboardDebugCamUpKey);
+	return gData.window->hasFocus() && (sf::Keyboard::isKeyPressed(keyboardDebugCamUpKey));
 }
 
 bool InputManager::isDebugCamDownPressed()
 {
-	return sf::Keyboard::isKeyPressed(keyboardDebugCamDownKey);
+	return gData.window->hasFocus() && (sf::Keyboard::isKeyPressed(keyboardDebugCamDownKey));
 }

@@ -13,6 +13,7 @@ Globals::Globals()
 	gpuProgramMgr = NULL;
 	drawer = NULL;
 	soundMgr = NULL;
+	window = NULL;
 }
 
 #ifdef _WIN32

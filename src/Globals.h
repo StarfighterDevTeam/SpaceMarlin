@@ -98,6 +98,7 @@ struct Globals
 	std::string			exePath;
 	std::string			assetsPath;
 	std::string			shadersPath;
+	sf::RenderWindow*	window;
 };
 
 extern Globals gData;

@@ -14,7 +14,6 @@ class Game
 private:
 	sf::Vector2i		m_screenDimensions;
 	sf::Vector2i		m_gameDimensions;
-	sf::RenderWindow*	m_window;
 	Scene*				m_scenes[NB_SCENES];
 	int					m_curScene;
 	aiLogStream			m_aiLogStream;
