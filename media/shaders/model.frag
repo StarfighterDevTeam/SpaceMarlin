@@ -15,6 +15,6 @@ void main()
 	vec4 tAlbedo = texture2D(texAlbedo, varUv);
 	
 	fragColor = vec4(tAlbedo.rgb, 1);
-	if(tAlbedo.a < 0.5)
+	if(fragColor.a < 0.5)
 		discard;
 }

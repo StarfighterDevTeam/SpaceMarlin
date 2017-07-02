@@ -12,4 +12,6 @@ layout(location=0) out vec4 fragColor;
 void main()
 {
 	fragColor = texture(texSky, varUv);
+	if(fragColor.a < 0.5)
+		discard;
 }

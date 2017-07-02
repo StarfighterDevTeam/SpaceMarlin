@@ -26,7 +26,8 @@ bool Skybox::loadFromFiles(	const char* cubemapFilename0,
 	{
 		if(!imgs[i].loadFromFile(cubemapFilenames[i]))
 			return false;
-		imgs[i].flipVertically();
+		//imgs[i].flipVertically();
+		imgs[i].flipHorizontally();
 	}
 
 	// from https://learnopengl.com/#!Advanced-OpenGL/Cubemaps
@@ -102,21 +103,15 @@ bool Skybox::loadFromFiles(	const char* cubemapFilename0,
 
 	for(int i=0 ; i < 6 ; i++)
 	{
-		sf::Image img;
-		if(img.loadFromFile(cubemapFilenames[i]))
-		{
-			img.flipVertically();
-
-			glTexImage2D(
-				GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-				0,
-				GL_RGBA8,
-				img.getSize().x, img.getSize().y,
-				0,
-				GL_RGBA,
-				GL_UNSIGNED_BYTE,
-				(const GLvoid*)img.getPixelsPtr());
-		}
+		glTexImage2D(
+			GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+			0,
+			GL_RGBA8,
+			imgs[i].getSize().x, imgs[i].getSize().y,
+			0,
+			GL_RGBA,
+			GL_UNSIGNED_BYTE,
+			(const GLvoid*)imgs[i].getPixelsPtr());
 	}
 
 	m_loaded = true;

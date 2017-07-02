@@ -12,13 +12,22 @@ bool MainScene::init()
 
 	// Skybox
 	std::string cubemapFilenames[6] = {
-		gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "purple-nebula-complex_right1.png",
 		gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "purple-nebula-complex_left2.png",
+		gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "purple-nebula-complex_right1.png",
 		gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "purple-nebula-complex_top3.png",
 		gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "purple-nebula-complex_bottom4.png",
 		gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "purple-nebula-complex_front5.png",
 		gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "purple-nebula-complex_back6.png",
 	};
+
+	//std::string cubemapFilenames[6] = {
+	//	gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "debug_left.png",
+	//	gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "debug_right.png",
+	//	gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "debug_top.png",
+	//	gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "debug_bottom.png",
+	//	gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "debug_front.png",
+	//	gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "debug_back.png",
+	//};
 	
 	if(!m_skybox.loadFromFiles(
 		cubemapFilenames[0].c_str(),
