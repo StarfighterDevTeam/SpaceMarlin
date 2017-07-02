@@ -23,6 +23,7 @@ private:
 	float m_bobAirSpeedLateral;
 	float m_bobJumpSpeedVertical;
 	float m_bobDiveSpeedVertical;
+	float m_bobDiveSpeedLateral;
 	float m_bobOffsetX;
 	float m_bobOffsetZ;
 	float m_bobSpeedX;

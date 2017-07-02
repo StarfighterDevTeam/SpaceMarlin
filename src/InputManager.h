@@ -8,9 +8,9 @@ class InputManager
 {
 private:
 	bool m_wasUpReleasedLastFrame;
-	bool m_IsUpReleased;
+	bool m_isUpReleased;
 	bool m_wasDownReleasedLastFrame;
-	bool m_IsDownReleased;
+	bool m_isDownReleased;
 public:
 	void	init();
 	void	shut();
