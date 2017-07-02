@@ -22,12 +22,13 @@ private:
 	float m_bobSurfaceSpeedLateral;
 	float m_bobAirSpeedLateral;
 	float m_bobJumpSpeedVertical;
+	float m_bobDiveSpeedVertical;
 	float m_bobOffsetX;
 	float m_bobOffsetZ;
-	bool m_bobIsJumping;
 	float m_bobSpeedX;
 	float m_bobSpeedZ;
 	float m_bobGravitySpeedVertical;
+	float m_bobArchimedSpeedVertical;
 
 public:
 	virtual bool init() override;
@@ -35,6 +36,8 @@ public:
 	virtual void update() override;
 	virtual void draw() override;
 	virtual void onEvent(const sf::Event& event);
+
+	void updateBob();
 };
 
 #endif // _MAIN_SCENE_H
