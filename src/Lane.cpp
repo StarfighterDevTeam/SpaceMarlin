@@ -5,14 +5,15 @@
 #include "glutil/glutil.h"
 #include "SharedDefines.h"
 
+static const int sz = 100;	// beurk...
+static const int sx = 100;
+
 void Lane::init()
 {
 	assert(!m_vertices.size());
 	const float fHalfSize = 10.f;
 	VtxLane vtx;
 	vtx.pos.y = 0.f;
-	const int sz = 100;
-	const int sx = 100;
 	for(int z=0 ; z < sz ; z++)
 	{
 		vtx.pos.z = (z-sz/2) * fHalfSize / sz;
@@ -45,12 +46,12 @@ void Lane::init()
 		// Load into the VBO
 		glGenBuffers(1, &m_vertexBufferId);
 		glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
-		glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(VtxLane), &m_vertices[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(VtxLane), &m_vertices[0], GL_STREAM_DRAW);
 
 		// Generate a buffer for the indices as well
 		glGenBuffers(1, &m_indexBufferId);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned short), &m_indices[0] , GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned short), &m_indices[0] , GL_STREAM_DRAW);
 
 		// Vertex buffer
 		glEnableVertexAttribArray(PROG_LANE_ATTRIB_POSITIONS);
@@ -103,7 +104,12 @@ void Lane::draw(const Camera& camera)
 	//}
 
 	glBindVertexArray(m_vertexArrayId);
-	
+
+	updateVertices();
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
+	glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(VtxLane), &m_vertices[0], GL_STREAM_DRAW);
+
 	glDisable(GL_CULL_FACE);
 
 	// Draw the triangles !
@@ -115,8 +121,24 @@ void Lane::draw(const Camera& camera)
 	);
 
 	glEnable(GL_CULL_FACE);
+	glBindVertexArray(0);
 }
 
 void Lane::update()
 {
+}
+
+void Lane::updateVertices()
+{
+	// Just a test...
+
+	//std::vector<VtxLane> backupLanes = m_vertices;
+
+	for(int z=0 ; z < sz ; z++)
+	{
+		for(int x=0 ; x < sx ; x++)
+		{
+			m_vertices[x + z*sx].pos.y = sin(gData.frameTime.asSeconds());
+		}
+	}
 }

@@ -16,6 +16,8 @@ public:
 	void		update();
 
 private:
+	void		updateVertices();
+
 	std::vector<unsigned short>	m_indices;
 	std::vector<VtxLane>		m_vertices;
 
