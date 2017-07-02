@@ -141,6 +141,8 @@ GPUProgram* GPUProgramManager::createProgram(GPUProgramId id)
 			{
 				program->setUniformNames(
 					"gModelViewProjMtx",
+					"gProjToWorldMtx",
+					"gAspectRatio",
 					"texPerlin",
 					"gTime",
 					NULL);

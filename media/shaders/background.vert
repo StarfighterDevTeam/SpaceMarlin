@@ -9,11 +9,10 @@ layout(location=PROG_BACKGROUND_ATTRIB_POSITIONS)	in vec3 pos;
 
 uniform mat4 gModelViewProjMtx;
 
-out vec2 varUv;
+out vec3 varPos;
 
 void main()
 {
-	varUv = 0.5*(pos.xy + vec2(1,1));
-	//gl_Position = gModelViewProjMtx * vec4(pos, 1.0);
+	varPos = pos;
 	gl_Position = vec4(pos, 1.0);
 }

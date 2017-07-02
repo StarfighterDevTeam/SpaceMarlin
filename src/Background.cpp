@@ -57,8 +57,8 @@ bool Background::load()
 	// Set the filter
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 	// Create the texture
 	glTexImage2D(
@@ -104,6 +104,13 @@ void Background::draw(const Camera& camera)
 	modelViewProjMtx[3] = vec4(0,0,0,1);
 	program->sendUniform("gModelViewProjMtx", modelViewProjMtx);
 	program->sendUniform("texPerlin", 0);
+
+	mat4 projToViewMtx = glm::inverse(camera.getProjMtx());
+	mat4 viewToWorldRotMtx = mat4(glm::transpose(mat3(camera.getViewMtx())));
+	mat4 projToWorldMtx = viewToWorldRotMtx * projToViewMtx;
+	program->sendUniform("gProjToWorldMtx", projToWorldMtx);
+	const float fAspectRatio = ((float)gData.winSizeX) / ((float)std::max<int>(1,gData.winSizeY));
+	program->sendUniform("gAspectRatio", fAspectRatio);
 
 	glBindVertexArray(m_vertexArrayId);
 	// Draw the triangles !
