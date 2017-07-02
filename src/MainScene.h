@@ -25,6 +25,9 @@ private:
 	float m_bobOffsetX;
 	float m_bobOffsetZ;
 	bool m_bobIsJumping;
+	float m_bobSpeedX;
+	float m_bobSpeedZ;
+	float m_bobGravitySpeedVertical;
 
 public:
 	virtual bool init() override;

@@ -57,11 +57,14 @@ bool MainScene::init()
 	m_camera.setFront(normalize(-m_camera.getPosition()));
 	m_camera.setUp(vec3(0,1,0));
 
-	m_bobSurfaceSpeedLateral = 200;
-	m_bobAirSpeedLateral = 100;
-	m_bobJumpSpeedVertical = 500;
+	m_bobSurfaceSpeedLateral = 500;
+	m_bobAirSpeedLateral = 300;
+	m_bobJumpSpeedVertical = 1000;
+	m_bobGravitySpeedVertical = -40;
 	m_bobOffsetX = 0;
 	m_bobOffsetZ = 0;
+	m_bobSpeedX = 0;
+	m_bobSpeedZ = 0;
 	m_bobIsJumping = false;
 
 	return true;
@@ -88,16 +91,19 @@ void MainScene::update()
 	//gfCurAngle += gfSpeed * gData.dTime.asMilliseconds();
 	//m_bob.setModelMtx(glm::rotate(glm::mat4(), gfCurAngle, glm::vec3(0.f, 1.f, 0.f)));
 
+	//Deleceration
+	m_bobSpeedX = 0;
+
 	//Move left
 	if (gData.inputMgr->isLeftPressed())
 	{
 		if (!m_bobIsJumping)
 		{
-			m_bobOffsetX += gData.frameTime.asSeconds() * m_bobSurfaceSpeedLateral;
+			m_bobSpeedX -= m_bobSurfaceSpeedLateral * gData.dTime.asSeconds();
 		}
 		else//if m_bobIsJumping
 		{
-			m_bobOffsetX += gData.frameTime.asSeconds() * m_bobAirSpeedLateral;
+			m_bobSpeedX -= m_bobAirSpeedLateral * gData.dTime.asSeconds();
 		}
 	}
 	
@@ -106,11 +112,11 @@ void MainScene::update()
 	{
 		if (!m_bobIsJumping)
 		{
-			m_bobOffsetX -= gData.frameTime.asSeconds() * m_bobSurfaceSpeedLateral;
+			m_bobSpeedX += m_bobSurfaceSpeedLateral * gData.dTime.asSeconds();
 		}
 		else//if m_bobIsJumping
 		{
-			m_bobOffsetX -= gData.frameTime.asSeconds() * m_bobAirSpeedLateral;
+			m_bobSpeedX += m_bobAirSpeedLateral * gData.dTime.asSeconds();
 		}
 	}
 
@@ -119,30 +125,37 @@ void MainScene::update()
 	{
 		if (!m_bobIsJumping)
 		{
-			m_bobOffsetZ += gData.frameTime.asSeconds() * m_bobJumpSpeedVertical;
-		}
-		else//if m_bobIsJumping
-		{
-			m_bobOffsetX -= gData.frameTime.asSeconds() * m_bobAirSpeedLateral;
+			m_bobSpeedZ += m_bobJumpSpeedVertical * gData.dTime.asSeconds();
+			m_bobIsJumping = true;
 		}
 	}
 
-	if (gData.inputMgr->isRightPressed())
+	//Speed limit
+	if (m_bobSpeedX > m_bobSurfaceSpeedLateral) m_bobSpeedX = m_bobSurfaceSpeedLateral;
+	if (m_bobSpeedX < -m_bobSurfaceSpeedLateral) m_bobSpeedX = -m_bobSurfaceSpeedLateral;
+
+	//Gravity
+	if (m_bobOffsetZ > 0)
 	{
-		if (!m_bobIsJumping)
-		{
-			m_bobOffsetX -= gData.frameTime.asSeconds() * m_bobSurfaceSpeedLateral;
-		}
-		else//if m_bobIsJumping
-		{
-			m_bobOffsetX -= gData.frameTime.asSeconds() * m_bobAirSpeedLateral;
-		}
+		m_bobSpeedZ += m_bobGravitySpeedVertical * gData.dTime.asSeconds();
 	}
 
-	m_bob.setPosition(glm::vec3(
-		m_bob.getPosition().x + m_bobOffsetX,
-		cosf(4.f*gData.frameTime.asSeconds()),
-		0.f));
+	//Apply speed to offset
+	m_bobOffsetX += m_bobSpeedX * gData.dTime.asSeconds();
+	m_bobOffsetZ += m_bobSpeedZ * gData.dTime.asSeconds();
+
+	//Landing back on surface from a jump
+	if (m_bobOffsetZ <= 0 && m_bobIsJumping)
+	{
+		m_bobIsJumping = false;
+		m_bobOffsetZ = 0;
+		m_bobSpeedZ = 0;
+	}
+
+	//Apply offset to position
+	m_bob.setPosition(glm::vec3(m_bobOffsetX,
+								m_bobOffsetZ,
+								0.f));
 }
 
 void MainScene::draw()
