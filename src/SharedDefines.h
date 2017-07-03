@@ -11,6 +11,7 @@
 #define PROG_SIMPLE_ATTRIB_COLORS			1
 
 #define PROG_LANE_ATTRIB_POSITIONS			0
+#define PROG_LANE_ATTRIB_NORMALS			1
 
 #define PROG_BACKGROUND_ATTRIB_POSITIONS	0
 
@@ -40,6 +41,7 @@ struct VtxModel
 struct VtxLane
 {
 	vec3	pos;
+	vec3	normal;
 };
 
 struct VtxBackground

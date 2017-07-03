@@ -6,6 +6,7 @@ precision highp float;
 precision highp int;
 
 layout(location=PROG_LANE_ATTRIB_POSITIONS)	in vec3 pos;
+layout(location=PROG_LANE_ATTRIB_NORMALS)	in vec3 normal;
 
 uniform mat4 gModelViewProjMtx;
 

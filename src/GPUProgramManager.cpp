@@ -117,6 +117,7 @@ GPUProgram* GPUProgramManager::createProgram(GPUProgramId id)
 		if(program->compileAndAttach())
 		{
 			program->bindAttribLocation(PROG_LANE_ATTRIB_POSITIONS,	"pos");
+			program->bindAttribLocation(PROG_LANE_ATTRIB_NORMALS,	"normal");
 
 			if(program->link())
 			{

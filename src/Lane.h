@@ -16,10 +16,12 @@ public:
 	void		update();
 
 private:
-	void		updateVertices();
+	void		computeNormals();
 
 	std::vector<unsigned short>	m_indices;
-	std::vector<VtxLane>		m_vertices;
+	std::vector<VtxLane>		m_vertices[3];
+	int							m_curBufferIdx;
+	float						m_lastAnimationTimeSecs;
 
 	GLuint						m_vertexArrayId;
 	GLuint						m_indexBufferId;
