@@ -5,7 +5,7 @@
 #include "Drawer.h"
 #include "InputManager.h"
 
-//#define _USE_SKYBOX
+#define _USE_SKYBOX
 
 bool MainScene::init()
 {
