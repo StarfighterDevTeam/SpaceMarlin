@@ -123,7 +123,11 @@ GPUProgram* GPUProgramManager::createProgram(GPUProgramId id)
 			{
 				program->setUniformNames(
 					"gModelViewProjMtx",
+					"gModelViewMtx",
+					"gModelMtx",
+					"gWorldSpaceCamPos",
 					"texAlbedo",
+					"texCubemap",
 					"gTime",
 					NULL);
 				bOk = true;

@@ -19,6 +19,7 @@ public:
 	void		unload();
 	void		draw(const Camera& camera);
 	void		update();
+	GLuint		getSkyTexId() const				{return m_skyTexId;}
 
 private:
 	GLuint		m_vertexArrayId;

@@ -211,7 +211,11 @@ void MainScene::draw()
 	
 	m_bob.draw(m_camera);
 
-	m_lane.draw(m_camera);
+#ifdef _USE_SKYBOX
+	m_lane.draw(m_camera, m_skybox.getSkyTexId());
+#else
+	m_lane.draw(m_camera, INVALID_GL_ID);
+#endif
 
 	// Debug model gizmo
 	gData.drawer->drawLine(m_camera, glm::vec3(0,0,0), COLOR_RED,	glm::vec3(3,0,0), COLOR_RED		);

@@ -133,9 +133,9 @@ void Game::run()
 
 void Game::update()
 {
-	sf::Time prevFrameTime = gData.frameTime;
-	gData.frameTime = gData.clock.getElapsedTime();
-	gData.dTime = sf::microseconds(gData.frameTime.asMicroseconds() - prevFrameTime.asMicroseconds());
+	sf::Time prevFrameTime = gData.curFrameTime;
+	gData.curFrameTime = gData.clock.getElapsedTime();
+	gData.dTime = sf::microseconds(gData.curFrameTime.asMicroseconds() - prevFrameTime.asMicroseconds());
 	gData.gpuProgramMgr->update();
 	gData.soundMgr->update();
 	gData.inputMgr->update();

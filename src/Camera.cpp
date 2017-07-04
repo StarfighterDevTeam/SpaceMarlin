@@ -17,12 +17,15 @@ void Camera::update()
 	ivec2 curMousePos = ivec2(sf::Mouse::getPosition().x, sf::Mouse::getPosition().y);
 	if(m_isFlyOver)
 	{
+		const float dTime = gData.dTime.asSeconds();
+		static float gfCamRotSpeed = 0.1f;
+		static float gfCamTransSpeed = 10.f;
+			
 		// Rotation with left click
 		if(gData.window->hasFocus() && sf::Mouse::isButtonPressed(sf::Mouse::Left) && curMousePos != m_prevMousePos)
 		{
-			static float gfCamRotSpeed = 0.0001f;
-			const float fDeltaRotX = gfCamRotSpeed * gData.frameTime.asSeconds() * (curMousePos.x - m_prevMousePos.x);
-			const float fDeltaRotY = gfCamRotSpeed * gData.frameTime.asSeconds() * (curMousePos.y - m_prevMousePos.y);
+			const float fDeltaRotX = gfCamRotSpeed * dTime * (curMousePos.x - m_prevMousePos.x);
+			const float fDeltaRotY = gfCamRotSpeed * dTime * (curMousePos.y - m_prevMousePos.y);
 			
 			const vec3 cameraSpaceOffset = vec3(fDeltaRotX, -fDeltaRotY, 0);
 			const mat3 cameraToWorldRotMtx = glm::transpose(mat3(m_viewMtx));
@@ -35,8 +38,7 @@ void Camera::update()
 		// Roll (rotation with right click)
 		if(sf::Mouse::isButtonPressed(sf::Mouse::Right) && curMousePos != m_prevMousePos)
 		{
-			static float gfCamRotSpeed = 0.0001f;
-			const float fAngle = gfCamRotSpeed * gData.frameTime.asSeconds() * (curMousePos.x - m_prevMousePos.x);
+			const float fAngle = gfCamRotSpeed * dTime * (curMousePos.x - m_prevMousePos.x);
 			const mat3 cameraSpaceRotMtx = glm::orientate3(fAngle);
 			const mat3 worldToCameraRotMtx = mat3(m_viewMtx);
 			const mat3 cameraToWorldRotMtx = glm::transpose(worldToCameraRotMtx);
@@ -45,24 +47,23 @@ void Camera::update()
 
 		// Translation
 		// - front/back
-		static float gfCamTransSpeed = 0.01f;
 		if(gData.inputMgr->isDebugCamFrontPressed())
-			setPosition(m_position + gfCamTransSpeed * gData.frameTime.asSeconds() * m_front);
+			setPosition(m_position + gfCamTransSpeed * dTime * m_front);
 		if(gData.inputMgr->isDebugCamBackPressed())
-			setPosition(m_position - gfCamTransSpeed * gData.frameTime.asSeconds() * m_front);
+			setPosition(m_position - gfCamTransSpeed * dTime * m_front);
 
 		// - left/right
 		const vec3 X = glm::cross(m_front, m_up);
 		if(gData.inputMgr->isDebugCamLeftPressed())
-			setPosition(m_position - gfCamTransSpeed * gData.frameTime.asSeconds() * X);
+			setPosition(m_position - gfCamTransSpeed * dTime * X);
 		if(gData.inputMgr->isDebugCamRightPressed())
-			setPosition(m_position + gfCamTransSpeed * gData.frameTime.asSeconds() * X);
+			setPosition(m_position + gfCamTransSpeed * dTime * X);
 
 		// - up/down
 		if(gData.inputMgr->isDebugCamUpPressed())
-			setPosition(m_position + gfCamTransSpeed * gData.frameTime.asSeconds() * m_up);
+			setPosition(m_position + gfCamTransSpeed * dTime * m_up);
 		if(gData.inputMgr->isDebugCamDownPressed())
-			setPosition(m_position - gfCamTransSpeed * gData.frameTime.asSeconds() * m_up);
+			setPosition(m_position - gfCamTransSpeed * dTime * m_up);
 	}
 	m_prevMousePos = curMousePos;
 }

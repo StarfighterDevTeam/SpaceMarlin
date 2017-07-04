@@ -12,11 +12,11 @@ class Lane
 public:
 	void		init();
 	void		shut();
-	void		draw(const Camera& camera);
+	void		draw(const Camera& camera, GLuint texCubemapId);
 	void		update();
 
 private:
-	void		computeNormals();
+	static void	computeNormals(VtxLane* vertices, int nbVertices, const unsigned short* indices, int nbIndices);
 
 	std::vector<unsigned short>	m_indices;
 	std::vector<VtxLane>		m_vertices[3];

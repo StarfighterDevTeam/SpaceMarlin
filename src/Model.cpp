@@ -216,7 +216,7 @@ void Model::draw(const Camera& camera)
 	modelProgram->use();
 	modelProgram->sendUniform("gModelViewProjMtx", modelViewProjMtx);
 	modelProgram->sendUniform("texAlbedo", 0);
-	modelProgram->sendUniform("gTime", gData.frameTime.asSeconds());
+	modelProgram->sendUniform("gTime", gData.curFrameTime.asSeconds());
 
 	if(m_albedoTexId != INVALID_GL_ID)
 	{

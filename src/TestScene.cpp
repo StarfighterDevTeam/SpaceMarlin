@@ -83,7 +83,7 @@ void TestScene::draw()
 
 	gModelViewProjMtx = projMtx * viewMtx * modelMtx;
 	modelProgram->sendUniform("gModelViewProjMtx", gModelViewProjMtx);
-	modelProgram->sendUniform("gTime", gData.frameTime.asSeconds());
+	modelProgram->sendUniform("gTime", gData.curFrameTime.asSeconds());
 
 	// Texture:
 //	glActiveTexture(GL_TEXTURE0);

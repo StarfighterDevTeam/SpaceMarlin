@@ -34,9 +34,6 @@ void Lane::init()
 		}
 	}
 
-	// TEST
-	m_vertices[0][gGridSize/2 + (gGridSize/2)*gGridSize].pos.y = 1.f;
-
 	for(int z = 0 ; z < gGridSize-1 ; z++)
 	{
 		for(int x = 0 ; x < gGridSize-1 ; x++)
@@ -68,8 +65,10 @@ void Lane::init()
 
 		// Vertex buffer
 		glEnableVertexAttribArray(PROG_LANE_ATTRIB_POSITIONS);
+		glEnableVertexAttribArray(PROG_LANE_ATTRIB_NORMALS);
 
-		glVertexAttribPointer(PROG_LANE_ATTRIB_POSITIONS	, sizeof(VtxLane::pos)			/sizeof(GLfloat),	GL_FLOAT,			GL_FALSE,	sizeof(VtxLane), (const GLvoid*)offsetof(VtxLane, pos));
+		glVertexAttribPointer(PROG_LANE_ATTRIB_POSITIONS, sizeof(VtxLane::pos)		/sizeof(GLfloat),	GL_FLOAT,	GL_FALSE,	sizeof(VtxLane), (const GLvoid*)offsetof(VtxLane, pos));
+		glVertexAttribPointer(PROG_LANE_ATTRIB_NORMALS	, sizeof(VtxLane::normal)	/sizeof(GLfloat),	GL_FLOAT,	GL_FALSE,	sizeof(VtxLane), (const GLvoid*)offsetof(VtxLane, normal));
 
 		glBindVertexArray(0);
 	}
@@ -89,7 +88,7 @@ void Lane::shut()
 	glDeleteVertexArrays(1, &m_vertexArrayId); m_vertexArrayId = INVALID_GL_ID;
 }
 
-void Lane::draw(const Camera& camera)
+void Lane::draw(const Camera& camera, GLuint texCubemapId)
 {
 	//static float gfQuadSize = 1.f;
 	//const vec3 quadPos[] = {
@@ -104,18 +103,23 @@ void Lane::draw(const Camera& camera)
 	//gData.drawer->drawLine(camera, quadPos[3], COLOR_BLUE, quadPos[0], COLOR_BLUE);
 
 	mat4 modelMtx;
+	mat4 modelViewMtx = camera.getViewMtx() * modelMtx;
 	mat4 modelViewProjMtx = camera.getViewProjMtx() * modelMtx;
 	const GPUProgram* laneProgram = gData.gpuProgramMgr->getProgram(PROG_LANE);
 	laneProgram->use();
+	laneProgram->sendUniform("gModelViewMtx", modelViewMtx);
 	laneProgram->sendUniform("gModelViewProjMtx", modelViewProjMtx);
 	//laneProgram->sendUniform("texAlbedo", 0);
-	laneProgram->sendUniform("gTime", gData.frameTime.asSeconds());
+	laneProgram->sendUniform("gTime", gData.curFrameTime.asSeconds());
+	laneProgram->sendUniform("gModelMtx", modelMtx);
+	laneProgram->sendUniform("gWorldSpaceCamPos", camera.getPosition());
 
-	//if(m_albedoTex != INVALID_GL_ID)
-	//{
-	//	glActiveTexture(GL_TEXTURE0);
-	//	glBindTexture(GL_TEXTURE_2D, m_albedoTex);
-	//}
+	if(texCubemapId != INVALID_GL_ID)
+	{
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, texCubemapId);
+	}
+	laneProgram->sendUniform("texCubemap", 0);
 
 	glBindVertexArray(m_vertexArrayId);
 
@@ -124,12 +128,11 @@ void Lane::draw(const Camera& camera)
 
 	glDisable(GL_CULL_FACE);
 
-	// Draw the triangles !
 	glDrawElements(
-		GL_TRIANGLES,				 // mode
-		(GLsizei)m_indices.size(),    // count
-		GL_UNSIGNED_SHORT,			  // type
-		(void*)0					// element array buffer offset
+		GL_TRIANGLES,
+		(GLsizei)m_indices.size(),
+		GL_UNSIGNED_SHORT,
+		(void*)0
 	);
 
 	glEnable(GL_CULL_FACE);
@@ -138,8 +141,34 @@ void Lane::draw(const Camera& camera)
 
 void Lane::update()
 {
+	// BEGIN TEST
+	{
+		static float gfLastTimeSecs = 0.f;
+		if(gData.curFrameTime.asSeconds() - gfLastTimeSecs > 5.f)
+		{
+			gfLastTimeSecs = gData.curFrameTime.asSeconds();
+			m_vertices[m_curBufferIdx][gGridSize/2 + (gGridSize/2)*gGridSize].pos.y = 1.f;
+		}
+	}
+	// END TEST
+
+	// BEGIN TEST
+	{
+		//const float fHalfSize = 10.f;
+		//for(VtxLane& vtx : m_vertices[m_curBufferIdx])
+		//{
+		//	const float dx = vtx.pos.x / fHalfSize;
+		//	const float dy = vtx.pos.z / fHalfSize;
+		//	//const float dist = sqrtf(dx*dx + dy*dy);
+		//	vtx.pos.y = sin(dx*M_PI) + sin(dy*M_PI);
+		//}
+		//computeNormals(&m_vertices[m_curBufferIdx][0], (int)m_vertices[m_curBufferIdx].size(), &m_indices[0], (int)m_indices.size());
+		//return;
+	}
+	// END TEST
+
 	if(m_lastAnimationTimeSecs < 0.f)
-		m_lastAnimationTimeSecs = gData.frameTime.asSeconds();
+		m_lastAnimationTimeSecs = gData.curFrameTime.asSeconds();
 
 	static float PARAM_C = 0.3f ; // ripple speed
 	static float PARAM_D = 0.4f ; // distance
@@ -149,7 +178,7 @@ void Lane::update()
 	static float ANIMATIONS_PER_SECOND = 100.0f;
 
 	// do rendering to get ANIMATIONS_PER_SECOND
-	while(m_lastAnimationTimeSecs <= gData.frameTime.asSeconds())
+	while(m_lastAnimationTimeSecs <= gData.curFrameTime.asSeconds())
 	{
 		// switch buffer numbers
 		m_curBufferIdx = (m_curBufferIdx + 1) % 3 ;
@@ -185,64 +214,33 @@ void Lane::update()
 
 		m_lastAnimationTimeSecs += (1.0f / ANIMATIONS_PER_SECOND);
 	}
-	computeNormals();
+	computeNormals(&m_vertices[m_curBufferIdx][0], (int)m_vertices[m_curBufferIdx].size(), &m_indices[0], (int)m_indices.size());
 }
 
-void Lane::computeNormals()
+void Lane::computeNormals(VtxLane* vertices, int nbVertices, const unsigned short* indices, int nbIndices)
 {
-	 // TODO
-#if 0
 	// Zero normals
-	for(VtxLane& vtx : m_vertices[m_curBufferIdx])
-		vtx.normal = vec3(0,0,0);
+	for(int i=0 ; i < nbVertices ; i++)
+		vertices[i].normal = vec3(0,0,0);
 
-	// First, calculate normals for faces, add them to proper vertices
-	for(int i=0 ; i < (int)m_indices.size()/3 ; i++)
+	// Compute face normals, weighted by the face sizes (cross product) and add them to the vertex normals
+	for(int i=0 ; i < nbIndices ; i+=3)
 	{
-		//int p0 = m_indices[
+		const unsigned short idx0 = indices[i+0];
+		const unsigned short idx1 = indices[i+1];
+		const unsigned short idx2 = indices[i+2];
+		VtxLane& vtx0 = vertices[idx0];
+		VtxLane& vtx1 = vertices[idx1];
+		VtxLane& vtx2 = vertices[idx2];
+		const vec3 diff1 = vtx1.pos - vtx0.pos;
+		const vec3 diff2 = vtx2.pos - vtx0.pos;
+		const vec3 faceNormal = glm::cross(diff1, diff2);
+		vtx0.normal += faceNormal;
+		vtx1.normal += faceNormal;
+		vtx2.normal += faceNormal;
 	}
 
-	//----------------------------------
-
-	int i,x,y;
-	float *buf = NULL;
-	// zero normals
-	for(i=0;i<numVertices;i++) {
-		vNormals[i] = Vector3::ZERO;
-	}
-	// first, calculate normals for faces, add them to proper vertices
-	buf = vertexBuffers[currentBuffNumber] ;
-	unsigned short* vinds = (unsigned short*) indexBuffer->lock(
-		0, indexBuffer->getSizeInBytes(), HardwareBuffer::HBL_READ_ONLY);
-	float *pNormals = (float*) normVertexBuffer->lock(
-		0, normVertexBuffer->getSizeInBytes(), HardwareBuffer::HBL_DISCARD);
-	for(i=0;i<numFaces;i++) {
-		int p0 = vinds[3*i] ;
-		int p1 = vinds[3*i+1] ;
-		int p2 = vinds[3*i+2] ;
-		Vector3 v0(buf[3*p0], buf[3*p0+1], buf[3*p0+2]);
-		Vector3 v1(buf[3*p1], buf[3*p1+1], buf[3*p1+2]);
-		Vector3 v2(buf[3*p2], buf[3*p2+1], buf[3*p2+2]);
-		Vector3 diff1 = v2 - v1 ;
-		Vector3 diff2 = v0 - v1 ;
-		Vector3 fn = diff1.crossProduct(diff2);
-		vNormals[p0] += fn ;
-		vNormals[p1] += fn ;
-		vNormals[p2] += fn ;
-	}
-	// now normalize vertex normals
-	for(y=0;y<=complexity;y++) {
-		for(x=0;x<=complexity;x++) {
-			int numPoint = y*(complexity+1) + x ;
-			Vector3 n = vNormals[numPoint] ;
-			n.normalise() ;
-			float* normal = pNormals + 3*numPoint ;
-			normal[0]=n.x;
-			normal[1]=n.y;
-			normal[2]=n.z;
-		}
-	}
-	indexBuffer->unlock();
-	normVertexBuffer->unlock();
-#endif
+	// Final normalization
+	for(int i=0 ; i < nbVertices ; i++)
+		vertices[i].normal = glm::normalize(vertices[i].normal);
 }

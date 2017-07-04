@@ -90,7 +90,7 @@ struct Globals
 	int					winSizeY;
 	sf::Time			dTime;
 	sf::Clock			clock;
-	sf::Time			frameTime;
+	sf::Time			curFrameTime;
 	GPUProgramManager*	gpuProgramMgr;
 	Drawer*				drawer;
 	SoundManager*		soundMgr;
