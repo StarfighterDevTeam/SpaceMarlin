@@ -57,13 +57,13 @@ bool MainScene::init()
 	m_camera.setFront(normalize(-m_camera.getPosition()));
 	m_camera.setUp(vec3(0,1,0));
 
-	m_bobSurfaceSpeedLateral =		+500.f;
-	m_bobAirSpeedLateral =			+250.f;
-	m_bobJumpSpeedVertical =		+1000.f;
-	m_bobDiveSpeedVertical =		-1000.f;
-	m_bobDiveSpeedLateral =			+250.f;
-	m_bobGravitySpeedVertical =		-40.f;
-	m_bobArchimedSpeedVertical =	+40.f;
+	m_bobSurfaceSpeedLateral =		+5.f;
+	m_bobAirSpeedLateral =			+2.5f;
+	m_bobJumpSpeedVertical =		+10.f;
+	m_bobDiveSpeedVertical =		-10.f;
+	m_bobDiveSpeedLateral =			+2.5f;
+	m_bobGravitySpeedVertical =		-0.4f;
+	m_bobArchimedSpeedVertical =	+0.4f;
 	m_bobOffsetX = 0;
 	m_bobOffsetZ = 0;
 	m_bobSpeedX = 0;
@@ -109,15 +109,15 @@ void MainScene::updateBob()
 	{
 		if (m_bobOffsetZ == 0)
 		{
-			m_bobSpeedX -= m_bobSurfaceSpeedLateral * gData.dTime.asSeconds();
+			m_bobSpeedX -= m_bobSurfaceSpeedLateral;
 		}
 		else if (m_bobOffsetZ > 0)
 		{
-			m_bobSpeedX -= m_bobAirSpeedLateral * gData.dTime.asSeconds();
+			m_bobSpeedX -= m_bobAirSpeedLateral;
 		}
 		else//if (m_bobOffsetZ < 0)
 		{
-			m_bobSpeedX -= m_bobDiveSpeedLateral * gData.dTime.asSeconds();
+			m_bobSpeedX -= m_bobDiveSpeedLateral;
 		}
 	}
 
@@ -126,15 +126,15 @@ void MainScene::updateBob()
 	{
 		if (m_bobOffsetZ == 0)
 		{
-			m_bobSpeedX += m_bobSurfaceSpeedLateral * gData.dTime.asSeconds();
+			m_bobSpeedX += m_bobSurfaceSpeedLateral;
 		}
 		else if (m_bobOffsetZ > 0)
 		{
-			m_bobSpeedX += m_bobAirSpeedLateral * gData.dTime.asSeconds();
+			m_bobSpeedX += m_bobAirSpeedLateral;
 		}
 		else//if (m_bobOffsetZ < 0)
 		{
-			m_bobSpeedX += m_bobDiveSpeedLateral * gData.dTime.asSeconds();
+			m_bobSpeedX += m_bobDiveSpeedLateral;
 		}
 	}
 
@@ -143,7 +143,7 @@ void MainScene::updateBob()
 	{
 		if (m_bobOffsetZ == 0)//Bob must be on the surface to jump
 		{
-			m_bobSpeedZ += m_bobJumpSpeedVertical * gData.dTime.asSeconds();
+			m_bobSpeedZ += m_bobJumpSpeedVertical;
 		}
 	}
 
@@ -152,7 +152,7 @@ void MainScene::updateBob()
 	{
 		if (m_bobOffsetZ == 0)//Bob must be on the surface to dive
 		{
-			m_bobSpeedZ += m_bobDiveSpeedVertical * gData.dTime.asSeconds();
+			m_bobSpeedZ += m_bobDiveSpeedVertical;
 		}
 	}
 
@@ -163,12 +163,12 @@ void MainScene::updateBob()
 	//Gravity force
 	if (m_bobOffsetZ > 0)
 	{
-		m_bobSpeedZ += m_bobGravitySpeedVertical * gData.dTime.asSeconds();
+		m_bobSpeedZ += m_bobGravitySpeedVertical;
 	}
 	//Archimed force
 	if (m_bobOffsetZ < 0)
 	{
-		m_bobSpeedZ += m_bobArchimedSpeedVertical * gData.dTime.asSeconds();
+		m_bobSpeedZ += m_bobArchimedSpeedVertical;
 	}
 
 	//Apply speed to offset
