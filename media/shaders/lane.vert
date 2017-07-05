@@ -13,7 +13,7 @@ uniform mat4 gModelViewMtx;
 uniform mat4 gModelMtx;
 uniform vec3 gWorldSpaceCamPos;
 
-out vec2 varUv;
+//out vec2 varUv;
 out vec3 varNormal;
 out vec3 varWorldSpaceViewVec;
 
@@ -28,7 +28,7 @@ void main()
 	vec3 worldSpacePos = vec3(gModelMtx * vec4(pos, 1));
 	varWorldSpaceViewVec = worldSpacePos - gWorldSpaceCamPos;
 	varNormal = normal;
-	float sizeFactor = 5;
-	varUv = (pos.xz / sizeFactor) * 0.5 + 0.5;
+	//float sizeFactor = 5;
+	//varUv = (pos.xz / sizeFactor) * 0.5 + 0.5;
 	gl_Position = gModelViewProjMtx * vec4(pos, 1);
 }

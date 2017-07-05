@@ -30,67 +30,8 @@ bool Skybox::loadFromFiles(	const char* cubemapFilename0,
 		imgs[i].flipHorizontally();
 	}
 
-	// from https://learnopengl.com/#!Advanced-OpenGL/Cubemaps
-	float skyboxVertices[] = {
-		// positions          
-		-1.0f,  1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-		 1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
-
-		-1.0f, -1.0f,  1.0f,
-		-1.0f, -1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f,  1.0f,
-		-1.0f, -1.0f,  1.0f,
-
-		 1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-
-		-1.0f, -1.0f,  1.0f,
-		-1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f, -1.0f,  1.0f,
-		-1.0f, -1.0f,  1.0f,
-
-		-1.0f,  1.0f, -1.0f,
-		 1.0f,  1.0f, -1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		-1.0f,  1.0f,  1.0f,
-		-1.0f,  1.0f, -1.0f,
-
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f,  1.0f,
-		 1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f,  1.0f,
-		 1.0f, -1.0f,  1.0f
-	};
-
-	// Send to GPU
-	{
-		glGenVertexArrays(1, &m_vertexArrayId);
-		glBindVertexArray(m_vertexArrayId);
-
-		// Load into the VBO
-		glGenBuffers(1, &m_vertexBufferId);
-		glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), skyboxVertices, GL_STATIC_DRAW);
-
-		glEnableVertexAttribArray(PROG_SKYBOX_ATTRIB_POSITIONS);
-		glVertexAttribPointer(PROG_SKYBOX_ATTRIB_POSITIONS, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-		glBindVertexArray(0);
-	}
-
+	m_fullScreenTriangle.init();
+	
 	// ----------------- Load cubemap ---------------
 	glGenTextures(1, &m_skyTexId);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_skyTexId);
@@ -124,8 +65,7 @@ void Skybox::unload()
 		return;
 	m_loaded = false;
 
-	glDeleteBuffers(1, &m_vertexBufferId); m_vertexBufferId = INVALID_GL_ID;
-	glDeleteVertexArrays(1, &m_vertexArrayId); m_vertexArrayId = INVALID_GL_ID;
+	m_fullScreenTriangle.shut();
 
 	if(m_skyTexId != INVALID_GL_ID)
 	{
@@ -136,6 +76,7 @@ void Skybox::unload()
 
 void Skybox::draw(const Camera& camera)
 {
+	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
 	const GPUProgram* program = gData.gpuProgramMgr->getProgram(PROG_SKYBOX);
 	program->use();
@@ -146,11 +87,17 @@ void Skybox::draw(const Camera& camera)
 	mat4 modelViewProjMtx = camera.getViewProjMtx();
 	modelViewProjMtx[3] = vec4(0,0,0,1);
 	program->sendUniform("gModelViewProjMtx", modelViewProjMtx);
+
+	mat4 projToViewMtx = glm::inverse(camera.getProjMtx());
+	mat4 viewToWorldRotMtx = mat4(glm::transpose(mat3(camera.getViewMtx())));
+	mat4 projToWorldRotMtx = viewToWorldRotMtx * projToViewMtx;
+	program->sendUniform("gProjToWorldRotMtx", projToWorldRotMtx);
+
 	program->sendUniform("texSky", 0);
 
-	glBindVertexArray(m_vertexArrayId);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
+	m_fullScreenTriangle.draw();
 	glDepthMask(GL_TRUE);
+	glEnable(GL_DEPTH_TEST);
 }
 
 void Skybox::update()

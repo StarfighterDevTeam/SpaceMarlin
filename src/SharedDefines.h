@@ -15,11 +15,9 @@
 
 #define PROG_BACKGROUND_ATTRIB_POSITIONS	0
 
-#define PROG_SKYBOX_ATTRIB_POSITIONS        0
-
-// Used for tonemapping
-#define PROG_POSTPROCESS_ATTRIB_POSITIONS	0
-#define PROG_POSTPROCESS_ATTRIB_UVS			1
+// Used for tonemapping & skybox
+#define PROG_FULLSCREENTRIANGLE_ATTRIB_POSITIONS	0
+#define PROG_FULLSCREENTRIANGLE_ATTRIB_UVS			1
 
 #ifdef __cplusplus
 	#define U8VEC4 glm::u8vec4
@@ -53,7 +51,7 @@ struct VtxBackground
 	vec3	pos;
 };
 
-struct VtxPostProcess
+struct VtxFullScreenTriangle
 {
 	vec2	pos;
 	vec2	uv;

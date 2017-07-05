@@ -70,7 +70,7 @@ bool MainScene::init()
 	m_bobSpeedZ = 0;
 
 	initSceneFBO();
-	initPostprocessTriangle();
+	m_postProcessTriangle.init();
 
 	return true;
 }
@@ -85,7 +85,7 @@ void MainScene::shut()
 	m_lane.shut();
 
 	shutSceneFBO();
-	shutPostprocessTriangle();
+	m_postProcessTriangle.shut();
 }
 
 void MainScene::update()
@@ -241,8 +241,6 @@ void MainScene::draw()
 		glDisable(GL_DEPTH_TEST);
 		glDepthMask(GL_FALSE);
 
-		glBindVertexArray(m_postProcessTriangleVertexArrayId);
-
 		const GPUProgram* tonemappingProgram = gData.gpuProgramMgr->getProgram(PROG_TONEMAPPING);
 		tonemappingProgram->use();
 
@@ -250,7 +248,7 @@ void MainScene::draw()
 		glBindTexture(GL_TEXTURE_2D, m_sceneTexId);
 		tonemappingProgram->sendUniform("texScene", 0);
 
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		m_postProcessTriangle.draw();
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthMask(GL_TRUE);
@@ -304,57 +302,4 @@ void MainScene::shutSceneFBO()
 	glDeleteFramebuffers(1, &m_sceneFboId);					m_sceneFboId = INVALID_GL_ID;
 	glDeleteTextures(1, &m_sceneTexId);						m_sceneTexId = INVALID_GL_ID;
 	glDeleteRenderbuffers(1, &m_sceneDepthRenderbufferId);	m_sceneDepthRenderbufferId = INVALID_GL_ID;
-}
-
-void MainScene::initPostprocessTriangle()
-{
-	// Send to GPU
-	{
-		glGenVertexArrays(1, &m_postProcessTriangleVertexArrayId);
-		glBindVertexArray(m_postProcessTriangleVertexArrayId);
-
-		// Load into the VBO
-		glGenBuffers(1, &m_postProcessTriangleVertexBufferId);
-		glBindBuffer(GL_ARRAY_BUFFER, m_postProcessTriangleVertexBufferId);
-
-		// === Ordering ===
-		//  [2]
-		//   |    ` __
-		//   |         `
-		//  [0]----------[1]
-		//
-		// === Pos: ===
-		//(-1,+2)
-		//   |    ` __
-		//   |         `
-		//(-1,-1)-------(+2,-1)
-		//
-		// === UV: ===
-		//(0,2)
-		//   |    ` __
-		//   |         `
-		//(0,0)----------(2,0)
-
-		static const VtxPostProcess vertices[] = {
-			{ vec2(-1,-1), vec2(0, 0) },
-			{ vec2(+3,-1), vec2(2, 0) },
-			{ vec2(-1,+3), vec2(0, 2) },
-		};
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), (const GLvoid*)vertices, GL_STATIC_DRAW);
-
-		// Vertex buffer
-		glEnableVertexAttribArray(PROG_POSTPROCESS_ATTRIB_POSITIONS);
-		glEnableVertexAttribArray(PROG_POSTPROCESS_ATTRIB_UVS);
-
-		glVertexAttribPointer(PROG_POSTPROCESS_ATTRIB_POSITIONS	, sizeof(VtxPostProcess::pos)	/sizeof(GLfloat),	GL_FLOAT,	GL_FALSE,	sizeof(VtxPostProcess), (const GLvoid*)offsetof(VtxPostProcess, pos));
-		glVertexAttribPointer(PROG_POSTPROCESS_ATTRIB_UVS		, sizeof(VtxPostProcess::uv)	/sizeof(GLfloat),	GL_FLOAT,	GL_FALSE,	sizeof(VtxPostProcess), (const GLvoid*)offsetof(VtxPostProcess, uv));
-
-		glBindVertexArray(0);
-	}
-}
-
-void MainScene::shutPostprocessTriangle()
-{
-	glDeleteVertexArrays(1, &m_postProcessTriangleVertexArrayId);	m_postProcessTriangleVertexArrayId = INVALID_GL_ID;
-	glDeleteBuffers(1, &m_postProcessTriangleVertexBufferId);		m_postProcessTriangleVertexBufferId = INVALID_GL_ID;
 }

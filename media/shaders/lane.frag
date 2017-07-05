@@ -7,7 +7,7 @@ precision mediump int;
 uniform samplerCube texCubemap;
 uniform float gTime;
 
-in vec2 varUv;
+//in vec2 varUv;
 in vec3 varNormal;
 in vec3 varWorldSpaceViewVec;
 

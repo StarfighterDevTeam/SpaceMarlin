@@ -5,7 +5,7 @@ precision mediump int;
 
 uniform sampler2D texPerlin;
 uniform mat4 gModelViewProjMtx;
-uniform mat4 gProjToWorldMtx;
+uniform mat4 gProjToWorldRotMtx;
 uniform float gAspectRatio;
 uniform float gTime;
 
@@ -17,7 +17,7 @@ void main()
 {
 	//vec4 tPerlin = texture2D(texPerlin, varUv);
 	vec2 uv = varPos.xy * 0.5 + 0.5;
-	vec4 worldSpacePos = gProjToWorldMtx * vec4(varPos.xy, 1, 1);
+	vec4 worldSpacePos = gProjToWorldRotMtx * vec4(varPos.xy, 1, 1);
 
 	// TODO...
 	vec4 tPerlin = texture2D(texPerlin, worldSpacePos.xy);

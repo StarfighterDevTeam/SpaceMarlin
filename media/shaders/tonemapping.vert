@@ -5,8 +5,8 @@
 precision highp float;
 precision highp int;
 
-layout(location=PROG_POSTPROCESS_ATTRIB_POSITIONS)	in vec2 pos;
-layout(location=PROG_POSTPROCESS_ATTRIB_UVS)		in vec2 uv;
+layout(location=PROG_FULLSCREENTRIANGLE_ATTRIB_POSITIONS)	in vec2 pos;
+layout(location=PROG_FULLSCREENTRIANGLE_ATTRIB_UVS)		in vec2 uv;
 
 out vec2 varUv;
 

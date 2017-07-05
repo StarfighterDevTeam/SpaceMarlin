@@ -146,7 +146,7 @@ GPUProgram* GPUProgramManager::createProgram(GPUProgramId id)
 			{
 				program->setUniformNames(
 					"gModelViewProjMtx",
-					"gProjToWorldMtx",
+					"gProjToWorldRotMtx",
 					"gAspectRatio",
 					"texPerlin",
 					"gTime",
@@ -161,12 +161,14 @@ GPUProgram* GPUProgramManager::createProgram(GPUProgramId id)
 			(gData.shadersPath + SDIR_SEP "skybox.frag").c_str());
 		if(program->compileAndAttach())
 		{
-			program->bindAttribLocation(PROG_SKYBOX_ATTRIB_POSITIONS,	"pos");
+			program->bindAttribLocation(PROG_FULLSCREENTRIANGLE_ATTRIB_POSITIONS,	"pos");
+			program->bindAttribLocation(PROG_FULLSCREENTRIANGLE_ATTRIB_UVS,			"uv");
 
 			if(program->link())
 			{
 				program->setUniformNames(
 					"gModelViewProjMtx",
+					"gProjToWorldRotMtx",
 					"texSky",
 					NULL);
 				bOk = true;
@@ -179,8 +181,8 @@ GPUProgram* GPUProgramManager::createProgram(GPUProgramId id)
 			(gData.shadersPath + SDIR_SEP "tonemapping.frag").c_str());
 		if(program->compileAndAttach())
 		{
-			program->bindAttribLocation(PROG_POSTPROCESS_ATTRIB_POSITIONS,	"pos");
-			program->bindAttribLocation(PROG_POSTPROCESS_ATTRIB_UVS,		"uv");
+			program->bindAttribLocation(PROG_FULLSCREENTRIANGLE_ATTRIB_POSITIONS,	"pos");
+			program->bindAttribLocation(PROG_FULLSCREENTRIANGLE_ATTRIB_UVS,		"uv");
 
 			if(program->link())
 			{

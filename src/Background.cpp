@@ -107,8 +107,8 @@ void Background::draw(const Camera& camera)
 
 	mat4 projToViewMtx = glm::inverse(camera.getProjMtx());
 	mat4 viewToWorldRotMtx = mat4(glm::transpose(mat3(camera.getViewMtx())));
-	mat4 projToWorldMtx = viewToWorldRotMtx * projToViewMtx;
-	program->sendUniform("gProjToWorldMtx", projToWorldMtx);
+	mat4 projToWorldRotMtx = viewToWorldRotMtx * projToViewMtx;
+	program->sendUniform("gProjToWorldRotMtx", projToWorldRotMtx);
 	const float fAspectRatio = ((float)gData.winSizeX) / ((float)std::max<int>(1,gData.winSizeY));
 	program->sendUniform("gAspectRatio", fAspectRatio);
 

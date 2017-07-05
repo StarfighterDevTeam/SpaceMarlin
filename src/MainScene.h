@@ -5,7 +5,7 @@
 #include "Globals.h"
 #include "Scene.h"
 #include "glutil\GPUProgram.h"
-#include "glutil\Quad.h"
+#include "glutil\FullScreenTriangle.h"
 #include "Model.h"
 #include "Lane.h"
 #include "Skybox.h"
@@ -23,8 +23,7 @@ private:
 	GLuint			m_sceneTexId;
 	GLuint			m_sceneDepthRenderbufferId;
 
-	GLuint			m_postProcessTriangleVertexArrayId;
-	GLuint			m_postProcessTriangleVertexBufferId;
+	FullScreenTriangle	m_postProcessTriangle;
 
 	float m_bobSurfaceSpeedLateral;
 	float m_bobAirSpeedLateral;
@@ -49,8 +48,6 @@ private:
 	void			drawScene();
 	void			initSceneFBO();
 	void			shutSceneFBO();
-	void			initPostprocessTriangle();
-	void			shutPostprocessTriangle();
 	void			updateBob();
 };
 

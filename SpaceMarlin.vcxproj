@@ -16,6 +16,7 @@
     <ClCompile Include="src\Drawer.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\Globals.cpp" />
+    <ClCompile Include="src\glutil\FullScreenTriangle.cpp" />
     <ClCompile Include="src\glutil\glutil.cpp" />
     <ClCompile Include="src\glutil\GPUProgram.cpp" />
     <ClCompile Include="src\glutil\Quad.cpp" />
@@ -43,6 +44,7 @@
     <ClInclude Include="src\Drawer.h" />
     <ClInclude Include="src\Game.h" />
     <ClInclude Include="src\Globals.h" />
+    <ClInclude Include="src\glutil\FullScreenTriangle.h" />
     <ClInclude Include="src\glutil\glutil.h" />
     <ClInclude Include="src\glutil\GPUProgram.h" />
     <ClInclude Include="src\glutil\Hash.h" />

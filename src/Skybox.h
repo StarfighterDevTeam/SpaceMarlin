@@ -4,6 +4,7 @@
 
 #include "Globals.h"
 #include "SharedDefines.h"
+#include "glutil/FullScreenTriangle.h"
 
 class Camera;
 
@@ -22,8 +23,7 @@ public:
 	GLuint		getSkyTexId() const				{return m_skyTexId;}
 
 private:
-	GLuint		m_vertexArrayId;
-	GLuint		m_vertexBufferId;
+	FullScreenTriangle	m_fullScreenTriangle;
 
 	GLuint		m_skyTexId;
 
