@@ -31,7 +31,7 @@ bool MainScene::init()
 	//	gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "debug_back.png",
 	//};
 	
-#ifdef _USE_SKYBOX
+//#ifdef _USE_SKYBOX
 	if(!m_skybox.loadFromFiles(
 		cubemapFilenames[0].c_str(),
 		cubemapFilenames[1].c_str(),
@@ -41,10 +41,10 @@ bool MainScene::init()
 		cubemapFilenames[5].c_str()
 		))
 		return false;
-#else
+//#else
 	if(!m_background.load())
 		return false;
-#endif
+//#endif
 
 	// Bob
 	if(!m_bob.loadFromFile((gData.assetsPath + "/models/marlin/marlin.fbx").c_str()))
@@ -69,6 +69,9 @@ bool MainScene::init()
 	m_bobSpeedX = 0;
 	m_bobSpeedZ = 0;
 
+	initSceneFBO();
+	initPostprocessTriangle();
+
 	return true;
 }
 
@@ -80,6 +83,9 @@ void MainScene::shut()
 	m_skybox.unload();
 	m_bob.unload();
 	m_lane.shut();
+
+	shutSceneFBO();
+	shutPostprocessTriangle();
 }
 
 void MainScene::update()
@@ -193,37 +199,162 @@ void MainScene::draw()
 {
 	Scene::draw();
 
-	glEnable(GL_DEPTH_TEST);
+	// Draw scene to FBO
+	{
+		glutil::BindFramebuffer bindSceneFbo(m_sceneFboId);
 
-	// Accept fragment if it closer to the camera than the former one
-	glDepthFunc(GL_LESS);
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-	// Cull triangles which normal is not towards the camera
-	glEnable(GL_CULL_FACE);
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
 
-#ifdef _USE_SKYBOX
-	m_skybox.draw(m_camera);
-#else
-	m_background.draw(m_camera);
-#endif
+		// Accept fragment if it closer to the camera than the former one
+		glDepthFunc(GL_LESS);
 
-	glm::mat4 modelViewProjMtx = m_camera.getViewProjMtx() * m_bob.getModelMtx();
+		// Cull triangles which normal is not towards the camera
+		glEnable(GL_CULL_FACE);
+		
+	#ifdef _USE_SKYBOX
+		m_skybox.draw(m_camera);
+	#else
+		m_background.draw(m_camera);
+	#endif
+
+		glm::mat4 modelViewProjMtx = m_camera.getViewProjMtx() * m_bob.getModelMtx();
 	
-	m_bob.draw(m_camera);
+		m_bob.draw(m_camera);
 
-#ifdef _USE_SKYBOX
-	m_lane.draw(m_camera, m_skybox.getSkyTexId());
-#else
-	m_lane.draw(m_camera, INVALID_GL_ID);
-#endif
+	#ifdef _USE_SKYBOX
+		m_lane.draw(m_camera, m_skybox.getSkyTexId());
+	#else
+		m_lane.draw(m_camera, m_background.getPerlinTexId());
+	#endif
 
-	// Debug model gizmo
-	gData.drawer->drawLine(m_camera, glm::vec3(0,0,0), COLOR_RED,	glm::vec3(3,0,0), COLOR_RED		);
-	gData.drawer->drawLine(m_camera, glm::vec3(0,0,0), COLOR_GREEN,	glm::vec3(0,3,0), COLOR_GREEN	);
-	gData.drawer->drawLine(m_camera, glm::vec3(0,0,0), COLOR_BLUE,	glm::vec3(0,0,3), COLOR_BLUE	);
+		// Debug model gizmo
+		gData.drawer->drawLine(m_camera, glm::vec3(0,0,0), COLOR_RED,	glm::vec3(3,0,0), COLOR_RED		);
+		gData.drawer->drawLine(m_camera, glm::vec3(0,0,0), COLOR_GREEN,	glm::vec3(0,3,0), COLOR_GREEN	);
+		gData.drawer->drawLine(m_camera, glm::vec3(0,0,0), COLOR_BLUE,	glm::vec3(0,0,3), COLOR_BLUE	);
+	}
+
+	// Post-process
+	{
+		glDisable(GL_DEPTH_TEST);
+		glDepthMask(GL_FALSE);
+
+		glBindVertexArray(m_postProcessTriangleVertexArrayId);
+
+		const GPUProgram* tonemappingProgram = gData.gpuProgramMgr->getProgram(PROG_TONEMAPPING);
+		tonemappingProgram->use();
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, m_sceneTexId);
+		tonemappingProgram->sendUniform("texScene", 0);
+
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
+	}
 }
 
 void MainScene::onEvent(const sf::Event& event)
 {
 	Scene::onEvent(event);
+
+	if(event.type == sf::Event::Resized)
+	{
+		shutSceneFBO();
+		initSceneFBO();
+	}
+}
+
+void MainScene::initSceneFBO()
+{
+	// Setup scene FBO
+	m_sceneTexId = glutil::createTextureRGBAF(gData.winSizeX, gData.winSizeY, true);
+	m_sceneDepthRenderbufferId = glutil::createRenderbufferDepth(gData.winSizeX, gData.winSizeY);
+
+	glGenFramebuffers(1, &m_sceneFboId);
+	glutil::BindFramebuffer fbo_binding(m_sceneFboId);
+
+	// - attach the textures:
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_sceneTexId, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_sceneDepthRenderbufferId);
+
+	GL_CHECK();
+
+	// - specify the draw buffers:
+	static const GLenum drawBuffers[] = {
+		GL_COLOR_ATTACHMENT0
+	};
+
+	glDrawBuffers(sizeof(drawBuffers) / sizeof(GLenum), drawBuffers);
+
+	// - check the FBO:
+	GLenum fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+	if(fboStatus == GL_FRAMEBUFFER_COMPLETE)
+		logSuccess("FBO creation");
+	else
+		logError("FBO not complete");
+}
+
+void MainScene::shutSceneFBO()
+{
+	glDeleteFramebuffers(1, &m_sceneFboId);					m_sceneFboId = INVALID_GL_ID;
+	glDeleteTextures(1, &m_sceneTexId);						m_sceneTexId = INVALID_GL_ID;
+	glDeleteRenderbuffers(1, &m_sceneDepthRenderbufferId);	m_sceneDepthRenderbufferId = INVALID_GL_ID;
+}
+
+void MainScene::initPostprocessTriangle()
+{
+	// Send to GPU
+	{
+		glGenVertexArrays(1, &m_postProcessTriangleVertexArrayId);
+		glBindVertexArray(m_postProcessTriangleVertexArrayId);
+
+		// Load into the VBO
+		glGenBuffers(1, &m_postProcessTriangleVertexBufferId);
+		glBindBuffer(GL_ARRAY_BUFFER, m_postProcessTriangleVertexBufferId);
+
+		// === Ordering ===
+		//  [2]
+		//   |    ` __
+		//   |         `
+		//  [0]----------[1]
+		//
+		// === Pos: ===
+		//(-1,+2)
+		//   |    ` __
+		//   |         `
+		//(-1,-1)-------(+2,-1)
+		//
+		// === UV: ===
+		//(0,2)
+		//   |    ` __
+		//   |         `
+		//(0,0)----------(2,0)
+
+		static const VtxPostProcess vertices[] = {
+			{ vec2(-1,-1), vec2(0, 0) },
+			{ vec2(+3,-1), vec2(2, 0) },
+			{ vec2(-1,+3), vec2(0, 2) },
+		};
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), (const GLvoid*)vertices, GL_STATIC_DRAW);
+
+		// Vertex buffer
+		glEnableVertexAttribArray(PROG_POSTPROCESS_ATTRIB_POSITIONS);
+		glEnableVertexAttribArray(PROG_POSTPROCESS_ATTRIB_UVS);
+
+		glVertexAttribPointer(PROG_POSTPROCESS_ATTRIB_POSITIONS	, sizeof(VtxPostProcess::pos)	/sizeof(GLfloat),	GL_FLOAT,	GL_FALSE,	sizeof(VtxPostProcess), (const GLvoid*)offsetof(VtxPostProcess, pos));
+		glVertexAttribPointer(PROG_POSTPROCESS_ATTRIB_UVS		, sizeof(VtxPostProcess::uv)	/sizeof(GLfloat),	GL_FLOAT,	GL_FALSE,	sizeof(VtxPostProcess), (const GLvoid*)offsetof(VtxPostProcess, uv));
+
+		glBindVertexArray(0);
+	}
+}
+
+void MainScene::shutPostprocessTriangle()
+{
+	glDeleteVertexArrays(1, &m_postProcessTriangleVertexArrayId);	m_postProcessTriangleVertexArrayId = INVALID_GL_ID;
+	glDeleteBuffers(1, &m_postProcessTriangleVertexBufferId);		m_postProcessTriangleVertexBufferId = INVALID_GL_ID;
 }

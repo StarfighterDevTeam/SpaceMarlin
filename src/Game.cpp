@@ -144,9 +144,6 @@ void Game::update()
 
 void Game::draw()
 {
-	glClearColor(0.5f, 0.5f, 0.5f, 1.f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	m_scenes[m_curScene]->draw();
 
 	gData.window->display();

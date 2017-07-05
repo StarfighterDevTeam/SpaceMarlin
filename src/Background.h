@@ -15,6 +15,8 @@ public:
 	void		draw(const Camera& camera);
 	void		update();
 
+	GLuint		getPerlinTexId() const {return m_perlinTexId;}
+
 private:
 	std::vector<unsigned short>	m_indices;
 	std::vector<VtxBackground>	m_vertices;

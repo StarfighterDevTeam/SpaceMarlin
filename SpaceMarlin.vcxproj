@@ -80,6 +80,8 @@
     <None Include="media\shaders\simple.vert" />
     <None Include="media\shaders\skybox.frag" />
     <None Include="media\shaders\skybox.vert" />
+    <None Include="media\shaders\tonemapping.frag" />
+    <None Include="media\shaders\tonemapping.vert" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B700DAF9-9781-433C-BD0F-EFFC6CB37795}</ProjectGuid>

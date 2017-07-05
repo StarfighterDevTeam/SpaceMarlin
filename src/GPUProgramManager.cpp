@@ -173,6 +173,24 @@ GPUProgram* GPUProgramManager::createProgram(GPUProgramId id)
 			}
 		}
 		break;
+	case PROG_TONEMAPPING:
+		program = new GPUProgram(
+			(gData.shadersPath + SDIR_SEP "tonemapping.vert").c_str(),
+			(gData.shadersPath + SDIR_SEP "tonemapping.frag").c_str());
+		if(program->compileAndAttach())
+		{
+			program->bindAttribLocation(PROG_POSTPROCESS_ATTRIB_POSITIONS,	"pos");
+			program->bindAttribLocation(PROG_POSTPROCESS_ATTRIB_UVS,		"uv");
+
+			if(program->link())
+			{
+				program->setUniformNames(
+					"texScene",
+					NULL);
+				bOk = true;
+			}
+		}
+		break;
 	default:
 		assert(false && "shouldn't happen");
 		return NULL;

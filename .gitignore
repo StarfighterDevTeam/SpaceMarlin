@@ -13,3 +13,4 @@ assimp_log.txt
 *.ipdb
 *.VC.db
 *.VC.VC.opendb
+*.vcxproj.user

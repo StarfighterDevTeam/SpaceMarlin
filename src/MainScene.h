@@ -19,6 +19,13 @@ private:
 	Model			m_bob;
 	Lane			m_lane;
 
+	GLuint			m_sceneFboId;
+	GLuint			m_sceneTexId;
+	GLuint			m_sceneDepthRenderbufferId;
+
+	GLuint			m_postProcessTriangleVertexArrayId;
+	GLuint			m_postProcessTriangleVertexBufferId;
+
 	float m_bobSurfaceSpeedLateral;
 	float m_bobAirSpeedLateral;
 	float m_bobJumpSpeedVertical;
@@ -32,13 +39,19 @@ private:
 	float m_bobArchimedSpeedVertical;
 
 public:
-	virtual bool init() override;
-	virtual void shut() override;
-	virtual void update() override;
-	virtual void draw() override;
-	virtual void onEvent(const sf::Event& event);
+	virtual bool	init() override;
+	virtual void	shut() override;
+	virtual void	update() override;
+	virtual void	draw() override;
+	virtual void	onEvent(const sf::Event& event) override;
 
-	void updateBob();
+private:
+	void			drawScene();
+	void			initSceneFBO();
+	void			shutSceneFBO();
+	void			initPostprocessTriangle();
+	void			shutPostprocessTriangle();
+	void			updateBob();
 };
 
 #endif // _MAIN_SCENE_H
