@@ -34,8 +34,8 @@ private:
 	float m_bobOffsetZ;
 	float m_bobSpeedX;
 	float m_bobSpeedZ;
-	float m_bobGravitySpeedVertical;
-	float m_bobArchimedSpeedVertical;
+	float m_bobGravityAccelerationVertical;
+	float m_bobArchimedeAccelerationVertical;
 
 public:
 	virtual bool	init() override;

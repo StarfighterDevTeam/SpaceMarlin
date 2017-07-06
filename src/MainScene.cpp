@@ -57,13 +57,13 @@ bool MainScene::init()
 	m_camera.setFront(normalize(-m_camera.getPosition()));
 	m_camera.setUp(vec3(0,1,0));
 
-	m_bobSurfaceSpeedLateral =		+5.f;
-	m_bobAirSpeedLateral =			+2.5f;
-	m_bobJumpSpeedVertical =		+10.f;
-	m_bobDiveSpeedVertical =		-10.f;
-	m_bobDiveSpeedLateral =			+2.5f;
-	m_bobGravitySpeedVertical =		-0.4f;
-	m_bobArchimedSpeedVertical =	+0.4f;
+	m_bobSurfaceSpeedLateral =				+5.f;
+	m_bobAirSpeedLateral =					+2.5f;
+	m_bobJumpSpeedVertical =				+10.f;
+	m_bobDiveSpeedVertical =				-10.f;
+	m_bobDiveSpeedLateral =					+2.5f;
+	m_bobGravityAccelerationVertical =		-30.f;
+	m_bobArchimedeAccelerationVertical =	+30.f;
 	m_bobOffsetX = 0;
 	m_bobOffsetZ = 0;
 	m_bobSpeedX = 0;
@@ -169,12 +169,12 @@ void MainScene::updateBob()
 	//Gravity force
 	if (m_bobOffsetZ > 0)
 	{
-		m_bobSpeedZ += m_bobGravitySpeedVertical;
+		m_bobSpeedZ += m_bobGravityAccelerationVertical * gData.dTime.asSeconds();
 	}
 	//Archimed force
 	if (m_bobOffsetZ < 0)
 	{
-		m_bobSpeedZ += m_bobArchimedSpeedVertical;
+		m_bobSpeedZ += m_bobArchimedeAccelerationVertical * gData.dTime.asSeconds();
 	}
 
 	//Apply speed to offset
