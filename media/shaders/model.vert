@@ -13,8 +13,17 @@ uniform mat4 gModelViewProjMtx;
 
 out vec2 varUv;
 
+out vec3 varLocalPos;
+uniform float gTime;
+
 void main()
 {
+	vec3 lPos = pos;
+	varLocalPos = lPos;
+	float enveloppe = (lPos.x+2);
+	//enveloppe = enveloppe < 0 ? 0 : enveloppe;
+	lPos.y += enveloppe * sin(15*gTime + lPos.x)*0.05;
+
 	varUv = uv;
-	gl_Position = gModelViewProjMtx * vec4(pos, 1.0);
+	gl_Position = gModelViewProjMtx * vec4(lPos, 1.0);
 }

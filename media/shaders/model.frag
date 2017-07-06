@@ -7,6 +7,7 @@ uniform sampler2D texAlbedo;
 uniform float gTime;
 
 in vec2 varUv;
+in vec3 varLocalPos;
 
 layout(location=0) out vec4 fragColor;
 
