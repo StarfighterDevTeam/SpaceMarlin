@@ -34,6 +34,8 @@ Supported directives:
 #endif
 #for
 #endfor
+#pragma custom_preprocessor_off
+#pragma custom_preprocessor_on
 
 Supported operators:
 ()
@@ -119,6 +121,9 @@ private:
 	// Includes a final '/' or '\\'.
 	std::string directory;
 
+	// #pragma custom_preprocessor_on/custom_preprocessor_off support
+	bool custom_preprocessor_on;
+
 	// #line directive support (GLSL)
 	bool use_line_directive;
 	int source_string_number;
@@ -202,6 +207,7 @@ private:
 	// NB: the end of the expression is marked with '\n' or '\0'!
 	std::string replaceSymbols(const char* line, bool in_directive);
 
+	bool parsePragma(const char* directive);
 	bool includeFile(const char* directive, const char* filename, int num_line, std::string* result, int* nb_generated_lines);
 	bool defineSymbol(const char* directive);
 	bool undefSymbol(const char* directive);

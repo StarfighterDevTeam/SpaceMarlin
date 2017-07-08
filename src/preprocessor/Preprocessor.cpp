@@ -20,6 +20,7 @@ Preprocessor::Preprocessor(bool use_line_directive)
 #ifdef PREPROC_KEEP_ORIGINAL_SYMBOLS
   original_symbols(),
 #endif
+  custom_preprocessor_on(true),
   use_line_directive(use_line_directive),
   source_string_number(0),
   for_directive_line(NULL),
@@ -528,7 +529,7 @@ string Preprocessor::preprocessLine(const char* line,
 	*new_line_ptr = NULL;	// default value
 
 	// See if we are in a "commented out" state.
-	// #include, #define, #undef, #for and #endfor are skipped
+	// #pragma, #include, #define, #undef, #for and #endfor are skipped
 	// if we are in a "commented out" state.
 	bool is_commented_out = hasAtLeastOneTrue(*commented_out);
 
@@ -538,53 +539,55 @@ string Preprocessor::preprocessLine(const char* line,
 		bool ok = true;
 		result = "\n";	// replace the directive by an empty line
 
-		if(startsWith(first_non_space, "#include") && ! is_commented_out)
+		if(startsWith(first_non_space, "#pragma") && ! is_commented_out)
+			ok = parsePragma(first_non_space);
+		else if(startsWith(first_non_space, "#include") && ! is_commented_out && custom_preprocessor_on)
 			ok = includeFile(first_non_space, filename, *num_line, &result, nb_generated_lines);
-		else if(startsWith(first_non_space, "#define") && ! is_commented_out)
+		else if(startsWith(first_non_space, "#define") && ! is_commented_out && custom_preprocessor_on)
 			ok = defineSymbol(first_non_space);
-		else if(startsWith(first_non_space, "#undef") && ! is_commented_out)
+		else if(startsWith(first_non_space, "#undef") && ! is_commented_out && custom_preprocessor_on)
 			ok = undefSymbol(first_non_space);
-		else if(startsWith(first_non_space, "#ifdef"))
+		else if(startsWith(first_non_space, "#ifdef") && custom_preprocessor_on)
 		{
 			bool is_defined = true;
 			ok = definedExpression(first_non_space, &is_defined);
 			commented_out->push_back(!is_defined);
 		}
-		else if(startsWith(first_non_space, "#ifndef"))
+		else if(startsWith(first_non_space, "#ifndef") && custom_preprocessor_on)
 		{
 			bool is_defined = true;
 			ok = definedExpression(first_non_space, &is_defined);
 			commented_out->push_back(is_defined);
 		}
-		else if(startsWith(first_non_space, "#if"))
+		else if(startsWith(first_non_space, "#if") && custom_preprocessor_on)
 		{
 			bool is_true = true;
 			ok = condExpression(first_non_space, &is_true);
 			commented_out->push_back(!is_true);
 		}
-		else if(startsWith(first_non_space, "#else"))
+		else if(startsWith(first_non_space, "#else") && custom_preprocessor_on)
 		{
 			// Make sure there is nothing but whitespaces after "#else"
 			if(*skipStartingSpaces(&first_non_space[strlen("#else")]) != '\n')
 				ok = false;
 			commented_out->back() = !commented_out->back();
 		}
-		else if(startsWith(first_non_space, "#elif"))
+		else if(startsWith(first_non_space, "#elif") && custom_preprocessor_on)
 		{
 			bool is_true = true;
 			ok = condExpression(first_non_space, &is_true);
 			commented_out->back() = !is_true;
 		}
-		else if(startsWith(first_non_space, "#endif"))
+		else if(startsWith(first_non_space, "#endif") && custom_preprocessor_on)
 		{
 			// Make sure there is nothing but whitespaces after "#endif"
 			if(*skipStartingSpaces(&first_non_space[strlen("#endif")]) != '\n')
 				ok = false;
 			commented_out->pop_back();
 		}
-		else if(startsWith(first_non_space, "#for") && ! is_commented_out)
+		else if(startsWith(first_non_space, "#for") && ! is_commented_out && custom_preprocessor_on)
 			ok = forExpression(first_non_space, filename, *num_line);
-		else if(startsWith(first_non_space, "#endfor") && ! is_commented_out)
+		else if(startsWith(first_non_space, "#endfor") && ! is_commented_out && custom_preprocessor_on)
 			ok = endFor(first_non_space, new_line_ptr, &result, &next_num_line);
 		else
 		{
@@ -732,6 +735,31 @@ string Preprocessor::replaceSymbols(const char* expr, bool in_directive)
 	return result;
 }
 
+// Input example: "#pragma custom_preprocessor_on"
+bool Preprocessor::parsePragma(const char* directive)
+{
+	string str_pragma_name = "";
+	int keyword_len = (int)strlen("#pragma");
+
+	// Make sure there is at least one whitespace after "#pragma"
+	if(!isWhitespace(directive[keyword_len]))
+		return false;
+
+	// Get the pragma directive name
+	const char* pragma_name = skipStartingSpaces(&directive[keyword_len]);
+	int index = 0;
+	for(index=0 ; !isWhitespace(pragma_name[index]) && pragma_name[index] != '\n' ; index++)
+		str_pragma_name += pragma_name[index];
+
+	if(str_pragma_name == "custom_preprocessor_off")
+		custom_preprocessor_on = false;
+	else if(str_pragma_name == "custom_preprocessor_on")
+		custom_preprocessor_on = true;
+	else
+		logWarn("#pragma directive \"", pragma_name, "\" unknown");
+	return true;
+}
+
 // Input example: "#include "my_file.glsl""
 bool Preprocessor::includeFile(	const char* directive,
 								const char* filename,
@@ -821,7 +849,7 @@ bool Preprocessor::defineSymbol(const char* directive)
 	// Check that the symbol is not already known:
 	if(hasSymbol(symbol.name))
 	{
-		logError("symbol \"", symbol.name, "\" already known");
+		logError("preprocessor macro \"", symbol.name, "\" already defined");
 		return false;
 	}
 
