@@ -280,6 +280,16 @@ int ExpressionEvaluator::evaluateTokenList(TokenList& tokens, bool* ok) const
 		if(tokens.size() == 2 && first.str_val == "defined" && last.type == TOKEN_IDENTIFIER)
 			return preproc->hasSymbol(last.str_val);
 
+		// defined (a)	NOTE: we don't support e.g defined((a))...
+		if(tokens.size() == 4 && first.str_val == "defined")
+		{
+			TokenList::const_iterator it = tokens.begin();
+			const Token& second = *++it;
+			const Token& third = *++it;
+			if(second.str_val == "(" && third.type == TOKEN_IDENTIFIER && last.str_val == ")")
+				return preproc->hasSymbol(third.str_val);
+		}
+
 		// (a)
 		if(first.str_val == "(" && last.str_val == ")")
 		{
