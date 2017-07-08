@@ -52,12 +52,21 @@ void GPUProgramManager::update()
 			if(memcmp(&watchedProgram, &orgWatchedProgram, sizeof(WatchedProgram)) != 0)
 			{
 				const GPUProgramId progId = orgWatchedProgram.m_programId;
-				logInfo("Updating program ", gpuProgramNames[progId],
-					"\n(vertex:", orgWatchedProgram.m_program->getVertexFilename(), ")"
-					"\n(fragment:", orgWatchedProgram.m_program->getFragmentFilename(), ")");
+				std::stringstream ss;
+				ss << "Updating program " << gpuProgramNames[progId]
+					<< "\n(vertex: " << orgWatchedProgram.m_program->getVertexFilename() << ")"
+					<< "\n(fragment: " << orgWatchedProgram.m_program->getFragmentFilename() << ")";
+
+				logInfo(ss.str());
 				GPUProgram* newProgram = createProgram(progId);
 				if(newProgram)
 					m_programs[progId] = newProgram;
+				else
+				{
+			#ifdef WIN32
+					MessageBoxA(gData.window->getSystemHandle(), ss.str().c_str(), "Error updating program", MB_ICONERROR|MB_OK|MB_SYSTEMMODAL);
+			#endif
+				}
 			}
 		}
 	}
