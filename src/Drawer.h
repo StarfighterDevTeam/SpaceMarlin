@@ -9,8 +9,8 @@ class Camera;
 class Drawer
 {
 private:
-	GLuint	m_lineVertexArrayID;
-	GLuint	m_lineBufferID;
+	GLuint	m_lineVertexArrayId;
+	GLuint	m_lineVertexBufferId;
 
 public:
 	void		init();
