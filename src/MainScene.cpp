@@ -256,7 +256,7 @@ void MainScene::initSceneFBO()
 	m_sceneDepthRenderbufferId = glutil::createRenderbufferDepth(gData.winSizeX, gData.winSizeY);
 
 	glGenFramebuffers(1, &m_sceneFboId);
-	glutil::BindFramebuffer fbo_binding(m_sceneFboId);
+	glutil::BindFramebuffer fboBinding(m_sceneFboId);
 
 	// - attach the textures:
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_sceneTexId, 0);
