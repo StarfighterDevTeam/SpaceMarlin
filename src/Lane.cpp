@@ -265,7 +265,9 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId)
 	glBindVertexArray(0);
 
 	// BEGIN TEST
+#ifdef _LANE_USES_GPU
 	gData.drawer->draw2DTexturedQuad(m_heightsTexId[m_curBufferIdx], vec2(10,10), vec2(gGridSize, gGridSize));
+#endif
 	// END TEST
 }
 
