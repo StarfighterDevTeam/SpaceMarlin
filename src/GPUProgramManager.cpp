@@ -1,10 +1,46 @@
 #include "GPUProgramManager.h"
 
-static const char* gpuProgramNames[] = {
-#define HANDLE_GPUPROGRAM_NAME(progId)	#progId, NO_ACTION
+struct GPUProgramMetadata
+{
+	struct VertexAttribute
+	{
+		GLint		location;
+		const char*	name;
+	};
 
-	FOREACH_GPUPROGRAM(HANDLE_GPUPROGRAM_NAME, NO_ACTION, NO_ACTION, NO_ACTION, NO_ACTION())
-};
+	struct Item
+	{
+		const char*						programName;
+		const char*						vertexFileName;
+		const char*						fragmentFileName;
+		std::vector<VertexAttribute>	vertexAttributes;
+		std::list<std::string>			uniformNames;
+	};
+
+	Item items[PROG_COUNT];
+
+	GPUProgramMetadata()
+	{
+		GPUProgramId curId = (GPUProgramId)0;
+
+	#define HANDLE_PROG_GET_METADATA(progId)	items[curId].programName = #progId; HANDLE_##progId
+
+	#define BEGIN_PROGRAM_GET_METADATA(vtxStructType, _vertexFileName, _fragmentFileName)	\
+		items[curId].vertexFileName		= _vertexFileName;		\
+		items[curId].fragmentFileName	= _fragmentFileName;
+
+	#define HANDLE_UNIFORM_GET_METADATA(type, varName)	\
+		items[curId].uniformNames.push_back(#varName);
+
+	#define HANDLE_ATTRIBUTE_GET_METADATA(vtxStructType, varType, componentType, componentTypeEnum, normalized, varName, loc)	\
+		items[curId].vertexAttributes.push_back({loc, #varName});
+
+	#define END_PROGRAM_GET_METADATA	\
+		curId = (GPUProgramId)(curId+1);
+
+		FOREACH_GPUPROGRAM(HANDLE_PROG_GET_METADATA, BEGIN_PROGRAM_GET_METADATA, HANDLE_UNIFORM_GET_METADATA, HANDLE_ATTRIBUTE_GET_METADATA, END_PROGRAM_GET_METADATA)
+	}
+} gProgramMetadata;
 
 void GPUProgramManager::init()
 {
@@ -53,7 +89,7 @@ void GPUProgramManager::update()
 			{
 				const GPUProgramId progId = orgWatchedProgram.m_programId;
 				std::stringstream ss;
-				ss << "Updating program " << gpuProgramNames[progId]
+				ss << "Updating program " << gProgramMetadata.items[progId].programName
 					<< "\n(vertex: " << orgWatchedProgram.m_program->getVertexFilename() << ")"
 					<< "\n(fragment: " << orgWatchedProgram.m_program->getFragmentFilename() << ")";
 
@@ -75,114 +111,21 @@ void GPUProgramManager::update()
 
 GPUProgram* GPUProgramManager::createProgram(GPUProgramId id)
 {
-	GPUProgram* program = NULL;
 	bool bOk = false;
 
-#define HANDLE_ATTRIBUTE_BIND_LOCATION(vtxStructType, varType, componentType, componentTypeEnum, normalized, varName, loc)	\
-	program->bindAttribLocation(loc,	#varName);
-
-#define BIND_PROGRAM_VERTEX_ATTRIB_LOCATIONS(progId)	HANDLE_##progId(NO_ACTION, NO_ACTION, HANDLE_ATTRIBUTE_BIND_LOCATION)
-
-	switch(id)
+	GPUProgram* program = new GPUProgram(
+		(gData.shadersPath + SDIR_SEP + gProgramMetadata.items[id].vertexFileName).c_str(),
+		(gData.shadersPath + SDIR_SEP + gProgramMetadata.items[id].fragmentFileName).c_str());
+	if(program->compileAndAttach())
 	{
-	case PROG_MODEL:
-		program = new GPUProgram(
-			(gData.shadersPath + SDIR_SEP "model.vert").c_str(),
-			(gData.shadersPath + SDIR_SEP "model.frag").c_str());
-		if(program->compileAndAttach())
+		for(GPUProgramMetadata::VertexAttribute& attrib : gProgramMetadata.items[id].vertexAttributes)
+			program->bindAttribLocation(attrib.location, attrib.name);
+		if(program->link())
 		{
-			BIND_PROGRAM_VERTEX_ATTRIB_LOCATIONS(PROG_MODEL)
+			program->setUniformNames(gProgramMetadata.items[id].uniformNames);
 
-			if(program->link())
-			{
-				program->setUniformNames(
-					"gLocalToProjMtx",
-					"texAlbedo",
-					"gTime",
-					NULL);
-				bOk = true;
-			}
+			bOk = true;
 		}
-		break;
-	case PROG_SIMPLE:
-		program = new GPUProgram(
-			(gData.shadersPath + SDIR_SEP "simple.vert").c_str(),
-			(gData.shadersPath + SDIR_SEP "simple.frag").c_str());
-		if(program->compileAndAttach())
-		{
-			BIND_PROGRAM_VERTEX_ATTRIB_LOCATIONS(PROG_SIMPLE)
-
-			if(program->link())
-			{
-				program->setUniformNames(
-					"gLocalToProjMtx",
-					NULL);
-				bOk = true;
-			}
-		}
-		break;
-	case PROG_LANE:
-		program = new GPUProgram(
-			(gData.shadersPath + SDIR_SEP "lane.vert").c_str(),
-			(gData.shadersPath + SDIR_SEP "lane.frag").c_str());
-		if(program->compileAndAttach())
-		{
-			BIND_PROGRAM_VERTEX_ATTRIB_LOCATIONS(PROG_LANE)
-
-			if(program->link())
-			{
-				program->setUniformNames(
-					"gLocalToProjMtx",
-					"gLocalToViewMtx",
-					"gLocalToWorldMtx",
-					"gWorldSpaceCamPos",
-					"texAlbedo",
-					"texCubemap",
-					"gTime",
-					NULL);
-				bOk = true;
-			}
-		}
-		break;
-	case PROG_SKYBOX:
-		program = new GPUProgram(
-			(gData.shadersPath + SDIR_SEP "skybox.vert").c_str(),
-			(gData.shadersPath + SDIR_SEP "skybox.frag").c_str());
-		if(program->compileAndAttach())
-		{
-			BIND_PROGRAM_VERTEX_ATTRIB_LOCATIONS(PROG_SKYBOX)
-
-			if(program->link())
-			{
-				program->setUniformNames(
-					"gLocalToProjMtx",
-					"gProjToWorldRotMtx",
-					"texSky",
-					NULL);
-				bOk = true;
-			}
-		}
-		break;
-	case PROG_TONEMAPPING:
-		program = new GPUProgram(
-			(gData.shadersPath + SDIR_SEP "tonemapping.vert").c_str(),
-			(gData.shadersPath + SDIR_SEP "tonemapping.frag").c_str());
-		if(program->compileAndAttach())
-		{
-			BIND_PROGRAM_VERTEX_ATTRIB_LOCATIONS(PROG_TONEMAPPING)
-
-			if(program->link())
-			{
-				program->setUniformNames(
-					"texScene",
-					NULL);
-				bOk = true;
-			}
-		}
-		break;
-	default:
-		assert(false && "shouldn't happen");
-		return NULL;
 	}
 
 	if(!bOk)

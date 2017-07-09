@@ -1,7 +1,6 @@
 #version 400 core
 #include "SharedDefines.h"
-
-HANDLE_PROG_MODEL(HANDLE_VERTEX_NO_ACTION, HANDLE_UNIFORM_DECLARE, HANDLE_ATTRIBUTE_DECLARE)
+PROG_VERTEX_SHADER(PROG_MODEL)
 
 out vec2 varUv;
 out vec3 varLocalPos;
