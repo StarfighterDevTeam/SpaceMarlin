@@ -5,11 +5,14 @@
 #include "Globals.h"
 #include "SharedDefines.h"
 
+//#define _LANE_USES_GPU
+
 class Camera;
 
 class Lane
 {
 public:
+	Lane();
 	void		init();
 	void		shut();
 	void		draw(const Camera& camera, GLuint texCubemapId);
@@ -19,7 +22,11 @@ private:
 	static void	computeNormals(VtxLane* vertices, int nbVertices, const unsigned short* indices, int nbIndices);
 
 	std::vector<unsigned short>	m_indices;
+#ifdef _LANE_USES_GPU
+	GLuint						m_heightsTexId[3];
+#else
 	std::vector<VtxLane>		m_vertices[3];
+#endif
 	int							m_curBufferIdx;
 	float						m_lastAnimationTimeSecs;
 

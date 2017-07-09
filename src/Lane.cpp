@@ -7,32 +7,83 @@
 
 static const int gGridSize = 100;
 
+#ifdef _LANE_USES_GPU
+	#define _IF_LANE_USES_GPU(a, b) a
+#else
+	#define _IF_LANE_USES_GPU(a, b) b
+#endif
+
+Lane::Lane()
+{
+#ifdef _LANE_USES_GPU
+	for(GLuint& texId : m_heightsTexId)
+		texId = INVALID_GL_ID;
+#endif
+}
+
 void Lane::init()
 {
+#ifdef _LANE_USES_GPU
+	assert(m_heightsTexId[0] == INVALID_GL_ID);
+#else
 	assert(!m_vertices[0].size());
+#endif
 
 	m_curBufferIdx = 0;
 	m_lastAnimationTimeSecs = -1.f;
 
 	const float fHalfSize = 10.f;
 
-	for(int i=0 ; i < _countof(m_vertices) ; i++)
-	{
-		m_vertices[i].resize(gGridSize*gGridSize);
+	std::vector<VtxLane>* pInitVertices = NULL;
+#ifdef _LANE_USES_GPU
+	std::vector<VtxLane> vertices;
+	pInitVertices = &vertices;
 
-		VtxLane vtx;
-		vtx.pos.y = 0.f;
-		vtx.normal = vec3(0,1,0);
-		for(int z=0 ; z < gGridSize ; z++)
+	for(int i=0 ; i < _countof(m_heightsTexId) ; i++)
+	{
+		glGenTextures(1, &m_heightsTexId[i]);
+		glBindTexture(GL_TEXTURE_2D, m_heightsTexId[i]);
+
+		// Set the filter
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		// Create the texture
+		glTexImage2D(
+				GL_TEXTURE_2D,
+				0,
+				GL_R16F,
+				gGridSize, gGridSize,
+				0,
+				GL_RED,
+				GL_FLOAT,
+				NULL);
+	}
+#else
+	pInitVertices = &m_vertices[0];
+#endif
+
+	// Init vertices positions
+	pInitVertices->resize(gGridSize*gGridSize);
+	
+	VtxLane vtx;
+	vtx.pos.y = 0.f;
+	vtx.normal = vec3(0,1,0);
+	for(int z=0 ; z < gGridSize ; z++)
+	{
+		vtx.pos.z = (z-gGridSize/2) * fHalfSize / gGridSize;
+		for(int x=0 ; x < gGridSize ; x++)
 		{
-			vtx.pos.z = (z-gGridSize/2) * fHalfSize / gGridSize;
-			for(int x=0 ; x < gGridSize ; x++)
-			{
-				vtx.pos.x = (x-gGridSize/2) * fHalfSize / gGridSize;
-				m_vertices[i][x + z*gGridSize] = vtx;
-			}
+			vtx.pos.x = (x-gGridSize/2) * fHalfSize / gGridSize;
+			(*pInitVertices)[x + z*gGridSize] = vtx;
 		}
 	}
+
+#if !defined(_LANE_USES_GPU)
+	m_vertices[1] = m_vertices[2] = m_vertices[0];
+#endif
 
 	for(int z = 0 ; z < gGridSize-1 ; z++)
 	{
@@ -41,27 +92,29 @@ void Lane::init()
 			m_indices.push_back((x+0) + (z+0)*gGridSize);
 			m_indices.push_back((x+0) + (z+1)*gGridSize);
 			m_indices.push_back((x+1) + (z+1)*gGridSize);
-
+			
 			m_indices.push_back((x+0) + (z+0)*gGridSize);
 			m_indices.push_back((x+1) + (z+1)*gGridSize);
 			m_indices.push_back((x+1) + (z+0)*gGridSize);
 		}
 	}
-
+	
 	// Send to GPU
 	{
 		glGenVertexArrays(1, &m_vertexArrayId);
 		glBindVertexArray(m_vertexArrayId);
 
+		const GLenum vbUsage = _IF_LANE_USES_GPU(GL_STATIC_DRAW, GL_STREAM_DRAW);
+		
 		// Load into the VBO
 		glGenBuffers(1, &m_vertexBufferId);
 		glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
-		glBufferData(GL_ARRAY_BUFFER, m_vertices[0].size() * sizeof(VtxLane), &m_vertices[0][0], GL_STREAM_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, pInitVertices->size() * sizeof(VtxLane), &(*pInitVertices)[0], vbUsage);
 
 		// Generate a buffer for the indices as well
 		glGenBuffers(1, &m_indexBufferId);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned short), &m_indices[0] , GL_STREAM_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned short), &m_indices[0] , GL_STATIC_DRAW);
 
 		// Vertex buffer
 		glEnableVertexAttribArray(PROG_LANE_ATTRIB_POSITIONS);
@@ -76,12 +129,21 @@ void Lane::init()
 
 void Lane::shut()
 {
-	assert(m_indices.size());
-	assert(m_vertices[0].size());
-
+	assert(m_indices.size() > 0);
 	m_indices.clear();
+
+#ifdef _LANE_USES_GPU
+	assert(m_heightsTexId[0] != INVALID_GL_ID);
+	for(GLuint& texId : m_heightsTexId)
+	{
+		glDeleteBuffers(1, &texId);
+		texId = INVALID_GL_ID;
+	}
+#else
+	assert(m_vertices[0].size());
 	for(int i=0 ; i < _countof(m_vertices) ; i++)
 		m_vertices[i].clear();
+#endif
 
 	glDeleteBuffers(1, &m_vertexBufferId); m_vertexBufferId = INVALID_GL_ID;
 	glDeleteBuffers(1, &m_indexBufferId); m_indexBufferId = INVALID_GL_ID;
@@ -123,8 +185,10 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId)
 
 	glBindVertexArray(m_vertexArrayId);
 
+#if !defined(_LANE_USES_GPU)
 	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
 	glBufferData(GL_ARRAY_BUFFER, m_vertices[m_curBufferIdx].size() * sizeof(VtxLane), &m_vertices[m_curBufferIdx][0], GL_STREAM_DRAW);
+#endif
 
 	glDisable(GL_CULL_FACE);
 
@@ -141,6 +205,7 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId)
 
 void Lane::update()
 {
+#if !defined(_LANE_USES_GPU)
 	// BEGIN TEST
 	{
 		static float gfLastTimeSecs = 0.f;
@@ -215,6 +280,7 @@ void Lane::update()
 		m_lastAnimationTimeSecs += (1.0f / ANIMATIONS_PER_SECOND);
 	}
 	computeNormals(&m_vertices[m_curBufferIdx][0], (int)m_vertices[m_curBufferIdx].size(), &m_indices[0], (int)m_indices.size());
+#endif
 }
 
 void Lane::computeNormals(VtxLane* vertices, int nbVertices, const unsigned short* indices, int nbIndices)
