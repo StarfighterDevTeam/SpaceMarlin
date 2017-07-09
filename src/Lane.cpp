@@ -251,16 +251,17 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId)
 	glBufferData(GL_ARRAY_BUFFER, m_vertices[m_curBufferIdx].size() * sizeof(VtxLane), &m_vertices[m_curBufferIdx][0], GL_STREAM_DRAW);
 #endif
 
-	glDisable(GL_CULL_FACE);
+	{
+		glutil::Disable<GL_CULL_FACE> cullFaceState;
 
-	glDrawElements(
-		GL_TRIANGLES,
-		(GLsizei)m_indices.size(),
-		GL_UNSIGNED_SHORT,
-		(void*)0
-	);
+		glDrawElements(
+			GL_TRIANGLES,
+			(GLsizei)m_indices.size(),
+			GL_UNSIGNED_SHORT,
+			(void*)0
+		);
+	}
 
-	glEnable(GL_CULL_FACE);
 	glBindVertexArray(0);
 }
 
@@ -375,6 +376,15 @@ void Lane::computeNormals(VtxLane* vertices, int nbVertices, const unsigned shor
 void Lane::updateWaterOnGPU()
 {
 #ifdef _LANE_USES_GPU
+	glutil::Disable<GL_CULL_FACE> cullFaceState;
+	glutil::Disable<GL_DEPTH_TEST> depthTestState;
+
+	GLint savedVp[4];
+	glGetIntegerv(GL_VIEWPORT, savedVp);
+	glViewport(0, 0, gGridSize, gGridSize);
+
+	glBindVertexArray(m_waterVertexArrayId);
+
 	const GPUProgram* waterSimulationProgram = gData.gpuProgramMgr->getProgram(PROG_WATER_SIMULATION);
 	waterSimulationProgram->use();
 
@@ -440,12 +450,14 @@ void Lane::updateWaterOnGPU()
 		//			+ TERM3 * ( row1[x-1].pos.y + row1[x+1].pos.y + row1up[x].pos.y + row1down[x].pos.y );
 		//	}
 		//}
-		const char* msg = "Water update";
-		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, (GLsizei)strlen(msg), msg);
 		glDrawArrays(GL_TRIANGLES, 0, 3*2);
-		glPopDebugGroup();
 
 		m_lastAnimationTimeSecs += (1.0f / ANIMATIONS_PER_SECOND);
 	}
+
+	// Restore viewport
+	glViewport(savedVp[0], savedVp[1], savedVp[2], savedVp[3]);
+
+	glBindVertexArray(0);
 #endif
 }
