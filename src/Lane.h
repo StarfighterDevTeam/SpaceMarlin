@@ -3,7 +3,7 @@
 #define _LANE_H
 
 #include "Globals.h"
-#include "SharedDefines.h"
+#include "GPUProgramManager.h"
 
 //#define _LANE_USES_GPU
 

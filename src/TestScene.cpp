@@ -3,7 +3,6 @@
 #include "glutil/glutil.h"
 
 #include "GPUProgramManager.h"
-#include "SharedDefines.h"
 
 bool TestScene::init()
 {
@@ -74,7 +73,7 @@ void TestScene::draw()
 
 	const float fNear = 0.1f;
 	const float fFar = 100.f;
-	glm::mat4 gModelViewProjMtx;
+	glm::mat4 gLocalToProjMtx;
 	static float gfCurAngle = 0.f;
 	static float gfSpeed = 0.001f;
 	gfCurAngle += gfSpeed * gData.dTime.asMilliseconds();
@@ -84,8 +83,8 @@ void TestScene::draw()
 	
 	glm::mat4 viewMtx = glm::lookAt(glm::vec3(0.f, 3.f, -6.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 
-	gModelViewProjMtx = projMtx * viewMtx * modelMtx;
-	modelProgram->sendUniform("gModelViewProjMtx", gModelViewProjMtx);
+	gLocalToProjMtx = projMtx * viewMtx * modelMtx;
+	modelProgram->sendUniform("gLocalToProjMtx", gLocalToProjMtx);
 	modelProgram->sendUniform("gTime", gData.curFrameTime.asSeconds());
 
 	// Texture:
@@ -160,23 +159,8 @@ void TestScene::createVBOAndVAO()
 
 	glBufferData(GL_ARRAY_BUFFER, bufferSize, bufferData, GL_STATIC_DRAW);
 
-	// - enable attributes:
-	glEnableVertexAttribArray(PROG_MODEL_ATTRIB_POSITIONS);
-	glEnableVertexAttribArray(PROG_MODEL_ATTRIB_UVS);
-	glEnableVertexAttribArray(PROG_MODEL_ATTRIB_NORMALS);
-
-	// - positions pointer:
-	ptrdiff_t offset = NULL;
-	glVertexAttribPointer(PROG_MODEL_ATTRIB_POSITIONS,  3, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)offset);
-	offset += sizeof(GLfloat)*m_nbVertices*3;
-
-	// - uvs pointer:
-	glVertexAttribPointer(PROG_MODEL_ATTRIB_UVS,  2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)offset);
-	offset += sizeof(GLfloat)*m_nbVertices*2;
-
-	// - normals pointer:
-	glVertexAttribPointer(PROG_MODEL_ATTRIB_NORMALS,  3, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)offset);
-	offset += sizeof(GLfloat)*m_nbVertices*3;
+	// Setup vertex buffer layout
+	SETUP_PROGRAM_VERTEX_ATTRIB(PROG_MODEL)
 
 	GL_CHECK();
 }

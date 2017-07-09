@@ -1,20 +1,10 @@
 #version 400 core
+#include "SharedDefines.h"
 
-#include "../../src/SharedDefines.h"
-
-precision highp float;
-precision highp int;
-
-layout(location=PROG_MODEL_ATTRIB_POSITIONS)	in vec3 pos;
-layout(location=PROG_MODEL_ATTRIB_UVS)			in vec2 uv;
-layout(location=PROG_MODEL_ATTRIB_NORMALS)		in vec3 normal;
-
-uniform mat4 gModelViewProjMtx;
+HANDLE_PROG_MODEL(HANDLE_VERTEX_NO_ACTION, HANDLE_UNIFORM_DECLARE, HANDLE_ATTRIBUTE_DECLARE)
 
 out vec2 varUv;
-
 out vec3 varLocalPos;
-uniform float gTime;
 
 void main()
 {
@@ -25,5 +15,5 @@ void main()
 	lPos.y += enveloppe * sin(15*gTime + lPos.x)*0.05;
 
 	varUv = uv;
-	gl_Position = gModelViewProjMtx * vec4(lPos, 1.0);
+	gl_Position = gLocalToProjMtx * vec4(lPos, 1.0);
 }

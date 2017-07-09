@@ -3,7 +3,7 @@
 #define _MODEL_H
 
 #include "Globals.h"
-#include "SharedDefines.h"
+#include "GPUProgramManager.h"
 
 struct aiScene;
 struct aiMesh;

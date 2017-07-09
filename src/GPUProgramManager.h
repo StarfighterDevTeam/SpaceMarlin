@@ -10,23 +10,28 @@
 	#include <windows.h>
 #endif
 
-#define FOREACH_GPUPROGRAM(HANDLE_GPUPROGRAM)	\
-	HANDLE_GPUPROGRAM(PROG_MODEL)				\
-	HANDLE_GPUPROGRAM(PROG_SIMPLE)				\
-	HANDLE_GPUPROGRAM(PROG_LANE)				\
-	HANDLE_GPUPROGRAM(PROG_BACKGROUND)			\
-	HANDLE_GPUPROGRAM(PROG_SKYBOX)				\
-	HANDLE_GPUPROGRAM(PROG_TONEMAPPING)			\
-	/* next comes here */
+#include "../media/shaders/SharedDefines.h"
 
 enum GPUProgramId
 {
-#define HANDLE_GPUPROGRAM_ENUM(progId) progId,
+#define HANDLE_GPUPROGRAM_ENUM(progId)	progId, NO_ACTION
 
-	FOREACH_GPUPROGRAM(HANDLE_GPUPROGRAM_ENUM)
+	FOREACH_GPUPROGRAM(HANDLE_GPUPROGRAM_ENUM, NO_ACTION, NO_ACTION, NO_ACTION, NO_ACTION())
 	
 	PROG_COUNT,
 };
+
+#define HANDLE_ATTRIBUTE_SETUP_VERTEX_ATTRIB(vtxStructType, varType, componentType, componentTypeEnum, normalized, varName, loc)	\
+	glEnableVertexAttribArray(loc);																				\
+	glVertexAttribPointer(loc,									/* attribute location */						\
+		sizeof(vtxStructType::varName) / sizeof(componentType), /* number of components (e.g 3 for a vec3) */	\
+		componentTypeEnum,										/* e.g GL_FLOAT */								\
+		normalized,												/* e.g GL_FALSE */								\
+		sizeof(vtxStructType),									/* stride */									\
+		(const GLvoid*)offsetof(vtxStructType, varName)			/* "pointer" */									\
+	);
+
+#define SETUP_PROGRAM_VERTEX_ATTRIB(progId)	HANDLE_##progId(NO_ACTION, NO_ACTION, HANDLE_ATTRIBUTE_SETUP_VERTEX_ATTRIB)
 
 class GPUProgramManager
 {

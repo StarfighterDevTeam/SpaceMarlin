@@ -8,8 +8,6 @@
 
 #include "glutil/glutil.h"
 
-#include "SharedDefines.h"
-
 bool Model::loadFromFile(const char * path)
 {
 	assert(!m_bLoaded);
@@ -53,9 +51,6 @@ bool Model::loadFromAssImpMesh(const aiMesh* mesh, const aiScene* scene, const c
 
 		aiVector3D n = mesh->mNormals[i];
 		m_vertices[i].normal = glm::vec3(n.x, n.y, n.z);
-
-		m_vertices[i].boneIndices = glm::u8vec4(0, 0, 0, 0);
-		m_vertices[i].boneWeights = glm::u8vec4(0, 0, 0, 0);
 	}
 
 	// Fill face indices
@@ -69,33 +64,33 @@ bool Model::loadFromAssImpMesh(const aiMesh* mesh, const aiScene* scene, const c
 	}
 
 	// Fill vertex skinning weights
-	if(mesh->HasBones())
-	{
-		for(unsigned int boneId = 0; boneId < mesh->mNumBones; boneId++)
-		{
-			const aiBone* bone = mesh->mBones[boneId];
-			for( unsigned int weightId = 0; weightId < bone->mNumWeights; weightId++)
-			{
-				const aiVertexWeight& boneWeight = bone->mWeights[weightId];
-
-				glm::u8vec4& vertexBoneIndices = m_vertices[boneWeight.mVertexId].boneIndices;
-				glm::u8vec4& vertexBoneWeights = m_vertices[boneWeight.mVertexId].boneWeights;
-
-				bool bFoundEmptySlot = false;
-				for(int i=0 ; i < 4 ; i++)
-				{
-					if(vertexBoneIndices[i] == 0)
-					{
-						vertexBoneIndices[i] = boneId;
-						vertexBoneWeights[i] = (unsigned char)(boneWeight.mWeight * 255.0f);
-						bFoundEmptySlot = true;
-						break;
-					}
-				}
-				assert(bFoundEmptySlot && "Vertex with more than 4 weights!");
-			}
-		}
-	}
+	//if(mesh->HasBones())
+	//{
+	//	for(unsigned int boneId = 0; boneId < mesh->mNumBones; boneId++)
+	//	{
+	//		const aiBone* bone = mesh->mBones[boneId];
+	//		for( unsigned int weightId = 0; weightId < bone->mNumWeights; weightId++)
+	//		{
+	//			const aiVertexWeight& boneWeight = bone->mWeights[weightId];
+	//
+	//			glm::u8vec4& vertexBoneIndices = m_vertices[boneWeight.mVertexId].boneIndices;
+	//			glm::u8vec4& vertexBoneWeights = m_vertices[boneWeight.mVertexId].boneWeights;
+	//
+	//			bool bFoundEmptySlot = false;
+	//			for(int i=0 ; i < 4 ; i++)
+	//			{
+	//				if(vertexBoneIndices[i] == 0)
+	//				{
+	//					vertexBoneIndices[i] = boneId;
+	//					vertexBoneWeights[i] = (unsigned char)(boneWeight.mWeight * 255.0f);
+	//					bFoundEmptySlot = true;
+	//					break;
+	//				}
+	//			}
+	//			assert(bFoundEmptySlot && "Vertex with more than 4 weights!");
+	//		}
+	//	}
+	//}
 	
 	// The "scene" pointer will be deleted automatically by "importer"
 
@@ -114,19 +109,9 @@ bool Model::loadFromAssImpMesh(const aiMesh* mesh, const aiScene* scene, const c
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned short), &m_indices[0] , GL_STATIC_DRAW);
 
-		// Vertex buffer
-		glEnableVertexAttribArray(PROG_MODEL_ATTRIB_POSITIONS);
-		glEnableVertexAttribArray(PROG_MODEL_ATTRIB_UVS);
-		glEnableVertexAttribArray(PROG_MODEL_ATTRIB_NORMALS);
-		glEnableVertexAttribArray(PROG_MODEL_ATTRIB_BONE_INDICES);
-		glEnableVertexAttribArray(PROG_MODEL_ATTRIB_BONE_WEIGHTS);
-
-		glVertexAttribPointer(PROG_MODEL_ATTRIB_POSITIONS	, sizeof(VtxModel::pos)			/sizeof(GLfloat),	GL_FLOAT,			GL_FALSE,	sizeof(VtxModel), (const GLvoid*)offsetof(VtxModel, pos));
-		glVertexAttribPointer(PROG_MODEL_ATTRIB_UVS			, sizeof(VtxModel::uv)			/sizeof(GLfloat),	GL_FLOAT,			GL_FALSE,	sizeof(VtxModel), (const GLvoid*)offsetof(VtxModel, uv));
-		glVertexAttribPointer(PROG_MODEL_ATTRIB_NORMALS		, sizeof(VtxModel::normal)		/sizeof(GLfloat),	GL_FLOAT,			GL_FALSE,	sizeof(VtxModel), (const GLvoid*)offsetof(VtxModel, normal));
-		glVertexAttribPointer(PROG_MODEL_ATTRIB_BONE_INDICES, sizeof(VtxModel::boneIndices)	/sizeof(GLubyte),	GL_UNSIGNED_BYTE,	GL_TRUE,	sizeof(VtxModel), (const GLvoid*)offsetof(VtxModel, boneIndices));
-		glVertexAttribPointer(PROG_MODEL_ATTRIB_BONE_WEIGHTS, sizeof(VtxModel::boneWeights)	/sizeof(GLubyte),	GL_UNSIGNED_BYTE,	GL_TRUE,	sizeof(VtxModel), (const GLvoid*)offsetof(VtxModel, boneWeights));
-
+		// Setup vertex buffer layout
+		SETUP_PROGRAM_VERTEX_ATTRIB(PROG_MODEL)
+		
 		glBindVertexArray(0);
 	}
 
@@ -211,10 +196,10 @@ void Model::draw(const Camera& camera)
 	blenderToOpenGLMtx[2] = vec4( 0,  1,  0,  0);
 	blenderToOpenGLMtx[3] = vec4( 0,  0,  0,  1);
 
-	mat4 modelViewProjMtx = camera.getViewProjMtx() * m_modelMtx * blenderToOpenGLMtx;
+	mat4 modelViewProjMtx = camera.getWorldToProjMtx() * m_modelMtx * blenderToOpenGLMtx;
 	const GPUProgram* modelProgram = gData.gpuProgramMgr->getProgram(PROG_MODEL);
 	modelProgram->use();
-	modelProgram->sendUniform("gModelViewProjMtx", modelViewProjMtx);
+	modelProgram->sendUniform("gLocalToProjMtx", modelViewProjMtx);
 	modelProgram->sendUniform("texAlbedo", 0);
 	modelProgram->sendUniform("gTime", gData.curFrameTime.asSeconds());
 

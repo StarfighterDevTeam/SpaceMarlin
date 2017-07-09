@@ -1,6 +1,5 @@
-#pragma once
 #include "FullScreenTriangle.h"
-#include "../SharedDefines.h"
+#include "../GPUProgramManager.h"
 #include "glutil.h"
 
 void FullScreenTriangle::init()
@@ -39,12 +38,8 @@ void FullScreenTriangle::init()
 	};
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), (const GLvoid*)vertices, GL_STATIC_DRAW);
 
-	// Vertex buffer
-	glEnableVertexAttribArray(PROG_FULLSCREENTRIANGLE_ATTRIB_POSITIONS);
-	glEnableVertexAttribArray(PROG_FULLSCREENTRIANGLE_ATTRIB_UVS);
-
-	glVertexAttribPointer(PROG_FULLSCREENTRIANGLE_ATTRIB_POSITIONS	, sizeof(VtxFullScreenTriangle::pos)/sizeof(GLfloat),	GL_FLOAT,	GL_FALSE,	sizeof(VtxFullScreenTriangle), (const GLvoid*)offsetof(VtxFullScreenTriangle, pos));
-	glVertexAttribPointer(PROG_FULLSCREENTRIANGLE_ATTRIB_UVS		, sizeof(VtxFullScreenTriangle::uv)	/sizeof(GLfloat),	GL_FLOAT,	GL_FALSE,	sizeof(VtxFullScreenTriangle), (const GLvoid*)offsetof(VtxFullScreenTriangle, uv));
+	// Setup vertex buffer layout
+	SETUP_PROGRAM_VERTEX_ATTRIB(PROG_TONEMAPPING)
 
 	glBindVertexArray(0);
 }

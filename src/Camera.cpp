@@ -28,7 +28,7 @@ void Camera::update()
 			const float fDeltaRotY = gfCamRotSpeed * dTime * (curMousePos.y - m_prevMousePos.y);
 			
 			const vec3 cameraSpaceOffset = vec3(fDeltaRotX, -fDeltaRotY, 0);
-			const mat3 cameraToWorldRotMtx = glm::transpose(mat3(m_viewMtx));
+			const mat3 cameraToWorldRotMtx = glm::transpose(mat3(m_worldToViewMtx));
 			const vec3 worldSpaceOffset = cameraToWorldRotMtx * cameraSpaceOffset;
 			setFront(glm::normalize(m_front + worldSpaceOffset));
 			const vec3 X = glm::cross(m_front, m_up);
@@ -40,7 +40,7 @@ void Camera::update()
 		{
 			const float fAngle = gfCamRotSpeed * dTime * (curMousePos.x - m_prevMousePos.x);
 			const mat3 cameraSpaceRotMtx = glm::orientate3(fAngle);
-			const mat3 worldToCameraRotMtx = mat3(m_viewMtx);
+			const mat3 worldToCameraRotMtx = mat3(m_worldToViewMtx);
 			const mat3 cameraToWorldRotMtx = glm::transpose(worldToCameraRotMtx);
 			setUp(cameraToWorldRotMtx * cameraSpaceRotMtx * worldToCameraRotMtx * m_up);
 		}
@@ -97,26 +97,33 @@ void Camera::updateInternal()
 	if(m_dirty)
 	{
 		m_dirty = false;
-		m_viewMtx = glm::lookAt(m_position, m_position+m_front, m_up);
-		m_projMtx = glm::perspective(m_fovRad, ((float)gData.winSizeX) / ((float)gData.winSizeY), m_near, m_far);
-		m_viewProjMtx = m_projMtx * m_viewMtx;
+		m_worldToViewMtx = glm::lookAt(m_position, m_position+m_front, m_up);
+		m_viewToProjMtx = glm::perspective(m_fovRad, ((float)gData.winSizeX) / ((float)gData.winSizeY), m_near, m_far);
+
+		m_worldToProjMtx = m_viewToProjMtx * m_worldToViewMtx;
+		m_projToViewMtx = glm::inverse(m_viewToProjMtx);
+
+		m_viewToWorldRotMtx = mat4(glm::transpose(mat3(m_worldToViewMtx)));;
+		m_projToWorldRotMtx = m_viewToWorldRotMtx * m_projToViewMtx;
+
+		m_aspectRatio = ((float)gData.winSizeX) / ((float)std::max<int>(1,gData.winSizeY));
 	}
 }
 
-const mat4& Camera::getProjMtx() const
+const mat4& Camera::getViewToProjMtx() const
 {
 	const_cast<Camera*>(this)->updateInternal();
-	return m_projMtx;
+	return m_viewToProjMtx;
 }
 
-const mat4& Camera::getViewMtx() const
+const mat4& Camera::getWorldToViewMtx() const
 {
 	const_cast<Camera*>(this)->updateInternal();
-	return m_viewMtx;
+	return m_worldToViewMtx;
 }
 
-const mat4& Camera::getViewProjMtx() const
+const mat4& Camera::getWorldToProjMtx() const
 {
 	const_cast<Camera*>(this)->updateInternal();
-	return m_viewProjMtx;
+	return m_worldToProjMtx;
 }

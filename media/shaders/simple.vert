@@ -1,19 +1,12 @@
 #version 400 core
+#include "SharedDefines.h"
 
-#include "../../src/SharedDefines.h"
-
-precision highp float;
-precision highp int;
-
-layout(location=PROG_SIMPLE_ATTRIB_POSITIONS)	in vec3 pos;
-layout(location=PROG_SIMPLE_ATTRIB_COLORS)		in vec4 color;
-
-uniform mat4 gModelViewProjMtx;
+HANDLE_PROG_SIMPLE(HANDLE_VERTEX_NO_ACTION, HANDLE_UNIFORM_DECLARE, HANDLE_ATTRIBUTE_DECLARE)
 
 out vec4 varColor;
 
 void main()
 {
 	varColor = color;
-	gl_Position = gModelViewProjMtx * vec4(pos, 1.0);
+	gl_Position = gLocalToProjMtx * vec4(pos, 1.0);
 }

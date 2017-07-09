@@ -11,7 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Background.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\Drawer.cpp" />
     <ClCompile Include="src\Game.cpp" />
@@ -39,7 +38,7 @@
     <ClCompile Include="src\TestScene.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Background.h" />
+    <ClInclude Include="media\shaders\SharedDefines.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Drawer.h" />
     <ClInclude Include="src\Game.h" />
@@ -63,15 +62,12 @@
     <ClInclude Include="src\preprocessor\Preprocessor.h" />
     <ClInclude Include="src\preprocessor\PreprocHelpers.h" />
     <ClInclude Include="src\Scene.h" />
-    <ClInclude Include="src\SharedDefines.h" />
     <ClInclude Include="src\Skybox.h" />
     <ClInclude Include="src\SoundManager.h" />
     <ClInclude Include="src\TestScene.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
-    <None Include="media\shaders\background.frag" />
-    <None Include="media\shaders\background.vert" />
     <None Include="media\shaders\fsquad.frag" />
     <None Include="media\shaders\fsquad.vert" />
     <None Include="media\shaders\lane.frag" />
@@ -84,6 +80,8 @@
     <None Include="media\shaders\skybox.vert" />
     <None Include="media\shaders\tonemapping.frag" />
     <None Include="media\shaders\tonemapping.vert" />
+    <None Include="media\shaders\water_simulation.frag" />
+    <None Include="media\shaders\water_simulation.vert" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B700DAF9-9781-433C-BD0F-EFFC6CB37795}</ProjectGuid>
@@ -134,6 +132,8 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>assimp-3.3.1\include;SFML-2.4.2\include;glew-2.0.0\include;glm-0.9.8.4\glm</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -150,6 +150,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>assimp-3.3.1\include;SFML-2.4.2\include;glew-2.0.0\include;glm-0.9.8.4\glm</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

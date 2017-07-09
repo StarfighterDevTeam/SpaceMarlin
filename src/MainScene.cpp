@@ -1,11 +1,8 @@
 #include "MainScene.h"
 #include "glutil/glutil.h"
-#include "SharedDefines.h"
 #include "GPUProgramManager.h"
 #include "Drawer.h"
 #include "InputManager.h"
-
-#define _USE_SKYBOX
 
 bool MainScene::init()
 {
@@ -31,7 +28,6 @@ bool MainScene::init()
 	//	gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "debug_back.png",
 	//};
 	
-//#ifdef _USE_SKYBOX
 	if(!m_skybox.loadFromFiles(
 		cubemapFilenames[0].c_str(),
 		cubemapFilenames[1].c_str(),
@@ -41,10 +37,6 @@ bool MainScene::init()
 		cubemapFilenames[5].c_str()
 		))
 		return false;
-//#else
-	if(!m_background.load())
-		return false;
-//#endif
 
 	// Bob
 	if(!m_bob.loadFromFile((gData.assetsPath + "/models/marlin/marlin.fbx").c_str()))
@@ -79,7 +71,6 @@ void MainScene::shut()
 {
 	Scene::shut();
 
-	m_background.unload();
 	m_skybox.unload();
 	m_bob.unload();
 	m_lane.shut();
@@ -214,21 +205,13 @@ void MainScene::draw()
 		// Cull triangles which normal is not towards the camera
 		glEnable(GL_CULL_FACE);
 		
-	#ifdef _USE_SKYBOX
 		m_skybox.draw(m_camera);
-	#else
-		m_background.draw(m_camera);
-	#endif
-
-		glm::mat4 modelViewProjMtx = m_camera.getViewProjMtx() * m_bob.getModelMtx();
+	
+		glm::mat4 modelViewProjMtx = m_camera.getWorldToProjMtx() * m_bob.getModelMtx();
 	
 		m_bob.draw(m_camera);
 
-	#ifdef _USE_SKYBOX
 		m_lane.draw(m_camera, m_skybox.getSkyTexId());
-	#else
-		m_lane.draw(m_camera, m_background.getPerlinTexId());
-	#endif
 
 		// Debug model gizmo
 		gData.drawer->drawLine(m_camera, glm::vec3(0,0,0), COLOR_RED,	glm::vec3(3,0,0), COLOR_RED		);

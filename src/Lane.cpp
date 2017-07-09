@@ -3,7 +3,6 @@
 #include "GPUProgramManager.h"
 #include "Camera.h"
 #include "glutil/glutil.h"
-#include "SharedDefines.h"
 
 static const int gGridSize = 100;
 
@@ -116,12 +115,8 @@ void Lane::init()
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned short), &m_indices[0] , GL_STATIC_DRAW);
 
-		// Vertex buffer
-		glEnableVertexAttribArray(PROG_LANE_ATTRIB_POSITIONS);
-		glEnableVertexAttribArray(PROG_LANE_ATTRIB_NORMALS);
-
-		glVertexAttribPointer(PROG_LANE_ATTRIB_POSITIONS, sizeof(VtxLane::pos)		/sizeof(GLfloat),	GL_FLOAT,	GL_FALSE,	sizeof(VtxLane), (const GLvoid*)offsetof(VtxLane, pos));
-		glVertexAttribPointer(PROG_LANE_ATTRIB_NORMALS	, sizeof(VtxLane::normal)	/sizeof(GLfloat),	GL_FLOAT,	GL_FALSE,	sizeof(VtxLane), (const GLvoid*)offsetof(VtxLane, normal));
+		// Setup vertex buffer layout
+		SETUP_PROGRAM_VERTEX_ATTRIB(PROG_LANE)
 
 		glBindVertexArray(0);
 	}
@@ -164,16 +159,16 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId)
 	//gData.drawer->drawLine(camera, quadPos[2], COLOR_BLUE, quadPos[3], COLOR_BLUE);
 	//gData.drawer->drawLine(camera, quadPos[3], COLOR_BLUE, quadPos[0], COLOR_BLUE);
 
-	mat4 modelMtx;
-	mat4 modelViewMtx = camera.getViewMtx() * modelMtx;
-	mat4 modelViewProjMtx = camera.getViewProjMtx() * modelMtx;
+	mat4 localToWorldMtx;
+	mat4 localToViewMtx = camera.getWorldToViewMtx() * localToWorldMtx;
+	mat4 localToProjMtx = camera.getWorldToProjMtx() * localToWorldMtx;
 	const GPUProgram* laneProgram = gData.gpuProgramMgr->getProgram(PROG_LANE);
 	laneProgram->use();
-	laneProgram->sendUniform("gModelViewMtx", modelViewMtx);
-	laneProgram->sendUniform("gModelViewProjMtx", modelViewProjMtx);
+	laneProgram->sendUniform("gLocalToViewMtx", localToViewMtx);
+	laneProgram->sendUniform("gLocalToProjMtx", localToProjMtx);
 	//laneProgram->sendUniform("texAlbedo", 0);
 	laneProgram->sendUniform("gTime", gData.curFrameTime.asSeconds());
-	laneProgram->sendUniform("gModelMtx", modelMtx);
+	laneProgram->sendUniform("gLocalToWorldMtx", localToWorldMtx);
 	laneProgram->sendUniform("gWorldSpaceCamPos", camera.getPosition());
 
 	if(texCubemapId != INVALID_GL_ID)

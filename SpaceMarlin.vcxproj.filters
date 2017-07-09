@@ -47,7 +47,6 @@
     <ClCompile Include="src\InputManager.cpp" />
     <ClCompile Include="src\Skybox.cpp" />
     <ClCompile Include="src\Scene.cpp" />
-    <ClCompile Include="src\Background.cpp" />
     <ClCompile Include="src\glutil\FullScreenTriangle.cpp">
       <Filter>glutil</Filter>
     </ClCompile>
@@ -93,7 +92,6 @@
       <Filter>glutil</Filter>
     </ClInclude>
     <ClInclude Include="src\Model.h" />
-    <ClInclude Include="src\SharedDefines.h" />
     <ClInclude Include="src\TestScene.h" />
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\GPUProgramManager.h" />
@@ -103,9 +101,11 @@
     <ClInclude Include="src\SoundManager.h" />
     <ClInclude Include="src\InputManager.h" />
     <ClInclude Include="src\Skybox.h" />
-    <ClInclude Include="src\Background.h" />
     <ClInclude Include="src\glutil\FullScreenTriangle.h">
       <Filter>glutil</Filter>
+    </ClInclude>
+    <ClInclude Include="media\shaders\SharedDefines.h">
+      <Filter>shaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -154,16 +154,16 @@
     <None Include="media\shaders\skybox.vert">
       <Filter>shaders</Filter>
     </None>
-    <None Include="media\shaders\background.frag">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="media\shaders\background.vert">
-      <Filter>shaders</Filter>
-    </None>
     <None Include="media\shaders\tonemapping.frag">
       <Filter>shaders</Filter>
     </None>
     <None Include="media\shaders\tonemapping.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="media\shaders\water_simulation.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="media\shaders\water_simulation.vert">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

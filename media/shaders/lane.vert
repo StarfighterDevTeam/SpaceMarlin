@@ -1,17 +1,7 @@
 #version 400 core
+#include "SharedDefines.h"
 
-#include "../../src/SharedDefines.h"
-
-precision highp float;
-precision highp int;
-
-layout(location=PROG_LANE_ATTRIB_POSITIONS)	in vec3 pos;
-layout(location=PROG_LANE_ATTRIB_NORMALS)	in vec3 normal;
-
-uniform mat4 gModelViewProjMtx;
-uniform mat4 gModelViewMtx;
-uniform mat4 gModelMtx;
-uniform vec3 gWorldSpaceCamPos;
+HANDLE_PROG_LANE(HANDLE_VERTEX_NO_ACTION, HANDLE_UNIFORM_DECLARE, HANDLE_ATTRIBUTE_DECLARE)
 
 //out vec2 varUv;
 out vec3 varNormal;
@@ -25,10 +15,10 @@ void main()
 	//	fract(sin(dot_product*2.0) * 43758.5453),
 	//	fract(sin(dot_product*3.0) * 43758.5453));
 	//varColor = r;
-	vec3 worldSpacePos = vec3(gModelMtx * vec4(pos, 1));
+	vec3 worldSpacePos = vec3(gLocalToWorldMtx * vec4(pos, 1));
 	varWorldSpaceViewVec = worldSpacePos - gWorldSpaceCamPos;
 	varNormal = normal;
 	//float sizeFactor = 5;
 	//varUv = (pos.xz / sizeFactor) * 0.5 + 0.5;
-	gl_Position = gModelViewProjMtx * vec4(pos, 1);
+	gl_Position = gLocalToProjMtx * vec4(pos, 1);
 }

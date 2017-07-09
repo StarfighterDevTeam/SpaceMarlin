@@ -1,7 +1,7 @@
 #version 400 core
+#include "SharedDefines.h"
 
-precision highp float;
-precision mediump int;
+HANDLE_PROG_SIMPLE(HANDLE_VERTEX_NO_ACTION, HANDLE_UNIFORM_DECLARE, HANDLE_ATTRIBUTE_NO_ACTION)
 
 in vec4 varColor;
 

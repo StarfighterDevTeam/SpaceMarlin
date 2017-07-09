@@ -1,3 +1,4 @@
+// OLD SHADER, DEPRECATED
 // fsquad.frag
 
 #version 400 core

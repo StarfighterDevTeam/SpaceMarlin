@@ -289,7 +289,7 @@ const char* Preprocessor::preprocess(const char* original_source, const char* fi
 
 #ifdef DEBUG_PREPROCESSOR
 	logDebug8("without comments [\"", filename, "\"]:");
-	cout << no_comments_source << flush;
+	logDebug8(no_comments_source);
 	logDebug8("--------");
 #endif
 
@@ -341,7 +341,7 @@ const char* Preprocessor::preprocess(const char* original_source, const char* fi
 
 #ifdef DEBUG_PREPROCESSOR
 	logDebug9("preproc result [\"", filename, "\"]:");
-	cout << result_copy << flush;
+	logDebug9(result_copy);
 	logDebug9("--------");
 #endif
 
@@ -541,7 +541,7 @@ string Preprocessor::preprocessLine(const char* line,
 
 		if(startsWith(first_non_space, "#pragma") && ! is_commented_out)
 			ok = parsePragma(first_non_space);
-		else if(startsWith(first_non_space, "#include") && ! is_commented_out && custom_preprocessor_on)
+		else if(startsWith(first_non_space, "#include") && ! is_commented_out)
 			ok = includeFile(first_non_space, filename, *num_line, &result, nb_generated_lines);
 		else if(startsWith(first_non_space, "#define") && ! is_commented_out && custom_preprocessor_on)
 			ok = defineSymbol(first_non_space);

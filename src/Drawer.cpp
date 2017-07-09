@@ -1,6 +1,5 @@
 #include "Drawer.h"
 #include "GPUProgramManager.h"
-#include "SharedDefines.h"
 #include "Camera.h"
 
 void Drawer::init()
@@ -16,11 +15,8 @@ void Drawer::init()
 		const GLsizeiptr total_size = 2*sizeof(VtxSimple);	// 2 vertices, each one having (x, y, z) and (r, g, b, a).
 		glBufferData(GL_ARRAY_BUFFER, total_size, NULL, GL_STREAM_DRAW);
 
-		glEnableVertexAttribArray(PROG_SIMPLE_ATTRIB_POSITIONS);
-		glEnableVertexAttribArray(PROG_SIMPLE_ATTRIB_COLORS);
-
-		glVertexAttribPointer(PROG_SIMPLE_ATTRIB_POSITIONS,	sizeof(VtxSimple::pos)/sizeof(float),	GL_FLOAT, GL_FALSE, sizeof(VtxSimple),	(const GLvoid*)offsetof(VtxSimple, pos));
-		glVertexAttribPointer(PROG_SIMPLE_ATTRIB_COLORS,	sizeof(VtxSimple::color)/sizeof(float),	GL_FLOAT, GL_FALSE, sizeof(VtxSimple),	(const GLvoid*)offsetof(VtxSimple, color));
+		// Setup vertex buffer layout
+		HANDLE_PROG_SIMPLE(NO_ACTION, NO_ACTION, HANDLE_ATTRIBUTE_SETUP_VERTEX_ATTRIB)
 
 		glBindVertexArray(0);
 	}
@@ -37,7 +33,7 @@ void Drawer::drawLine(const Camera& camera, glm::vec3 pos0, glm::vec4 col0, glm:
 {
 	const GPUProgram* program = gData.gpuProgramMgr->getProgram(PROG_SIMPLE);
 	program->use();
-	program->sendUniform("gModelViewProjMtx", camera.getViewProjMtx());
+	program->sendUniform("gLocalToProjMtx", camera.getWorldToProjMtx());
 	
 	glBindVertexArray(m_lineVertexArrayID);
 	

@@ -54,6 +54,9 @@ using glm::mat4;
 #include "log/Log.h"
 
 #define SAFE_DELETE(x) {delete x; x=NULL;}
+#define NO_ACTION(...)
+
+#pragma warning(disable : 4068)	// "warning C4068: unknown pragma": needed for #pragma custom_preprocessor_[on|off]
 
 template<class T>
 T clamp(T a, T minVal, T maxVal)

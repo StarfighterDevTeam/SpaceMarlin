@@ -3,7 +3,7 @@
 #define _SKYBOX_H
 
 #include "Globals.h"
-#include "SharedDefines.h"
+#include "GPUProgramManager.h"
 #include "glutil/FullScreenTriangle.h"
 
 class Camera;

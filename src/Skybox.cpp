@@ -3,7 +3,6 @@
 #include "Camera.h"
 #include "GPUProgramManager.h"
 #include "glutil/glutil.h"
-#include "SharedDefines.h"
 
 bool Skybox::loadFromFiles(	const char* cubemapFilename0,
 							const char* cubemapFilename1,
@@ -84,12 +83,12 @@ void Skybox::draw(const Camera& camera)
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_skyTexId);
 
-	mat4 modelViewProjMtx = camera.getViewProjMtx();
+	mat4 modelViewProjMtx = camera.getWorldToProjMtx();
 	modelViewProjMtx[3] = vec4(0,0,0,1);
-	program->sendUniform("gModelViewProjMtx", modelViewProjMtx);
+	program->sendUniform("gLocalToProjMtx", modelViewProjMtx);
 
-	mat4 projToViewMtx = glm::inverse(camera.getProjMtx());
-	mat4 viewToWorldRotMtx = mat4(glm::transpose(mat3(camera.getViewMtx())));
+	mat4 projToViewMtx = glm::inverse(camera.getViewToProjMtx());
+	mat4 viewToWorldRotMtx = mat4(glm::transpose(mat3(camera.getWorldToViewMtx())));
 	mat4 projToWorldRotMtx = viewToWorldRotMtx * projToViewMtx;
 	program->sendUniform("gProjToWorldRotMtx", projToWorldRotMtx);
 

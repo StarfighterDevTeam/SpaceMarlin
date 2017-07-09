@@ -33,9 +33,9 @@ public:
 	vec3				getFront()			const	{return m_front;}
 	vec3				getUp()				const	{return m_up;}
 	
-	const mat4&			getProjMtx() const;
-	const mat4&			getViewMtx() const;
-	const mat4&			getViewProjMtx() const;
+	const mat4&			getViewToProjMtx() const;
+	const mat4&			getWorldToViewMtx() const;
+	const mat4&			getWorldToProjMtx() const;
 
 	void				setFlyOver(bool isFlyOver)	{m_isFlyOver = isFlyOver;}
 	bool				isFlyOver() const			{return m_isFlyOver;}
@@ -55,9 +55,28 @@ private:
 	ivec2				m_prevMousePos;
 
 	mutable	bool		m_dirty;
-	mutable	mat4		m_projMtx;
-	mutable	mat4		m_viewMtx;
-	mutable	mat4		m_viewProjMtx;
+	mutable	mat4		m_viewToProjMtx;
+	mutable mat4		m_projToViewMtx;
+
+	mutable	mat4		m_worldToViewMtx;
+	mutable	mat4		m_worldToProjMtx;
+
+	mutable mat4		m_viewToWorldRotMtx;
+	mutable mat4		m_projToWorldRotMtx;
+
+	mutable float		m_aspectRatio;
+
+	/*mat4 modelViewProjMtx = camera.getWorldToProjMtx();
+	modelViewProjMtx[3] = vec4(0,0,0,1);
+	program->sendUniform("gLocalToProjMtx", modelViewProjMtx);
+	program->sendUniform("texPerlin", 0);
+
+	mat4 projToViewMtx = glm::inverse(camera.getViewToProjMtx());
+	mat4 viewToWorldRotMtx = mat4(glm::transpose(mat3(camera.getWorldToViewMtx())));
+	mat4 projToWorldRotMtx = viewToWorldRotMtx * projToViewMtx;
+	program->sendUniform("gProjToWorldRotMtx", projToWorldRotMtx);
+	const float fAspectRatio = ((float)gData.winSizeX) / ((float)std::max<int>(1,gData.winSizeY));
+	program->sendUniform("gAspectRatio", fAspectRatio);*/
 };
 
 #endif // _CAMERA_H

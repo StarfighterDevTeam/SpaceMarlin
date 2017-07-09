@@ -9,12 +9,10 @@
 #include "Model.h"
 #include "Lane.h"
 #include "Skybox.h"
-#include "Background.h"
 
 class MainScene : public Scene
 {
 private:
-	Background		m_background;
 	Skybox			m_skybox;
 	Model			m_bob;
 	Lane			m_lane;

@@ -1,9 +1,9 @@
 #include "GPUProgramManager.h"
-#include "SharedDefines.h"
 
 static const char* gpuProgramNames[] = {
-#define HANDLE_GPUPROGRAM_NAME(progId) #progId,
-	FOREACH_GPUPROGRAM(HANDLE_GPUPROGRAM_NAME)
+#define HANDLE_GPUPROGRAM_NAME(progId)	#progId, NO_ACTION
+
+	FOREACH_GPUPROGRAM(HANDLE_GPUPROGRAM_NAME, NO_ACTION, NO_ACTION, NO_ACTION, NO_ACTION())
 };
 
 void GPUProgramManager::init()
@@ -78,6 +78,11 @@ GPUProgram* GPUProgramManager::createProgram(GPUProgramId id)
 	GPUProgram* program = NULL;
 	bool bOk = false;
 
+#define HANDLE_ATTRIBUTE_BIND_LOCATION(vtxStructType, varType, componentType, componentTypeEnum, normalized, varName, loc)	\
+	program->bindAttribLocation(loc,	#varName);
+
+#define BIND_PROGRAM_VERTEX_ATTRIB_LOCATIONS(progId)	HANDLE_##progId(NO_ACTION, NO_ACTION, HANDLE_ATTRIBUTE_BIND_LOCATION)
+
 	switch(id)
 	{
 	case PROG_MODEL:
@@ -86,14 +91,12 @@ GPUProgram* GPUProgramManager::createProgram(GPUProgramId id)
 			(gData.shadersPath + SDIR_SEP "model.frag").c_str());
 		if(program->compileAndAttach())
 		{
-			program->bindAttribLocation(PROG_MODEL_ATTRIB_POSITIONS,	"pos");
-			program->bindAttribLocation(PROG_MODEL_ATTRIB_UVS,			"uv");
-			program->bindAttribLocation(PROG_MODEL_ATTRIB_NORMALS,		"normal");
+			BIND_PROGRAM_VERTEX_ATTRIB_LOCATIONS(PROG_MODEL)
 
 			if(program->link())
 			{
 				program->setUniformNames(
-					"gModelViewProjMtx",
+					"gLocalToProjMtx",
 					"texAlbedo",
 					"gTime",
 					NULL);
@@ -107,13 +110,12 @@ GPUProgram* GPUProgramManager::createProgram(GPUProgramId id)
 			(gData.shadersPath + SDIR_SEP "simple.frag").c_str());
 		if(program->compileAndAttach())
 		{
-			program->bindAttribLocation(PROG_SIMPLE_ATTRIB_POSITIONS,	"pos");
-			program->bindAttribLocation(PROG_SIMPLE_ATTRIB_COLORS,		"color");
+			BIND_PROGRAM_VERTEX_ATTRIB_LOCATIONS(PROG_SIMPLE)
 
 			if(program->link())
 			{
 				program->setUniformNames(
-					"gModelViewProjMtx",
+					"gLocalToProjMtx",
 					NULL);
 				bOk = true;
 			}
@@ -125,39 +127,17 @@ GPUProgram* GPUProgramManager::createProgram(GPUProgramId id)
 			(gData.shadersPath + SDIR_SEP "lane.frag").c_str());
 		if(program->compileAndAttach())
 		{
-			program->bindAttribLocation(PROG_LANE_ATTRIB_POSITIONS,	"pos");
-			program->bindAttribLocation(PROG_LANE_ATTRIB_NORMALS,	"normal");
+			BIND_PROGRAM_VERTEX_ATTRIB_LOCATIONS(PROG_LANE)
 
 			if(program->link())
 			{
 				program->setUniformNames(
-					"gModelViewProjMtx",
-					"gModelViewMtx",
-					"gModelMtx",
+					"gLocalToProjMtx",
+					"gLocalToViewMtx",
+					"gLocalToWorldMtx",
 					"gWorldSpaceCamPos",
 					"texAlbedo",
 					"texCubemap",
-					"gTime",
-					NULL);
-				bOk = true;
-			}
-		}
-		break;
-	case PROG_BACKGROUND:
-		program = new GPUProgram(
-			(gData.shadersPath + SDIR_SEP "background.vert").c_str(),
-			(gData.shadersPath + SDIR_SEP "background.frag").c_str());
-		if(program->compileAndAttach())
-		{
-			program->bindAttribLocation(PROG_BACKGROUND_ATTRIB_POSITIONS,	"pos");
-
-			if(program->link())
-			{
-				program->setUniformNames(
-					"gModelViewProjMtx",
-					"gProjToWorldRotMtx",
-					"gAspectRatio",
-					"texPerlin",
 					"gTime",
 					NULL);
 				bOk = true;
@@ -170,13 +150,12 @@ GPUProgram* GPUProgramManager::createProgram(GPUProgramId id)
 			(gData.shadersPath + SDIR_SEP "skybox.frag").c_str());
 		if(program->compileAndAttach())
 		{
-			program->bindAttribLocation(PROG_FULLSCREENTRIANGLE_ATTRIB_POSITIONS,	"pos");
-			program->bindAttribLocation(PROG_FULLSCREENTRIANGLE_ATTRIB_UVS,			"uv");
+			BIND_PROGRAM_VERTEX_ATTRIB_LOCATIONS(PROG_SKYBOX)
 
 			if(program->link())
 			{
 				program->setUniformNames(
-					"gModelViewProjMtx",
+					"gLocalToProjMtx",
 					"gProjToWorldRotMtx",
 					"texSky",
 					NULL);
@@ -190,8 +169,7 @@ GPUProgram* GPUProgramManager::createProgram(GPUProgramId id)
 			(gData.shadersPath + SDIR_SEP "tonemapping.frag").c_str());
 		if(program->compileAndAttach())
 		{
-			program->bindAttribLocation(PROG_FULLSCREENTRIANGLE_ATTRIB_POSITIONS,	"pos");
-			program->bindAttribLocation(PROG_FULLSCREENTRIANGLE_ATTRIB_UVS,		"uv");
+			BIND_PROGRAM_VERTEX_ATTRIB_LOCATIONS(PROG_TONEMAPPING)
 
 			if(program->link())
 			{

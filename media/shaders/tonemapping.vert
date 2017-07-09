@@ -1,12 +1,7 @@
 #version 400 core
+#include "SharedDefines.h"
 
-#include "../../src/SharedDefines.h"
-
-precision highp float;
-precision highp int;
-
-layout(location=PROG_FULLSCREENTRIANGLE_ATTRIB_POSITIONS)	in vec2 pos;
-layout(location=PROG_FULLSCREENTRIANGLE_ATTRIB_UVS)		in vec2 uv;
+HANDLE_PROG_TONEMAPPING(HANDLE_VERTEX_NO_ACTION, HANDLE_UNIFORM_DECLARE, HANDLE_ATTRIBUTE_DECLARE)
 
 out vec2 varUv;
 
