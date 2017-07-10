@@ -27,15 +27,20 @@ protected:
 	
 public:
 	Model()															{m_bLoaded = false;}
-	bool				loadFromFile(const char* fileName);
-	bool				loadFromAssImpMesh(const aiMesh* mesh, const aiScene* scene, const char* materialsDir);
-	void				unload();
-	void				draw(const Camera& camera);
+	bool						loadFromFile(const char* fileName);
+	bool						loadFromAssImpMesh(const aiMesh* mesh, const aiScene* scene, const char* materialsDir);
+	void						unload();
+	void						draw(const Camera& camera);
 
-	void				setPosition(const glm::vec3 pos)			{m_modelMtx[3].x = pos.x; m_modelMtx[3].y = pos.y; m_modelMtx[3].z = pos.z;}
-	glm::vec3			getPosition() const							{return glm::vec3(m_modelMtx[3].x, m_modelMtx[3].y, m_modelMtx[3].z);}
-	void				setModelMtx(const glm::mat4 modelMtx)		{m_modelMtx = modelMtx;}
-	const glm::mat4&	getModelMtx() const							{return m_modelMtx;}
+	void						setPosition(const glm::vec3 pos)			{m_modelMtx[3].x = pos.x; m_modelMtx[3].y = pos.y; m_modelMtx[3].z = pos.z;}
+	glm::vec3					getPosition() const							{return glm::vec3(m_modelMtx[3].x, m_modelMtx[3].y, m_modelMtx[3].z);}
+	void						setModelMtx(const glm::mat4 modelMtx)		{m_modelMtx = modelMtx;}
+	const glm::mat4&			getModelMtx() const							{return m_modelMtx;}
+
+protected:
+	// Hooks for derived classes
+	virtual const GPUProgram*	getProgram() const;
+	virtual void				sendUniforms(const GPUProgram* program, const Camera& camera) const;
 };
 
 #endif // _MODEL_H

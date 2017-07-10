@@ -180,28 +180,10 @@ void Model::unload()
 
 void Model::draw(const Camera& camera)
 {
-	// OpenGL
-	// X: right
-	// Y: top
-	// Z: back
+	const GPUProgram* program = getProgram();
+	program->use();
 
-	// Blender:			in OpenGL space:
-	// X: back			Z: 0, 0,1
-	// Y: right			X: 1, 0, 0
-	// Z: top			Y: 0, 1, 0
-
-	mat4 blenderToOpenGLMtx;
-	blenderToOpenGLMtx[0] = vec4( 0,  0,  1,  0);
-	blenderToOpenGLMtx[1] = vec4( 1,  0,  0,  0);
-	blenderToOpenGLMtx[2] = vec4( 0,  1,  0,  0);
-	blenderToOpenGLMtx[3] = vec4( 0,  0,  0,  1);
-
-	mat4 modelViewProjMtx = camera.getWorldToProjMtx() * m_modelMtx * blenderToOpenGLMtx;
-	const GPUProgram* modelProgram = gData.gpuProgramMgr->getProgram(PROG_MODEL);
-	modelProgram->use();
-	modelProgram->sendUniform("gLocalToProjMtx", modelViewProjMtx);
-	modelProgram->sendUniform("texAlbedo", 0);
-	modelProgram->sendUniform("gTime", gData.curFrameTime.asSeconds());
+	sendUniforms(program, camera);
 
 	if(m_albedoTexId != INVALID_GL_ID)
 	{
@@ -219,3 +201,46 @@ void Model::draw(const Camera& camera)
 		(void*)0					// element array buffer offset
 	);
 }
+
+const GPUProgram* Model::getProgram() const
+{
+	return gData.gpuProgramMgr->getProgram(PROG_MODEL);
+}
+
+void Model::sendUniforms(const GPUProgram* program, const Camera& camera) const
+{
+	// OpenGL
+	// X: right
+	// Y: top
+	// Z: back
+
+	// Blender:			in OpenGL space:
+	// X: back			Z: 0, 0,1
+	// Y: right			X: 1, 0, 0
+	// Z: top			Y: 0, 1, 0
+
+	mat4 blenderToOpenGLMtx;
+	blenderToOpenGLMtx[0] = vec4( 0,  0,  1,  0);
+	blenderToOpenGLMtx[1] = vec4( 1,  0,  0,  0);
+	blenderToOpenGLMtx[2] = vec4( 0,  1,  0,  0);
+	blenderToOpenGLMtx[3] = vec4( 0,  0,  0,  1);
+
+	mat4 modelViewProjMtx = camera.getWorldToProjMtx() * m_modelMtx * blenderToOpenGLMtx;
+	program->sendUniform("gLocalToProjMtx", modelViewProjMtx);
+	program->sendUniform("texAlbedo", 0);
+	program->sendUniform("gTime", gData.curFrameTime.asSeconds());
+}
+
+
+/***********/
+//const GPUProgram* Marlin::getProgram() const
+//{
+//	return gData.gpuProgramMgr->getProgram(PROG_MARLIN);
+//}
+//
+//void Marlin::sendUniforms(const GPUProgram* program, const Camera& camera) const
+//{
+//	Model::sendUniforms();
+//
+//	program->sendUniform("blabla", blabla);
+//}
