@@ -3,12 +3,10 @@
 PROG_VERTEX_SHADER(PROG_MODEL)
 
 out vec2 varUv;
-out vec3 varLocalPos;
 
 void main()
 {
 	vec3 lPos = pos;
-	varLocalPos = lPos;
 	float enveloppe = (lPos.x+2);
 	//enveloppe = enveloppe < 0 ? 0 : enveloppe;
 	lPos.y += enveloppe * sin(15*gTime + lPos.x)*0.05;

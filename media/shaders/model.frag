@@ -3,7 +3,6 @@
 PROG_FRAGMENT_SHADER(PROG_MODEL)
 
 in vec2 varUv;
-in vec3 varLocalPos;
 
 layout(location=0) out vec4 fragColor;
 
