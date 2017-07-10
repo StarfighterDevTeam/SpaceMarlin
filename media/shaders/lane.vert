@@ -4,7 +4,6 @@ PROG_VERTEX_SHADER(PROG_LANE)
 
 #define _LANE_USES_GPU
 
-out vec2 varUv;
 out vec3 varNormal;
 out vec3 varWorldSpaceViewVec;
 
@@ -18,14 +17,17 @@ void main()
 	//varColor = r;
 	vec3 lPos = pos;
 
-#ifdef _LANE_USES_GPU
-	lPos.y = textureLod(texHeights, uv, 0).r;
-#endif
-
 	vec3 worldSpacePos = vec3(gLocalToWorldMtx * vec4(lPos, 1));
 	varWorldSpaceViewVec = worldSpacePos - gWorldSpaceCamPos;
 	varNormal = normal;
-	//float sizeFactor = 5;
-	//varUv = (pos.xz / sizeFactor) * 0.5 + 0.5;
+
+#ifdef _LANE_USES_GPU
+	lPos.y = textureLod(texHeights, uv, 0).r;
+	float heightRight	= textureLod(texHeights, uv + vec2(+gTexelSize.x,0), 0).r;
+	float heightTop		= textureLod(texHeights, uv + vec2(0, +gTexelSize.y), 0).r;
+	vec3 posRight	= vec3(lPos.x + gDistBetweenTexels.x	, heightRight,	lPos.z);
+	vec3 posTop		= vec3(lPos.x							, heightTop,	lPos.z + gDistBetweenTexels.y);
+	varNormal = -normalize(cross(posRight-lPos, posTop-lPos));
+#endif
 	gl_Position = gLocalToProjMtx * vec4(lPos, 1);
 }

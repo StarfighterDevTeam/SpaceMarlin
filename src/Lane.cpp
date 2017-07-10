@@ -4,7 +4,8 @@
 #include "Camera.h"
 #include "glutil/glutil.h"
 
-static const int gGridSize = 100;
+static const int gSideNbVtx = 100;
+static const float gGridSize = 10.f;
 
 #ifdef _LANE_USES_GPU
 	#define _IF_LANE_USES_GPU(a, b) a
@@ -33,8 +34,6 @@ void Lane::init()
 	m_curBufferIdx = 0;
 	m_lastAnimationTimeSecs = -1.f;
 
-	const float fHalfSize = 10.f;
-
 	std::vector<VtxLane>* pInitVertices = NULL;
 #ifdef _LANE_USES_GPU
 	std::vector<VtxLane> vertices;
@@ -56,7 +55,7 @@ void Lane::init()
 				GL_TEXTURE_2D,
 				0,
 				GL_R32F,
-				gGridSize, gGridSize,
+				gSideNbVtx, gSideNbVtx,
 				0,
 				GL_RED,
 				GL_FLOAT,
@@ -67,19 +66,19 @@ void Lane::init()
 #endif
 
 	// Init vertices positions
-	pInitVertices->resize(gGridSize*gGridSize);
+	pInitVertices->resize(gSideNbVtx*gSideNbVtx);
 	
 	VtxLane vtx;
 	vtx.pos.y = 0.f;
 	vtx.normal = vec3(0,1,0);
-	for(int z=0 ; z < gGridSize ; z++)
+	for(int z=0 ; z < gSideNbVtx ; z++)
 	{
-		vtx.pos.z = (z-gGridSize/2) * fHalfSize / gGridSize;
-		for(int x=0 ; x < gGridSize ; x++)
+		vtx.pos.z = (z-gSideNbVtx/2) * gGridSize / gSideNbVtx;
+		for(int x=0 ; x < gSideNbVtx ; x++)
 		{
-			vtx.pos.x = (x-gGridSize/2) * fHalfSize / gGridSize;
-			vtx.uv = vec2(x/((float)gGridSize), z/((float)gGridSize));
-			(*pInitVertices)[x + z*gGridSize] = vtx;
+			vtx.pos.x = (x-gSideNbVtx/2) * gGridSize / gSideNbVtx;
+			vtx.uv = vec2(x/((float)gSideNbVtx), z/((float)gSideNbVtx));
+			(*pInitVertices)[x + z*gSideNbVtx] = vtx;
 		}
 	}
 
@@ -87,17 +86,17 @@ void Lane::init()
 	m_vertices[1] = m_vertices[2] = m_vertices[0];
 #endif
 
-	for(int z = 0 ; z < gGridSize-1 ; z++)
+	for(int z = 0 ; z < gSideNbVtx-1 ; z++)
 	{
-		for(int x = 0 ; x < gGridSize-1 ; x++)
+		for(int x = 0 ; x < gSideNbVtx-1 ; x++)
 		{
-			m_indices.push_back((x+0) + (z+0)*gGridSize);
-			m_indices.push_back((x+0) + (z+1)*gGridSize);
-			m_indices.push_back((x+1) + (z+1)*gGridSize);
+			m_indices.push_back((x+0) + (z+0)*gSideNbVtx);
+			m_indices.push_back((x+0) + (z+1)*gSideNbVtx);
+			m_indices.push_back((x+1) + (z+1)*gSideNbVtx);
 			
-			m_indices.push_back((x+0) + (z+0)*gGridSize);
-			m_indices.push_back((x+1) + (z+1)*gGridSize);
-			m_indices.push_back((x+1) + (z+0)*gGridSize);
+			m_indices.push_back((x+0) + (z+0)*gSideNbVtx);
+			m_indices.push_back((x+1) + (z+1)*gSideNbVtx);
+			m_indices.push_back((x+1) + (z+0)*gSideNbVtx);
 		}
 	}
 	
@@ -249,6 +248,8 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId)
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, m_heightsTexId[m_curBufferIdx]);
 	laneProgram->sendUniform("texHeights", 1);
+	laneProgram->sendUniform("gTexelSize", vec2(1.f/gSideNbVtx, 1.f/gSideNbVtx));
+	laneProgram->sendUniform("gDistBetweenTexels", vec2(gGridSize / gSideNbVtx, gGridSize / gSideNbVtx));
 #endif
 
 	glBindVertexArray(m_vertexArrayId);
@@ -274,7 +275,7 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId)
 	// BEGIN TEST
 #ifdef _LANE_USES_GPU
 	for(int i=0 ; i < _countof(m_heightsTexId) ; i++)
-		gData.drawer->draw2DTexturedQuad(m_heightsTexId[i], vec2(i*(10+gGridSize),10), vec2(gGridSize, gGridSize));
+		gData.drawer->draw2DTexturedQuad(m_heightsTexId[i], vec2(i*(10+gSideNbVtx),10), vec2(gSideNbVtx, gSideNbVtx));
 #endif
 	// END TEST
 }
@@ -288,18 +289,18 @@ void Lane::update()
 		if(gData.curFrameTime.asSeconds() - gfLastTimeSecs > 5.f)
 		{
 			gfLastTimeSecs = gData.curFrameTime.asSeconds();
-			m_vertices[m_curBufferIdx][gGridSize/2 + (gGridSize/2)*gGridSize].pos.y = 1.f;
+			m_vertices[m_curBufferIdx][gSideNbVtx/2 + (gSideNbVtx/2)*gSideNbVtx].pos.y = 1.f;
 		}
 	}
 	// END TEST
 
 	// BEGIN TEST
 	{
-		//const float fHalfSize = 10.f;
+		//const float gGridSize = 10.f;
 		//for(VtxLane& vtx : m_vertices[m_curBufferIdx])
 		//{
-		//	const float dx = vtx.pos.x / fHalfSize;
-		//	const float dy = vtx.pos.z / fHalfSize;
+		//	const float dx = vtx.pos.x / gGridSize;
+		//	const float dy = vtx.pos.z / gGridSize;
 		//	//const float dist = sqrtf(dx*dx + dy*dy);
 		//	vtx.pos.y = sin(dx*M_PI) + sin(dy*M_PI);
 		//}
@@ -338,14 +339,14 @@ void Lane::update()
 		float TERM1 = ( 4.0f - 8.0f*C*C*T*T/(D*D) ) / (U*T+2) ;
 		float TERM2 = ( U*T-2.0f ) / (U*T+2.0f) ;
 		float TERM3 = ( 2.0f * C*C*T*T/(D*D) ) / (U*T+2) ;
-		for(int y=1 ; y<gGridSize-1 ; y++)	// don't do anything with border values
+		for(int y=1 ; y<gSideNbVtx-1 ; y++)	// don't do anything with border values
 		{
-			VtxLane *row = buf + y*(gGridSize);
-			VtxLane *row1 = buf1 + y*(gGridSize);
-			VtxLane *row1up = buf1 + (y-1)*(gGridSize);
-			VtxLane *row1down = buf1 + (y+1)*(gGridSize);
-			VtxLane *row2 = buf2 + y*(gGridSize);
-			for(int x=1;x<gGridSize-1;x++)
+			VtxLane *row = buf + y*(gSideNbVtx);
+			VtxLane *row1 = buf1 + y*(gSideNbVtx);
+			VtxLane *row1up = buf1 + (y-1)*(gSideNbVtx);
+			VtxLane *row1down = buf1 + (y+1)*(gSideNbVtx);
+			VtxLane *row2 = buf2 + y*(gSideNbVtx);
+			for(int x=1;x<gSideNbVtx-1;x++)
 			{
 				row[x].pos.y = TERM1 * row1[x].pos.y
 					+ TERM2 * row2[x].pos.y
@@ -395,7 +396,7 @@ void Lane::updateWaterOnGPU()
 
 	GLint savedVp[4];
 	glGetIntegerv(GL_VIEWPORT, savedVp);
-	glViewport(0, 0, gGridSize, gGridSize);
+	glViewport(0, 0, gSideNbVtx, gSideNbVtx);
 
 	glBindVertexArray(m_waterVertexArrayId);
 
@@ -405,7 +406,7 @@ void Lane::updateWaterOnGPU()
 	if(m_lastAnimationTimeSecs < 0.f)
 		m_lastAnimationTimeSecs = gData.curFrameTime.asSeconds();
 
-	static float PARAM_C = 0.3f ; // ripple speed
+	static float PARAM_C = 0.8f ; // ripple speed
 	static float PARAM_D = 0.4f ; // distance
 	static float PARAM_U = 0.05f ; // viscosity
 	static float PARAM_T = 0.13f ; // time
@@ -434,7 +435,7 @@ void Lane::updateWaterOnGPU()
 		glBindTexture(GL_TEXTURE_2D, idTexHeights2);
 		waterSimulationProgram->sendUniform("texHeights2", 1);
 
-		waterSimulationProgram->sendUniform("gTexelSize", vec2(1.f/gGridSize, 1.f/gGridSize));
+		waterSimulationProgram->sendUniform("gTexelSize", vec2(1.f/gSideNbVtx, 1.f/gSideNbVtx));
 		waterSimulationProgram->sendUniform("gTime", gData.curFrameTime.asSeconds());
 
 		// we use an algorithm from
@@ -453,14 +454,14 @@ void Lane::updateWaterOnGPU()
 		waterSimulationProgram->sendUniform("gTerm2", TERM2);
 		waterSimulationProgram->sendUniform("gTerm3", TERM3);
 
-		//for(int y=1 ; y<gGridSize-1 ; y++)	// don't do anything with border values
+		//for(int y=1 ; y<gSideNbVtx-1 ; y++)	// don't do anything with border values
 		//{
-		//	VtxLane *row = buf + y*(gGridSize);
-		//	VtxLane *row1 = buf1 + y*(gGridSize);
-		//	VtxLane *row1up = buf1 + (y-1)*(gGridSize);
-		//	VtxLane *row1down = buf1 + (y+1)*(gGridSize);
-		//	VtxLane *row2 = buf2 + y*(gGridSize);
-		//	for(int x=1;x<gGridSize-1;x++)
+		//	VtxLane *row = buf + y*(gSideNbVtx);
+		//	VtxLane *row1 = buf1 + y*(gSideNbVtx);
+		//	VtxLane *row1up = buf1 + (y-1)*(gSideNbVtx);
+		//	VtxLane *row1down = buf1 + (y+1)*(gSideNbVtx);
+		//	VtxLane *row2 = buf2 + y*(gSideNbVtx);
+		//	for(int x=1;x<gSideNbVtx-1;x++)
 		//	{
 		//		row[x].pos.y = TERM1 * row1[x].pos.y
 		//			+ TERM2 * row2[x].pos.y

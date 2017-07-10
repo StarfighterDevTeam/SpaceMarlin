@@ -3,7 +3,6 @@
 
 PROG_FRAGMENT_SHADER(PROG_LANE)
 
-//in vec2 varUv;
 in vec3 varNormal;
 in vec3 varWorldSpaceViewVec;
 
@@ -11,8 +10,6 @@ layout(location=0) out vec4 fragColor;
 
 void main()
 {
-	//vec4 tAlbedo = texture2D(texAlbedo, varUv);
-	
 	vec3 normal = normalize(varNormal);
 	vec3 viewVec = normalize(varWorldSpaceViewVec);
 	vec3 reflectVec = reflect(viewVec, normal);

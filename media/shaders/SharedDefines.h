@@ -95,6 +95,8 @@
 	/* uniforms */															\
 	HANDLE_UNIFORM(samplerCube, texCubemap)									\
 	HANDLE_UNIFORM(sampler2D, texHeights)									\
+	HANDLE_UNIFORM(vec2, gTexelSize)										\
+	HANDLE_UNIFORM(vec2, gDistBetweenTexels)								\
 	/* attributes */														\
 	HANDLE_ATTRIBUTE(VtxLane, vec3, float, GL_FLOAT, GL_FALSE, pos,		0)	\
 	HANDLE_ATTRIBUTE(VtxLane, vec3, float, GL_FLOAT, GL_FALSE, normal,	1)	\
