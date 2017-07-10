@@ -14,7 +14,7 @@ void main()
 	vec3 viewVec = normalize(varWorldSpaceViewVec);
 	vec3 reflectVec = reflect(viewVec, normal);
 	vec4 tCubemap = texture(texCubemap, reflectVec);
-	fragColor = vec4(tCubemap.rgb + vec3(0.15,0.3,0.4), 1);
+	fragColor = vec4(tCubemap.rgb + vec3(0.15,0.3,0.4), 0.7);
 	//if(fragColor.a < 0.5)
 	//	fragColor = vec4(1,1,1,1);
 }

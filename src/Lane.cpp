@@ -225,6 +225,9 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId)
 	updateWaterOnGPU();
 #endif
 
+	glutil::Enable<GL_BLEND> blendState;
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	mat4 localToWorldMtx;
 	mat4 localToViewMtx = camera.getWorldToViewMtx() * localToWorldMtx;
 	mat4 localToProjMtx = camera.getWorldToProjMtx() * localToWorldMtx;
