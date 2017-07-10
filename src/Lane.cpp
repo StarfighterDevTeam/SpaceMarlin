@@ -55,7 +55,7 @@ void Lane::init()
 		glTexImage2D(
 				GL_TEXTURE_2D,
 				0,
-				GL_R16F,
+				GL_R32F,
 				gGridSize, gGridSize,
 				0,
 				GL_RED,
@@ -78,6 +78,7 @@ void Lane::init()
 		for(int x=0 ; x < gGridSize ; x++)
 		{
 			vtx.pos.x = (x-gGridSize/2) * fHalfSize / gGridSize;
+			vtx.uv = vec2(x/((float)gGridSize), z/((float)gGridSize));
 			(*pInitVertices)[x + z*gGridSize] = vtx;
 		}
 	}
@@ -243,6 +244,12 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId)
 		glBindTexture(GL_TEXTURE_CUBE_MAP, texCubemapId);
 	}
 	laneProgram->sendUniform("texCubemap", 0);
+
+#ifdef _LANE_USES_GPU
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, m_heightsTexId[m_curBufferIdx]);
+	laneProgram->sendUniform("texHeights", 1);
+#endif
 
 	glBindVertexArray(m_vertexArrayId);
 
@@ -428,6 +435,7 @@ void Lane::updateWaterOnGPU()
 		waterSimulationProgram->sendUniform("texHeights2", 1);
 
 		waterSimulationProgram->sendUniform("gTexelSize", vec2(1.f/gGridSize, 1.f/gGridSize));
+		waterSimulationProgram->sendUniform("gTime", gData.curFrameTime.asSeconds());
 
 		// we use an algorithm from
 		// http://collective.valve-erc.com/index.php?go=water_simulation

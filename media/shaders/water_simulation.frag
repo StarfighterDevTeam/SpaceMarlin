@@ -8,10 +8,7 @@ in vec2 varUv;
 
 void main()
 {
-	//if(fract(gTime) < 0.01)
-		fragHeight = max(0.0, -0.9 + length(1-abs((varUv*2-1))) );
-	//else
-	//	fragHeight = 0;
+	fragHeight = 10*max(0, -0.7 + 1-length(varUv*2-1));
 
 	//fragHeight =
 	//	gTerm1 * texture(texHeights1, varUv).r +
@@ -22,5 +19,4 @@ void main()
 	//		texture(texHeights1, varUv + gTexelSize * vec2(0, -1)).r +
 	//		texture(texHeights1, varUv + gTexelSize * vec2(0, +1)).r
 	//		);
-	//fragHeight = varUv.x;
 }

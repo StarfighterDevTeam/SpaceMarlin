@@ -94,14 +94,17 @@
 	HANDLE_PROG_COMMON(BEGIN_PROGRAM, HANDLE_UNIFORM, HANDLE_ATTRIBUTE)		\
 	/* uniforms */															\
 	HANDLE_UNIFORM(samplerCube, texCubemap)									\
+	HANDLE_UNIFORM(sampler2D, texHeights)									\
 	/* attributes */														\
 	HANDLE_ATTRIBUTE(VtxLane, vec3, float, GL_FLOAT, GL_FALSE, pos,		0)	\
 	HANDLE_ATTRIBUTE(VtxLane, vec3, float, GL_FLOAT, GL_FALSE, normal,	1)	\
+	HANDLE_ATTRIBUTE(VtxLane, vec2, float, GL_FLOAT, GL_FALSE, uv,		2)	\
 	/* done */
 
 // -------- Water simulation --------
 #define HANDLE_PROG_WATER_SIMULATION(BEGIN_PROGRAM, HANDLE_UNIFORM, HANDLE_ATTRIBUTE)	\
 	BEGIN_PROGRAM(VtxWaterSimulation, "water_simulation.vert", "water_simulation.frag")	\
+	HANDLE_PROG_COMMON(BEGIN_PROGRAM, HANDLE_UNIFORM, HANDLE_ATTRIBUTE)					\
 	/*HANDLE_PROG_COMMON(BEGIN_PROGRAM, HANDLE_UNIFORM, HANDLE_ATTRIBUTE)*/				\
 	/* uniforms */																		\
 	HANDLE_UNIFORM(sampler2D, texHeights1)												\

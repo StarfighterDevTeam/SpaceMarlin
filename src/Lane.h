@@ -5,7 +5,7 @@
 #include "Globals.h"
 #include "GPUProgramManager.h"
 
-//#define _LANE_USES_GPU
+#define _LANE_USES_GPU
 
 class Camera;
 
