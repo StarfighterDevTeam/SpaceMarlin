@@ -2,7 +2,10 @@
 #include "SharedDefines.h"
 PROG_VERTEX_SHADER(PROG_WATER_SIMULATION)
 
+out vec2 varUv;
+
 void main()
 {
+	varUv = pos.xy * 0.5 + 0.5;
 	gl_Position = vec4(pos, 0.0, 1.0);
 }

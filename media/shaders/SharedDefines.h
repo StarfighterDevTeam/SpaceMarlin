@@ -106,6 +106,7 @@
 	/* uniforms */																		\
 	HANDLE_UNIFORM(sampler2D, texHeights1)												\
 	HANDLE_UNIFORM(sampler2D, texHeights2)												\
+	HANDLE_UNIFORM(vec2, gTexelSize)													\
 	HANDLE_UNIFORM(float, gTerm1)														\
 	HANDLE_UNIFORM(float, gTerm2)														\
 	HANDLE_UNIFORM(float, gTerm3)														\

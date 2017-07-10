@@ -266,7 +266,8 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId)
 
 	// BEGIN TEST
 #ifdef _LANE_USES_GPU
-	gData.drawer->draw2DTexturedQuad(m_heightsTexId[m_curBufferIdx], vec2(10,10), vec2(gGridSize, gGridSize));
+	for(int i=0 ; i < _countof(m_heightsTexId) ; i++)
+		gData.drawer->draw2DTexturedQuad(m_heightsTexId[i], vec2(i*(10+gGridSize),10), vec2(gGridSize, gGridSize));
 #endif
 	// END TEST
 }
@@ -425,6 +426,8 @@ void Lane::updateWaterOnGPU()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, idTexHeights2);
 		waterSimulationProgram->sendUniform("texHeights2", 1);
+
+		waterSimulationProgram->sendUniform("gTexelSize", vec2(1.f/gGridSize, 1.f/gGridSize));
 
 		// we use an algorithm from
 		// http://collective.valve-erc.com/index.php?go=water_simulation
