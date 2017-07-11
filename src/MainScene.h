@@ -9,12 +9,13 @@
 #include "Model.h"
 #include "Lane.h"
 #include "Skybox.h"
+#include "Marlin.h"
 
 class MainScene : public Scene
 {
 private:
 	Skybox			m_skybox;
-	Model			m_bob;
+	Marlin			m_bob;
 	Lane			m_lane;
 
 	GLuint			m_sceneFboId;
@@ -22,18 +23,6 @@ private:
 	GLuint			m_sceneDepthRenderbufferId;
 
 	FullScreenTriangle	m_postProcessTriangle;
-
-	float m_bobSurfaceSpeedLateral;
-	float m_bobAirSpeedLateral;
-	float m_bobJumpSpeedVertical;
-	float m_bobDiveSpeedVertical;
-	float m_bobDiveSpeedLateral;
-	float m_bobOffsetX;
-	float m_bobOffsetZ;
-	float m_bobSpeedX;
-	float m_bobSpeedZ;
-	float m_bobGravityAccelerationVertical;
-	float m_bobArchimedeAccelerationVertical;
 
 public:
 	virtual bool	init() override;

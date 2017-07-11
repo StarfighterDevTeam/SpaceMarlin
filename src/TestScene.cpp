@@ -69,6 +69,7 @@ void TestScene::draw()
 	//m_quad->display();
 
 	const GPUProgram* modelProgram = gData.gpuProgramMgr->getProgram(PROG_MODEL);
+	//const GPUProgram* modelProgram = gData.gpuProgramMgr->getProgram(PROG_MARLIN);
 	modelProgram->use();
 
 	const float fNear = 0.1f;
@@ -161,6 +162,7 @@ void TestScene::createVBOAndVAO()
 
 	// Setup vertex buffer layout
 	SETUP_PROGRAM_VERTEX_ATTRIB(PROG_MODEL)
+	//SETUP_PROGRAM_VERTEX_ATTRIB(PROG_MARLIN)
 
 	GL_CHECK();
 }

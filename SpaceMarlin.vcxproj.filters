@@ -50,6 +50,7 @@
     <ClCompile Include="src\glutil\FullScreenTriangle.cpp">
       <Filter>glutil</Filter>
     </ClCompile>
+    <ClCompile Include="src\Marlin.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Game.h" />
@@ -107,6 +108,7 @@
     <ClInclude Include="media\shaders\SharedDefines.h">
       <Filter>shaders</Filter>
     </ClInclude>
+    <ClInclude Include="src\Marlin.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="log">

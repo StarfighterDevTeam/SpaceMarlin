@@ -111,7 +111,8 @@ bool Model::loadFromAssImpMesh(const aiMesh* mesh, const aiScene* scene, const c
 
 		// Setup vertex buffer layout
 		SETUP_PROGRAM_VERTEX_ATTRIB(PROG_MODEL)
-		
+		//SETUP_PROGRAM_VERTEX_ATTRIB(PROG_MARLIN);
+
 		glBindVertexArray(0);
 	}
 
@@ -230,17 +231,3 @@ void Model::sendUniforms(const GPUProgram* program, const Camera& camera) const
 	program->sendUniform("texAlbedo", 0);
 	program->sendUniform("gTime", gData.curFrameTime.asSeconds());
 }
-
-
-/***********/
-//const GPUProgram* Marlin::getProgram() const
-//{
-//	return gData.gpuProgramMgr->getProgram(PROG_MARLIN);
-//}
-//
-//void Marlin::sendUniforms(const GPUProgram* program, const Camera& camera) const
-//{
-//	Model::sendUniforms();
-//
-//	program->sendUniform("blabla", blabla);
-//}

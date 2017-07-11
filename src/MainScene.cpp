@@ -49,18 +49,6 @@ bool MainScene::init()
 	m_camera.setFront(normalize(-m_camera.getPosition()));
 	m_camera.setUp(vec3(0,1,0));
 
-	m_bobSurfaceSpeedLateral =				+5.f;
-	m_bobAirSpeedLateral =					+2.5f;
-	m_bobJumpSpeedVertical =				+10.f;
-	m_bobDiveSpeedVertical =				-10.f;
-	m_bobDiveSpeedLateral =					+2.5f;
-	m_bobGravityAccelerationVertical =		-30.f;
-	m_bobArchimedeAccelerationVertical =	+30.f;
-	m_bobOffsetX = 0;
-	m_bobOffsetZ = 0;
-	m_bobSpeedX = 0;
-	m_bobSpeedZ = 0;
-
 	initSceneFBO();
 	m_postProcessTriangle.init();
 
@@ -90,100 +78,7 @@ void MainScene::update()
 	//gfCurAngle += gfSpeed * gData.dTime.asMilliseconds();
 	//m_bob.setModelMtx(glm::rotate(glm::mat4(), gfCurAngle, glm::vec3(0.f, 1.f, 0.f)));
 
-	updateBob();
-}
-
-void MainScene::updateBob()
-{
-	bool bobIsJumping = m_bobOffsetZ > 0;
-	bool bobIsDiving = m_bobOffsetZ < 0;
-
-	//Deceleration
-	m_bobSpeedX = 0;
-
-	//Move left
-	if (gData.inputMgr->isLeftPressed())
-	{
-		if (m_bobOffsetZ == 0)
-		{
-			m_bobSpeedX -= m_bobSurfaceSpeedLateral;
-		}
-		else if (m_bobOffsetZ > 0)
-		{
-			m_bobSpeedX -= m_bobAirSpeedLateral;
-		}
-		else//if (m_bobOffsetZ < 0)
-		{
-			m_bobSpeedX -= m_bobDiveSpeedLateral;
-		}
-	}
-
-	//Move right
-	if (gData.inputMgr->isRightPressed())
-	{
-		if (m_bobOffsetZ == 0)
-		{
-			m_bobSpeedX += m_bobSurfaceSpeedLateral;
-		}
-		else if (m_bobOffsetZ > 0)
-		{
-			m_bobSpeedX += m_bobAirSpeedLateral;
-		}
-		else//if (m_bobOffsetZ < 0)
-		{
-			m_bobSpeedX += m_bobDiveSpeedLateral;
-		}
-	}
-
-	//Jump
-	if (gData.inputMgr->isUpTapped())
-	{
-		if (m_bobOffsetZ == 0)//Bob must be on the surface to jump
-		{
-			m_bobSpeedZ += m_bobJumpSpeedVertical;
-		}
-	}
-
-	//Dive
-	if (gData.inputMgr->isDownTapped())
-	{
-		if (m_bobOffsetZ == 0)//Bob must be on the surface to dive
-		{
-			m_bobSpeedZ += m_bobDiveSpeedVertical;
-		}
-	}
-
-	//Speed limits
-	if (m_bobSpeedX > m_bobSurfaceSpeedLateral) m_bobSpeedX = m_bobSurfaceSpeedLateral;
-	if (m_bobSpeedX < -m_bobSurfaceSpeedLateral) m_bobSpeedX = -m_bobSurfaceSpeedLateral;
-
-	//Gravity force
-	if (m_bobOffsetZ > 0)
-	{
-		m_bobSpeedZ += m_bobGravityAccelerationVertical * gData.dTime.asSeconds();
-	}
-	//Archimed force
-	if (m_bobOffsetZ < 0)
-	{
-		m_bobSpeedZ += m_bobArchimedeAccelerationVertical * gData.dTime.asSeconds();
-	}
-
-	//Apply speed to offset
-	m_bobOffsetX += m_bobSpeedX * gData.dTime.asSeconds();
-	m_bobOffsetZ += m_bobSpeedZ * gData.dTime.asSeconds();
-
-	//Returning back to the surface from a jump or a dive
-	if ((	m_bobOffsetZ <= 0 && bobIsJumping)
-		|| (m_bobOffsetZ >= 0 && bobIsDiving))
-	{
-		m_bobSpeedZ = 0;
-		m_bobOffsetZ = 0;
-	}
-
-	//Apply offset to position
-	m_bob.setPosition(glm::vec3(m_bobOffsetX,
-		m_bobOffsetZ,
-		0.f));
+	m_bob.update();
 }
 
 void MainScene::draw()

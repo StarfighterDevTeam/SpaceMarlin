@@ -29,6 +29,7 @@
     <ClCompile Include="src\log\LogTermVT100.cpp" />
     <ClCompile Include="src\log\LogTermWindows.cpp" />
     <ClCompile Include="src\MainScene.cpp" />
+    <ClCompile Include="src\Marlin.cpp" />
     <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\preprocessor\ExpressionEvaluator.cpp" />
     <ClCompile Include="src\preprocessor\Preprocessor.cpp" />
@@ -57,6 +58,7 @@
     <ClInclude Include="src\log\LogHTMLContents.h" />
     <ClInclude Include="src\log\LogRTFContents.h" />
     <ClInclude Include="src\MainScene.h" />
+    <ClInclude Include="src\Marlin.h" />
     <ClInclude Include="src\Model.h" />
     <ClInclude Include="src\preprocessor\ExpressionEvaluator.h" />
     <ClInclude Include="src\preprocessor\Preprocessor.h" />
