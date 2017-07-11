@@ -9,5 +9,11 @@ in vec2 varUv;
 void main()
 {
 	// TODO
-	fragColor = textureLod(texScene, varUv, 0);
+	vec2 uv = varUv;
+	//uv = ( (uv*2-1) *(1+0.1*(sin(gTime*20))) ) *0.5 + 0.5;
+	fragColor = textureLod(texScene, uv, 0);
+	float vignette = 1-length((uv*2-1));
+	float vignetteAmount = 0.6;
+	vignette = vignetteAmount*vignette + (1-vignetteAmount);
+	fragColor *= vignette;
 }

@@ -121,6 +121,7 @@ void MainScene::draw()
 
 		const GPUProgram* tonemappingProgram = gData.gpuProgramMgr->getProgram(PROG_TONEMAPPING);
 		tonemappingProgram->use();
+		tonemappingProgram->sendUniform("gTime", gData.curFrameTime.asSeconds());
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, m_sceneTexId);
