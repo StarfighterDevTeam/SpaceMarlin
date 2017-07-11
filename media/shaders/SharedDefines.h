@@ -71,14 +71,15 @@
 
 // -------- Marlin --------
 #define HANDLE_PROG_MARLIN(BEGIN_PROGRAM, HANDLE_UNIFORM, HANDLE_ATTRIBUTE)		\
-	BEGIN_PROGRAM(VtxMarlin, "marlin.vert", "marlin.frag")							\
+	BEGIN_PROGRAM(VtxMarlin, "marlin.vert", "marlin.frag")						\
 	HANDLE_PROG_COMMON(BEGIN_PROGRAM, HANDLE_UNIFORM, HANDLE_ATTRIBUTE)			\
 	/* uniforms */																\
-	HANDLE_UNIFORM(sampler2D, texAlbedo)										\
+	HANDLE_UNIFORM(sampler2D,	texAlbedo)										\
+	HANDLE_UNIFORM(vec3,		gSpeed)											\
 	/* attributes */															\
-	HANDLE_ATTRIBUTE(VtxMarlin, vec3, float, GL_FLOAT, GL_FALSE, pos,	0)		\
-	HANDLE_ATTRIBUTE(VtxMarlin, vec2, float, GL_FLOAT, GL_FALSE, uv,		1)		\
-	HANDLE_ATTRIBUTE(VtxMarlin, vec3, float, GL_FLOAT, GL_FALSE, normal,	2)		\
+	HANDLE_ATTRIBUTE(VtxMarlin, vec3, float, GL_FLOAT, GL_FALSE, pos,		0)	\
+	HANDLE_ATTRIBUTE(VtxMarlin, vec2, float, GL_FLOAT, GL_FALSE, uv,		1)	\
+	HANDLE_ATTRIBUTE(VtxMarlin, vec3, float, GL_FLOAT, GL_FALSE, normal,	2)	\
 	/* done */
 	
 // -------- Simple --------

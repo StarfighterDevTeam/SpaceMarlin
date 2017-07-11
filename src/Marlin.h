@@ -7,8 +7,8 @@
 class Marlin : public Model
 {
 protected:
-	const GPUProgram*	getProgram() const override;
-	void				sendUniforms(const GPUProgram* program, const Camera& camera) const override;
+	virtual const GPUProgram*	getProgram() const override;
+	virtual void				sendUniforms(const GPUProgram* program, const Camera& camera) const override;
 
 public:
 	Marlin();
@@ -26,7 +26,6 @@ public:
 	float m_speedZ;
 	float m_gravityAccelerationVertical;
 	float m_archimedeAccelerationVertical;
-
 };
 
 #endif // _MARLIN_H

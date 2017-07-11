@@ -1,6 +1,6 @@
 #version 400 core
 #include "SharedDefines.h"
-PROG_FRAGMENT_SHADER(PROG_MODEL)
+PROG_FRAGMENT_SHADER(PROG_MARLIN)
 
 in vec2 varUv;
 

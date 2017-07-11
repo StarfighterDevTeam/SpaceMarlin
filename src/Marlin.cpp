@@ -27,7 +27,7 @@ void Marlin::sendUniforms(const GPUProgram* program, const Camera& camera) const
 {
 	Model::sendUniforms(program, camera);
 
-	//program->sendUniform("gLocalToProjMtx", modelViewProjMtx);
+	program->sendUniform("gSpeed", vec3(m_speedX, 0.f, m_speedZ));
 	//program->sendUniform("texAlbedo", 0);
 	//program->sendUniform("gTime", gData.curFrameTime.asSeconds());
 }
