@@ -174,5 +174,11 @@
     <None Include="media\shaders\texture2d.vert">
       <Filter>shaders</Filter>
     </None>
+    <None Include="media\shaders\marlin.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="media\shaders\marlin.vert">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
