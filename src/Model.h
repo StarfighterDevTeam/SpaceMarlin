@@ -41,6 +41,7 @@ protected:
 	// Hooks for derived classes
 	virtual const GPUProgram*	getProgram() const;
 	virtual void				sendUniforms(const GPUProgram* program, const Camera& camera) const;
+	void						move(vec3 vector);
 };
 
 #endif // _MODEL_H

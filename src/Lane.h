@@ -18,6 +18,10 @@ public:
 	void		draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexId);
 	void		update();
 
+	float		getCylinderRadius() const;
+	vec3		getPosition() const;
+	float		getMass() const;
+
 private:
 	static void	computeNormals(VtxLane* vertices, int nbVertices, const unsigned short* indices, int nbIndices);
 	void		updateWaterOnGPU();
@@ -34,6 +38,11 @@ private:
 #endif
 	int							m_curBufferIdx;
 	float						m_lastAnimationTimeSecs;
+
+	//Lane properties
+	float						m_cylinderRadius;
+	float						m_mass;
+	vec3						m_position;
 
 	// GPU resources for drawing the lane
 	GLuint						m_vertexArrayId;
