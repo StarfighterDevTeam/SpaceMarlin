@@ -48,6 +48,7 @@
 	HANDLE_UNIFORM(mat4,		gLocalToWorldMtx)	\
 	HANDLE_UNIFORM(vec3,		gWorldSpaceCamPos)	\
 	HANDLE_UNIFORM(mat4,		gProjToWorldRotMtx)	\
+	HANDLE_UNIFORM(vec2,		gVpSize)			\
 	/* done */
 
 // -------- Part common to all fullscreen triangle programs --------
@@ -108,6 +109,7 @@
 	HANDLE_PROG_COMMON(BEGIN_PROGRAM, HANDLE_UNIFORM, HANDLE_ATTRIBUTE)		\
 	/* uniforms */															\
 	HANDLE_UNIFORM(samplerCube, texCubemap)									\
+	HANDLE_UNIFORM(sampler2D, texRefraction)								\
 	HANDLE_UNIFORM(sampler2D, texHeights)									\
 	HANDLE_UNIFORM(vec2, gTexelSize)										\
 	HANDLE_UNIFORM(vec2, gDistBetweenTexels)								\

@@ -18,6 +18,7 @@ private:
 	Marlin			m_bob;
 	Lane			m_lane;
 
+	GLuint			m_sceneRefractionTexId;
 	GLuint			m_sceneFboId;
 	GLuint			m_sceneTexId;
 	GLuint			m_sceneDepthRenderbufferId;

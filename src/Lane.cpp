@@ -207,7 +207,7 @@ void Lane::shut()
 	glDeleteVertexArrays(1, &m_vertexArrayId); m_vertexArrayId = INVALID_GL_ID;
 }
 
-void Lane::draw(const Camera& camera, GLuint texCubemapId)
+void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexId)
 {
 	//static float gfQuadSize = 1.f;
 	//const vec3 quadPos[] = {
@@ -240,20 +240,32 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId)
 	laneProgram->sendUniform("gLocalToWorldMtx", localToWorldMtx);
 	laneProgram->sendUniform("gWorldSpaceCamPos", camera.getPosition());
 
-	if(texCubemapId != INVALID_GL_ID)
-	{
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, texCubemapId);
-	}
-	laneProgram->sendUniform("texCubemap", 0);
+	GLint textureSlot = 0;
+
+	assert(texCubemapId != INVALID_GL_ID);
+	glActiveTexture(GL_TEXTURE0 + textureSlot);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, texCubemapId);
+	laneProgram->sendUniform("texCubemap", textureSlot);
+	textureSlot++;
+
+	glActiveTexture(GL_TEXTURE0 + textureSlot);
+	glBindTexture(GL_TEXTURE_2D, refractionTexId);
+	laneProgram->sendUniform("texRefraction", textureSlot);
+	textureSlot++;
 
 #ifdef _LANE_USES_GPU
-	glActiveTexture(GL_TEXTURE1);
+	glActiveTexture(GL_TEXTURE0 + textureSlot);
 	glBindTexture(GL_TEXTURE_2D, m_heightsTexId[m_curBufferIdx]);
-	laneProgram->sendUniform("texHeights", 1);
+	laneProgram->sendUniform("texHeights", textureSlot);
+	textureSlot++;
+
 	laneProgram->sendUniform("gTexelSize", vec2(1.f/gSideNbVtx, 1.f/gSideNbVtx));
 	laneProgram->sendUniform("gDistBetweenTexels", vec2(gGridSize / gSideNbVtx, gGridSize / gSideNbVtx));
 #endif
+
+	GLint curVp[4];
+	glGetIntegerv(GL_VIEWPORT, curVp);
+	laneProgram->sendUniform("gVpSize", vec2(curVp[2], curVp[3]));
 
 	glBindVertexArray(m_vertexArrayId);
 

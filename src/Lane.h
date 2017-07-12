@@ -15,7 +15,7 @@ public:
 	Lane();
 	void		init();
 	void		shut();
-	void		draw(const Camera& camera, GLuint texCubemapId);
+	void		draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexId);
 	void		update();
 
 private:

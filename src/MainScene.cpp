@@ -4,6 +4,14 @@
 #include "Drawer.h"
 #include "InputManager.h"
 
+#define _USE_HALF_FLOAT
+#ifdef _USE_HALF_FLOAT
+	#define _IF_USE_HALF_FLOAT(x,y) x
+#else
+	#define _IF_USE_HALF_FLOAT(x,y) y
+#endif
+#define RT_FORMAT _IF_USE_HALF_FLOAT(GL_RGBA16F,GL_RGBA32F)
+
 bool MainScene::init()
 {
 	if(!Scene::init())
@@ -50,6 +58,7 @@ bool MainScene::init()
 	m_camera.setUp(vec3(0,1,0));
 
 	initSceneFBO();
+
 	m_postProcessTriangle.init();
 
 	return true;
@@ -106,12 +115,18 @@ void MainScene::draw()
 	
 		m_bob.draw(m_camera);
 
-		m_lane.draw(m_camera, m_skybox.getSkyTexId());
-
 		// Debug model gizmo
 		gData.drawer->drawLine(m_camera, glm::vec3(0,0,0), COLOR_RED,	glm::vec3(3,0,0), COLOR_RED		);
 		gData.drawer->drawLine(m_camera, glm::vec3(0,0,0), COLOR_GREEN,	glm::vec3(0,3,0), COLOR_GREEN	);
 		gData.drawer->drawLine(m_camera, glm::vec3(0,0,0), COLOR_BLUE,	glm::vec3(0,0,3), COLOR_BLUE	);
+
+		// Copy scene image for refraction effect
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+		glBindTexture(GL_TEXTURE_2D, m_sceneRefractionTexId);
+		glCopyTexImage2D(GL_TEXTURE_2D, 0, RT_FORMAT, 0, 0, gData.winSizeX, gData.winSizeY, 0);
+
+		// Draw lane
+		m_lane.draw(m_camera, m_skybox.getSkyTexId(), m_sceneRefractionTexId);
 	}
 
 	// Post-process
@@ -132,6 +147,11 @@ void MainScene::draw()
 		glEnable(GL_DEPTH_TEST);
 		glDepthMask(GL_TRUE);
 	}
+
+	// BEGIN TEST
+	vec2 debugSize = vec2(gData.winSizeX/4.f, gData.winSizeY/4.f);
+	gData.drawer->draw2DTexturedQuad(m_sceneRefractionTexId, vec2(gData.winSizeX - debugSize.x - 10, 10), debugSize);
+	// END TEST
 }
 
 void MainScene::onEvent(const sf::Event& event)
@@ -145,10 +165,11 @@ void MainScene::onEvent(const sf::Event& event)
 	}
 }
 
+// Setup scene FBO & refraction texture
 void MainScene::initSceneFBO()
 {
-	// Setup scene FBO
-	m_sceneTexId = glutil::createTextureRGBAF(gData.winSizeX, gData.winSizeY, true);
+	m_sceneTexId = glutil::createTextureRGBAF(gData.winSizeX, gData.winSizeY, _IF_USE_HALF_FLOAT(true, false));
+	m_sceneRefractionTexId = glutil::createTextureRGBAF(gData.winSizeX, gData.winSizeY, _IF_USE_HALF_FLOAT(true, false));
 	m_sceneDepthRenderbufferId = glutil::createRenderbufferDepth(gData.winSizeX, gData.winSizeY);
 
 	glGenFramebuffers(1, &m_sceneFboId);
@@ -180,5 +201,6 @@ void MainScene::shutSceneFBO()
 {
 	glDeleteFramebuffers(1, &m_sceneFboId);					m_sceneFboId = INVALID_GL_ID;
 	glDeleteTextures(1, &m_sceneTexId);						m_sceneTexId = INVALID_GL_ID;
+	glDeleteTextures(1, &m_sceneRefractionTexId);			m_sceneRefractionTexId = INVALID_GL_ID;
 	glDeleteRenderbuffers(1, &m_sceneDepthRenderbufferId);	m_sceneDepthRenderbufferId = INVALID_GL_ID;
 }
