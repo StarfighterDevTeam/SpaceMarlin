@@ -48,6 +48,7 @@
 	HANDLE_UNIFORM(mat4,		gLocalToWorldMtx)	\
 	HANDLE_UNIFORM(vec3,		gWorldSpaceCamPos)	\
 	HANDLE_UNIFORM(mat4,		gProjToWorldRotMtx)	\
+	HANDLE_UNIFORM(mat4,		gViewToProjMtx)		\
 	HANDLE_UNIFORM(vec2,		gVpSize)			\
 	/* done */
 

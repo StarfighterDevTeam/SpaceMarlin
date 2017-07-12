@@ -235,6 +235,7 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 	laneProgram->use();
 	laneProgram->sendUniform("gLocalToViewMtx", localToViewMtx);
 	laneProgram->sendUniform("gLocalToProjMtx", localToProjMtx);
+	laneProgram->sendUniform("gViewToProjMtx", camera.getViewToProjMtx());
 	//laneProgram->sendUniform("texAlbedo", 0);
 	laneProgram->sendUniform("gTime", gData.curFrameTime.asSeconds());
 	laneProgram->sendUniform("gLocalToWorldMtx", localToWorldMtx);

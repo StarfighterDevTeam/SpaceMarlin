@@ -3,26 +3,42 @@
 
 PROG_FRAGMENT_SHADER(PROG_LANE)
 
-in vec3 varNormal;
+in vec3 varViewSpaceNormal;
+in vec3 varViewSpacePos;
+in vec3 varWorldSpaceNormal;
 in vec3 varWorldSpaceViewVec;
 
 layout(location=0) out vec4 fragColor;
 
 void main()
 {
-	vec3 normal = normalize(varNormal);
-	vec3 viewVec = normalize(varWorldSpaceViewVec);
-	vec3 reflectVec = reflect(viewVec, normal);
-	vec4 tCubemap = texture(texCubemap, reflectVec);
-	fragColor = vec4(tCubemap.rgb + vec3(0.15,0.3,0.4), 0.7);
+	vec3 wNormal = normalize(varWorldSpaceNormal);
+	vec3 wViewVec = normalize(varWorldSpaceViewVec);
+	vec3 wReflectVec = reflect(wViewVec, wNormal);
+	vec4 tCubemap = texture(texCubemap, wReflectVec);
+	vec3 specular = tCubemap.rgb;
+	vec3 ambient = vec3(0.15,0.3,0.4);
 
-	// TODO
-	//float refractiveIndex = 1.5;
-	//vec3 refractedDirection = refract(viewVec, normal, 1.0 / refractiveIndex);
-	//vec2 refractionUv = gl_FragCoord.xy / gVpSize;
-	//vec3 refractionColor = texture(texRefraction, refractionUv).rgb;
-	//vec3 color = refractionColor + tCubemap.rgb;
-	//fragColor = vec4(color, 1);
+	vec3 vViewVec = -normalize(varViewSpacePos);
+	vec3 vNormal = normalize(varViewSpaceNormal);
+	float refractiveIndex = 1.5;
+	vec3 vRefractedDirection = refract(-vViewVec, vNormal, 1.0 / refractiveIndex);
+	float refractionLength = 0.5;
+	vec3 vRefractedPos = varViewSpacePos + vRefractedDirection*refractionLength;
+	vec4 projRefractedPos = gViewToProjMtx * vec4(vRefractedPos,1);
+	vec3 ndcRefractedPos = projRefractedPos.xyz / projRefractedPos.w;
+	vec2 refractionUv = (ndcRefractedPos.xy)*0.5 + 0.5;
+	
+	// https://en.wikipedia.org/wiki/Schlick%27s_approximation
+	float r0 = 0.5;	// ( (n1-n2)/(n1+n2) )²
+	float reflectionFactor = r0 + (1-r0) * pow(1-dot(vNormal, vViewVec), 5);	// Schlick's Fresnel approximation
+	vec3 color =	reflectionFactor * (specular + ambient) +
+					(1-reflectionFactor) * texture(texRefraction, refractionUv).rgb;
+	fragColor = vec4(color, 1);
+	//fragColor = vec4(varViewSpaceNormal.rgb,1);
+	//fragColor = vec4(varWorldSpaceNormal.rgb,1);
+	//fragColor = vec4(vViewVec.rgb,1);
+	//fragColor = vec4(vRefractedDirection,1);
 	//if(tCubemap.a < 0.5)
 	//	discard;
 }
