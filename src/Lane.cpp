@@ -21,6 +21,26 @@ Lane::Lane()
 	for(GLuint& texId : m_waterFboId)
 		texId = INVALID_GL_ID;
 #endif
+
+	//Properties
+	m_cylinderRadius			= 5.f;
+	m_mass						= 100000000000.f;
+	m_position					= vec3(0, 0, 0);
+}
+
+float Lane::getCylinderRadius() const
+{
+	return m_cylinderRadius;
+}
+
+vec3 Lane::getPosition() const
+{
+	return m_position;
+}
+
+float Lane::getMass() const
+{
+	return m_mass;
 }
 
 void Lane::init()

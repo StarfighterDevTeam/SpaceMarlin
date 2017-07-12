@@ -1,6 +1,7 @@
 #include "Marlin.h"
 #include "Camera.h"
 #include "InputManager.h"
+#include "Lane.h"
 
 Marlin::Marlin()
 {
@@ -15,7 +16,13 @@ Marlin::Marlin()
 	m_offsetZ							= 0;
 	m_speedX							= 0;
 	m_speedZ							= 0;
-	
+
+	m_mass								= 1.f;
+
+	//temp
+	//setPosition(glm::vec3(	0.f,//laterality
+	//						2.f,//altitude
+	//						0.f));
 }
 
 const GPUProgram* Marlin::getProgram() const
@@ -32,8 +39,79 @@ void Marlin::sendUniforms(const GPUProgram* program, const Camera& camera) const
 	//program->sendUniform("gTime", gData.curFrameTime.asSeconds());
 }
 
+float Marlin::getDistanceSquaredToLane(Lane* lane) const
+{
+	float dx = getPosition().x - lane->getPosition().x;
+	float dy = getPosition().y - lane->getPosition().y;
+
+	float distSquared = dx*dx + dy*dy;
+
+	return distSquared;
+}
+
+float Marlin::getGravitationalForce(Lane* lane) const
+{
+	//Universal gravitational force: https://en.wikipedia.org/wiki/Newton%27s_law_of_universal_gravitation
+
+	float G = 0.0000000000667384f;	//G = 6.67384ee-11
+	float gravitationalForce = G * m_mass * lane->getMass() / getDistanceSquaredToLane(lane);
+
+	return gravitationalForce;
+}
+
+float Marlin::getArchimedeThrust(Lane* lane) const
+{
+	//Archimedes' principle: https://en.wikipedia.org/wiki/Archimedes%27_principle
+
+	float marlinSize = 0.4; //height
+	float altitude = getDistanceSquaredToLane(lane) - lane->getCylinderRadius();
+	
+	float immergedQuota;
+	if (altitude < - marlinSize / 2)
+	{
+		immergedQuota = 1;//100% of Marlin's volume is under water
+	}
+	else if (altitude > marlinSize / 2)
+	{ 
+		immergedQuota = 0;//0% of Marlin's volume is under water
+	}
+	else
+	{
+		immergedQuota = abs(altitude) / marlinSize / 2;// between 0 and 100% is under water, with a pro rata
+	}
+
+	float P = 2.5f;	//"weight" of the lane's fluid
+	float archimedeThrust = P * immergedQuota * m_mass;
+
+	return archimedeThrust;
+}
+
+bool Marlin::addLane(Lane* lane)
+{
+	if (lane)
+	{
+		m_lanes.push_back(lane);
+	}
+		
+	return lane;
+}
+
 void Marlin::update()
 {
+	//Test
+	//if (!m_lanes.empty())
+	//{
+	//	vec3 debugPos = getPosition();
+	//
+	//	float gravity = getGravitationalForce(m_lanes.front());
+	//	debugPos += vec3(0, -gravity * gData.dTime.asSeconds(), 0);
+	//	move(vec3(0, -gravity * gData.dTime.asSeconds(), 0));//todo : rotate the vector according to angle
+	//
+	//	float archi = getArchimedeThrust(m_lanes.front());
+	//	debugPos += vec3(0, archi * gData.dTime.asSeconds(), 0);
+	//	move(vec3(0, archi * gData.dTime.asSeconds(), 0));//todo : rotate the vector according to angle
+	//}
+
 	bool bobIsJumping = m_offsetZ > 0;
 	bool bobIsDiving = m_offsetZ < 0;
 
