@@ -23,7 +23,7 @@ protected:
 
 	GLuint						m_albedoTexId;
 
-	glm::mat4					m_modelMtx;
+	glm::mat4					m_localToWorldMtx;
 	
 public:
 	Model()															{m_bLoaded = false;}
@@ -32,10 +32,10 @@ public:
 	void						unload();
 	void						draw(const Camera& camera);
 
-	void						setPosition(const glm::vec3 pos)			{m_modelMtx[3].x = pos.x; m_modelMtx[3].y = pos.y; m_modelMtx[3].z = pos.z;}
-	glm::vec3					getPosition() const							{return glm::vec3(m_modelMtx[3].x, m_modelMtx[3].y, m_modelMtx[3].z);}
-	void						setModelMtx(const glm::mat4 modelMtx)		{m_modelMtx = modelMtx;}
-	const glm::mat4&			getModelMtx() const							{return m_modelMtx;}
+	void						setPosition(const glm::vec3 pos)					{m_localToWorldMtx[3].x = pos.x; m_localToWorldMtx[3].y = pos.y; m_localToWorldMtx[3].z = pos.z;}
+	glm::vec3					getPosition() const									{return glm::vec3(m_localToWorldMtx[3].x, m_localToWorldMtx[3].y, m_localToWorldMtx[3].z);}
+	void						setLocalToWorldMtx(const glm::mat4 modelMtx)		{m_localToWorldMtx = modelMtx;}
+	const glm::mat4&			getLocalToWorldMtx() const							{return m_localToWorldMtx;}
 
 protected:
 	// Hooks for derived classes

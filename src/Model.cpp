@@ -226,8 +226,8 @@ void Model::sendUniforms(const GPUProgram* program, const Camera& camera) const
 	blenderToOpenGLMtx[2] = vec4( 0,  1,  0,  0);
 	blenderToOpenGLMtx[3] = vec4( 0,  0,  0,  1);
 
-	mat4 modelViewProjMtx = camera.getWorldToProjMtx() * m_modelMtx * blenderToOpenGLMtx;
-	program->sendUniform("gLocalToProjMtx", modelViewProjMtx);
+	mat4 localToProjMtx = camera.getWorldToProjMtx() * m_localToWorldMtx * blenderToOpenGLMtx;
+	program->sendUniform("gLocalToProjMtx", localToProjMtx);
 	program->sendUniform("texAlbedo", 0);
 	program->sendUniform("gTime", gData.curFrameTime.asSeconds());
 }

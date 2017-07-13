@@ -86,7 +86,7 @@ void MainScene::update()
 	//static float gfCurAngle = 0.f;
 	//static float gfSpeed = 0.001f;
 	//gfCurAngle += gfSpeed * gData.dTime.asMilliseconds();
-	//m_bob.setModelMtx(glm::rotate(glm::mat4(), gfCurAngle, glm::vec3(0.f, 1.f, 0.f)));
+	//m_bob.setLocalToWorldMtx(glm::rotate(glm::mat4(), gfCurAngle, glm::vec3(0.f, 1.f, 0.f)));
 
 	m_bob.update();
 }
@@ -111,8 +111,6 @@ void MainScene::draw()
 		glEnable(GL_CULL_FACE);
 		
 		m_skybox.draw(m_camera);
-	
-		glm::mat4 modelViewProjMtx = m_camera.getWorldToProjMtx() * m_bob.getModelMtx();
 	
 		m_bob.draw(m_camera);
 

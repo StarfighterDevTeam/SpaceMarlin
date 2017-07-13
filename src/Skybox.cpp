@@ -83,9 +83,9 @@ void Skybox::draw(const Camera& camera)
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_skyTexId);
 
-	mat4 modelViewProjMtx = camera.getWorldToProjMtx();
-	modelViewProjMtx[3] = vec4(0,0,0,1);
-	program->sendUniform("gLocalToProjMtx", modelViewProjMtx);
+	mat4 localToProjMtx = camera.getWorldToProjMtx();	// no localToWorldMtx, this is the identity matrix
+	localToProjMtx[3] = vec4(0,0,0,1);
+	program->sendUniform("gLocalToProjMtx", localToProjMtx);
 
 	mat4 projToViewMtx = glm::inverse(camera.getViewToProjMtx());
 	mat4 viewToWorldRotMtx = mat4(glm::transpose(mat3(camera.getWorldToViewMtx())));
