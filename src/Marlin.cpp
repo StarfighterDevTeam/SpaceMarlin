@@ -19,10 +19,11 @@ Marlin::Marlin()
 
 	m_mass								= 1.f;
 
+	m_speed								= vec3(0, 0, 0);
 	//temp
-	//setPosition(glm::vec3(	0.f,//laterality
-	//						2.f,//altitude
-	//						0.f));
+	setPosition(glm::vec3(	0.f,//laterality
+							6.f,//altitude
+							0.f));
 }
 
 const GPUProgram* Marlin::getProgram() const
@@ -39,32 +40,61 @@ void Marlin::sendUniforms(const GPUProgram* program, const Camera& camera) const
 	//program->sendUniform("gTime", gData.curFrameTime.asSeconds());
 }
 
+bool Marlin::addLane(Lane* lane)
+{
+	if (lane)
+	{
+		m_lanes.push_back(lane);
+	}
+
+	return lane;
+}
+
 float Marlin::getDistanceSquaredToLane(Lane* lane) const
 {
 	float dx = getPosition().x - lane->getPosition().x;
 	float dy = getPosition().y - lane->getPosition().y;
+	float dz = getPosition().z - lane->getPosition().z;
 
-	float distSquared = dx*dx + dy*dy;
+	float distSquared = dx*dx + dy*dy + dz*dz;
 
 	return distSquared;
 }
 
-float Marlin::getGravitationalForce(Lane* lane) const
+vec3 Marlin::getGravitationalForce(Lane* lane) const
 {
 	//Universal gravitational force: https://en.wikipedia.org/wiki/Newton%27s_law_of_universal_gravitation
 
-	float G = 0.0000000000667384f;	//G = 6.67384ee-11
-	float gravitationalForce = G * m_mass * lane->getMass() / getDistanceSquaredToLane(lane);
+	//float G = 0.0000000000667384f;	//G = 6.67384ee-11
+	float G = 1.f;	//G = 6.67384ee-11
+	float d = getDistanceSquaredToLane(lane);
+	//float gravitationalForce = d != 0 ? G * m_mass * lane->getMass() / d : 0;//avoides to divide by 0
+	float gravitationalForce = d != 0 ? G / d : 0;//avoides to divide by 0. Simplification of the law: ignore lane and marlin's masses because they're constant.
 
-	return gravitationalForce;
+	//get the direction of the vector
+	vec3 vector = lane->getPosition() - getPosition();
+	//normalize the vector
+	float n = abs(vector.x) + abs(vector.y) + abs(vector.z);
+	if (n != 0)
+	{
+		vector = vec3(vector.x / n, vector.y / n, vector.z / n);
+	}
+	//glm::normalize(vector);
+
+	float t = gData.dTime.asSeconds();
+	vec3 gravity = vec3(t * vector.x * gravitationalForce,
+						t * vector.y * gravitationalForce,
+						t * vector.z * gravitationalForce);
+
+	return gravity;
 }
 
-float Marlin::getArchimedeThrust(Lane* lane) const
+vec3 Marlin::getArchimedeThrust(Lane* lane) const
 {
 	//Archimedes' principle: https://en.wikipedia.org/wiki/Archimedes%27_principle
 
-	float marlinSize = 0.4; //height
-	float altitude = getDistanceSquaredToLane(lane) - lane->getCylinderRadius();
+	float marlinSize = 0.4; //theorically it should be the Marlin's volume. But height is a good approximation of how much he's immerged.
+	float altitude = sqrt(getDistanceSquaredToLane(lane)) - lane->getCylinderRadius();
 	
 	float immergedQuota;
 	if (altitude < - marlinSize / 2)
@@ -80,20 +110,26 @@ float Marlin::getArchimedeThrust(Lane* lane) const
 		immergedQuota = abs(altitude) / marlinSize / 2;// between 0 and 100% is under water, with a pro rata
 	}
 
-	float P = 2.5f;	//"weight" of the lane's fluid
-	float archimedeThrust = P * immergedQuota * m_mass;
+	float P = 1.f;	//pression of the fluid
+	float archimedeThrust = P * immergedQuota;
 
-	return archimedeThrust;
-}
-
-bool Marlin::addLane(Lane* lane)
-{
-	if (lane)
+	//look for the direction of the vector
+	vec3 vector = getPosition() - lane->getPosition();
+	//normalize the vector
+	float n = abs(vector.x) + abs(vector.y) + abs(vector.z);
+	if (n != 0)
 	{
-		m_lanes.push_back(lane);
+		vector = vec3(vector.x / n, vector.y / n, vector.z / n);
 	}
-		
-	return lane;
+	//glm::normalize(vector);
+
+	float t = gData.dTime.asSeconds();
+
+	vec3 archimede = vec3(t * vector.x * archimedeThrust,
+							t * vector.y * archimedeThrust,
+							t * vector.z * archimedeThrust);
+
+	return archimede;
 }
 
 void Marlin::update()
@@ -101,17 +137,52 @@ void Marlin::update()
 	//Test
 	//if (!m_lanes.empty())
 	//{
+	//	bool splashIsPossible = sqrt(getDistanceSquaredToLane(m_lanes.front())) > m_lanes.front()->getCylinderRadius();
+	//
 	//	vec3 debugPos = getPosition();
 	//
-	//	float gravity = getGravitationalForce(m_lanes.front());
-	//	debugPos += vec3(0, -gravity * gData.dTime.asSeconds(), 0);
-	//	move(vec3(0, -gravity * gData.dTime.asSeconds(), 0));//todo : rotate the vector according to angle
+	//	vec3 gravity = getGravitationalForce(m_lanes.front());
+	//	
+	//	//move(gravity);//todo : rotate the vector according to angle
 	//
-	//	float archi = getArchimedeThrust(m_lanes.front());
-	//	debugPos += vec3(0, archi * gData.dTime.asSeconds(), 0);
-	//	move(vec3(0, archi * gData.dTime.asSeconds(), 0));//todo : rotate the vector according to angle
+	//	vec3 archi = getArchimedeThrust(m_lanes.front());
+	//	//move(archi);//todo : rotate the vector according to angle
+	//
+	//	//move(gravity + archi);
+	//
+	//	m_speed += gravity + archi;
+	//
+	//	//have we splashed onto the lane? (back from "above" the lane)
+	//	bool splashOccurred = splashIsPossible && sqrt(getDistanceSquaredToLane(m_lanes.front())) < m_lanes.front()->getCylinderRadius();
+	//	if (splashOccurred)
+	//	{
+	//		//apply splash speed malus, due to the resistance of the fluid
+	//		m_speed *= 1.0;//0.1f
+	//	}
+	//
+	//	//normalize the vector
+	//	float maxSpeed = 1 * gData.dTime.asSeconds();
+	//	float n = abs(m_speed.x) + abs(m_speed.y) + abs(m_speed.z);
+	//	if (n != 0)
+	//	{
+	//		m_speed = vec3(m_speed.x / n * maxSpeed, m_speed.y / n * maxSpeed, m_speed.z / n * maxSpeed);
+	//	}
+	//
+	//	//apply speed
+	//	vec3 debugPos2 = getPosition();
+	//	move(m_speed * gData.dTime.asSeconds());
+	//	debugPos2 = getPosition();
+	//
+	//	printf("pos      x: %f | y: %f | z: %f\ngravity  x: %f | y: %f | z: %f\narchimede x: %f | y: %f | z: %f\nsplash malus: %d\ntotal move x: %f | y: %f | z: %f\n\n", 
+	//		debugPos.x, debugPos.y, debugPos.z,
+	//		gravity.x, gravity.y, gravity.z,
+	//		archi.x, archi.y, archi.z,
+	//		(int)splashOccurred,
+	//		gravity.x + archi.x, gravity.y + archi.y, gravity.z + archi.z);
 	//}
 
+	
+	//OLD MOVE SYSTEM
 	bool bobIsJumping = m_offsetZ > 0;
 	bool bobIsDiving = m_offsetZ < 0;
 

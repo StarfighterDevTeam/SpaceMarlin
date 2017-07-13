@@ -28,13 +28,15 @@ protected:
 
 	float m_mass;
 
+	vec3 m_speed;
+
 public:
 	Marlin();
 
 	void update();
 	float getDistanceSquaredToLane(Lane* lane) const;
-	float getGravitationalForce(Lane* lane) const;
-	float getArchimedeThrust(Lane* lane) const;
+	vec3 getGravitationalForce(Lane* lane) const;
+	vec3 getArchimedeThrust(Lane* lane) const;
 	bool addLane(Lane* lane);
 };
 
