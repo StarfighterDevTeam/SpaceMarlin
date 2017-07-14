@@ -18,7 +18,7 @@ void main()
 	vec4 tCubemap = texture(texCubemap, wReflectVec);
 	vec3 specular = tCubemap.rgb;
 	vec3 ambient = vec3(0.15,0.3,0.4);
-
+	
 	vec3 vViewVec = -normalize(varViewSpacePos);
 	vec3 vNormal = normalize(varViewSpaceNormal);
 	float refractiveIndex = 1.5;
@@ -31,7 +31,7 @@ void main()
 	
 	// https://en.wikipedia.org/wiki/Schlick%27s_approximation
 	float r0 = 0.5;	// ( (n1-n2)/(n1+n2) )²
-	float reflectionFactor = r0 + (1-r0) * pow(1-dot(vNormal, vViewVec), 5);	// Schlick's Fresnel approximation
+	float reflectionFactor = r0 + (1-r0) * pow(1-abs(dot(vNormal, vViewVec)), 5);	// Schlick's Fresnel approximation
 	vec3 color =	reflectionFactor * (specular + ambient) +
 					(1-reflectionFactor) * texture(texRefraction, refractionUv).rgb;
 	fragColor = vec4(color, 1);
