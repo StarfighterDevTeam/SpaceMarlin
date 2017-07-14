@@ -249,6 +249,15 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	mat4 localToWorldMtx;
+	// BEGIN TEST
+	static vec3 debugPos = vec3(0,0,0);
+	static vec3 debugScale = vec3(1,1,1);
+	localToWorldMtx = mat4(
+		vec4(debugScale.x, 0, 0,	0),
+		vec4(0, debugScale.y, 0,	0),
+		vec4(0, 0, debugScale.z,	0),
+		vec4(debugPos,				1));
+	// END TEST
 	mat4 localToViewMtx = camera.getWorldToViewMtx() * localToWorldMtx;
 	mat4 localToProjMtx = camera.getWorldToProjMtx() * localToWorldMtx;
 	const GPUProgram* laneProgram = gData.gpuProgramMgr->getProgram(PROG_LANE);
