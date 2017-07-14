@@ -31,6 +31,7 @@ public:
 	virtual void	update() override;
 	virtual void	draw() override;
 	virtual void	onEvent(const sf::Event& event) override;
+	virtual Camera*	createCamera() const override;
 
 private:
 	void			drawScene();

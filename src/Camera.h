@@ -4,16 +4,19 @@
 
 #include "Globals.h"
 
+class SceneObject;
+
 class Camera
 {
 public:
 	Camera()										{setToDefault();}
+	virtual ~Camera()								{}
 
-	void				init();
-	void				shut();
-	void				update();
-	void				draw();
-	void				onEvent(const sf::Event& event);
+	virtual void		init();
+	virtual void		shut();
+	virtual void		update();
+	virtual void		draw();
+	virtual void		onEvent(const sf::Event& event);
 
 	void				setToDefault();
 
@@ -65,18 +68,6 @@ private:
 	mutable mat4		m_projToWorldRotMtx;
 
 	mutable float		m_aspectRatio;
-
-	/*mat4 modelViewProjMtx = camera.getWorldToProjMtx();
-	modelViewProjMtx[3] = vec4(0,0,0,1);
-	program->sendUniform("gLocalToProjMtx", modelViewProjMtx);
-	program->sendUniform("texPerlin", 0);
-
-	mat4 projToViewMtx = glm::inverse(camera.getViewToProjMtx());
-	mat4 viewToWorldRotMtx = mat4(glm::transpose(mat3(camera.getWorldToViewMtx())));
-	mat4 projToWorldRotMtx = viewToWorldRotMtx * projToViewMtx;
-	program->sendUniform("gProjToWorldRotMtx", projToWorldRotMtx);
-	const float fAspectRatio = ((float)gData.winSizeX) / ((float)std::max<int>(1,gData.winSizeY));
-	program->sendUniform("gAspectRatio", fAspectRatio);*/
 };
 
 #endif // _CAMERA_H

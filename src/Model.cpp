@@ -231,8 +231,3 @@ void Model::sendUniforms(const GPUProgram* program, const Camera& camera) const
 	program->sendUniform("texAlbedo", 0);
 	program->sendUniform("gTime", gData.curFrameTime.asSeconds());
 }
-
-void Model::move(vec3 vector)
-{
-	setPosition(getPosition() + vector);
-}

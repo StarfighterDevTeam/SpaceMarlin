@@ -16,14 +16,15 @@ enum SceneId
 class Scene
 {
 protected:
-	Camera			m_camera;
+	Camera*			m_camera;
 
 public:
-	virtual bool init();
-	virtual void shut();
-	virtual void update();
-	virtual void draw();
-	virtual void onEvent(const sf::Event& event);
+	virtual bool		init();
+	virtual void		shut();
+	virtual void		update();
+	virtual void		draw();
+	virtual void		onEvent(const sf::Event& event);
+	virtual Camera*		createCamera() const {return new Camera();}
 };
 
 #endif // _SCENE_H

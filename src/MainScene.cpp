@@ -3,6 +3,7 @@
 #include "GPUProgramManager.h"
 #include "Drawer.h"
 #include "InputManager.h"
+#include "FollowCamera.h"
 
 #define _USE_HALF_FLOAT
 #ifdef _USE_HALF_FLOAT
@@ -54,9 +55,9 @@ bool MainScene::init()
 	m_lane.init();
 	m_bob.addLane(&m_lane);
 
-	m_camera.setPosition(vec3(-2, 3, 8));
-	m_camera.setFront(normalize(-m_camera.getPosition()));
-	m_camera.setUp(vec3(0,1,0));
+	m_camera->setPosition(vec3(-2, 3, 8));
+	m_camera->setFront(normalize(-m_camera->getPosition()));
+	m_camera->setUp(vec3(0,1,0));
 
 	initSceneFBO();
 
@@ -110,14 +111,14 @@ void MainScene::draw()
 		// Cull triangles which normal is not towards the camera
 		glEnable(GL_CULL_FACE);
 		
-		m_skybox.draw(m_camera);
+		m_skybox.draw(*m_camera);
 	
-		m_bob.draw(m_camera);
+		m_bob.draw(*m_camera);
 
 		// Debug model gizmo
-		gData.drawer->drawLine(m_camera, glm::vec3(0,0,0), COLOR_RED,	glm::vec3(3,0,0), COLOR_RED		);
-		gData.drawer->drawLine(m_camera, glm::vec3(0,0,0), COLOR_GREEN,	glm::vec3(0,3,0), COLOR_GREEN	);
-		gData.drawer->drawLine(m_camera, glm::vec3(0,0,0), COLOR_BLUE,	glm::vec3(0,0,3), COLOR_BLUE	);
+		gData.drawer->drawLine(*m_camera, vec3(0,0,0), COLOR_RED,	vec3(3,0,0), COLOR_RED		);
+		gData.drawer->drawLine(*m_camera, vec3(0,0,0), COLOR_GREEN,	vec3(0,3,0), COLOR_GREEN	);
+		gData.drawer->drawLine(*m_camera, vec3(0,0,0), COLOR_BLUE,	vec3(0,0,3), COLOR_BLUE		);
 
 		// Copy scene image for refraction effect
 		glReadBuffer(GL_COLOR_ATTACHMENT0);
@@ -125,7 +126,7 @@ void MainScene::draw()
 		glCopyTexImage2D(GL_TEXTURE_2D, 0, RT_FORMAT, 0, 0, gData.winSizeX, gData.winSizeY, 0);
 
 		// Draw lane
-		m_lane.draw(m_camera, m_skybox.getSkyTexId(), m_sceneRefractionTexId);
+		m_lane.draw(*m_camera, m_skybox.getSkyTexId(), m_sceneRefractionTexId);
 	}
 
 	// Post-process
@@ -162,6 +163,11 @@ void MainScene::onEvent(const sf::Event& event)
 		shutSceneFBO();
 		initSceneFBO();
 	}
+}
+
+Camera*	MainScene::createCamera() const
+{
+	return new FollowCamera();
 }
 
 // Setup scene FBO & refraction texture
