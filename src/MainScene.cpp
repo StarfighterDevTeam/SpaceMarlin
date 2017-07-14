@@ -54,6 +54,8 @@ bool MainScene::init()
 	// Lane
 	m_lane.init();
 	m_bob.addLane(&m_lane);
+	m_camera = (FollowCamera*)getCamera();
+	assert(m_camera);
 
 	m_camera->setPosition(vec3(-2, 3, 8));
 	m_camera->setFront(normalize(-m_camera->getPosition()));

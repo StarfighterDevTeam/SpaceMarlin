@@ -11,12 +11,15 @@
 #include "Skybox.h"
 #include "Marlin.h"
 
+class FollowCamera;
+
 class MainScene : public Scene
 {
 private:
 	Skybox			m_skybox;
 	Marlin			m_bob;
 	Lane			m_lane;
+	FollowCamera*	m_camera;
 
 	GLuint			m_sceneRefractionTexId;
 	GLuint			m_sceneFboId;

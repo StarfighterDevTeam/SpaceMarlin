@@ -15,7 +15,7 @@ enum SceneId
 
 class Scene
 {
-protected:
+private:
 	Camera*			m_camera;
 
 public:
@@ -24,7 +24,10 @@ public:
 	virtual void		update();
 	virtual void		draw();
 	virtual void		onEvent(const sf::Event& event);
-	virtual Camera*		createCamera() const {return new Camera();}
+	virtual Camera*		createCamera() const	{return new Camera();}
+
+	Camera*				getCamera()				{return m_camera;}
+	const Camera*		getCamera() const		{return m_camera;}
 };
 
 #endif // _SCENE_H
