@@ -130,8 +130,9 @@ float Marlin::getNormalizedSpeed() const
 	return sqrt(m_speed.x*m_speed.x + m_speed.y*m_speed.y + m_speed.z*m_speed.z);
 }
 
-#define ALTITUDE_TO_ENTER_GRAVITY			8.f
-#define ALTITUDE_TO_MOVE_ALONG_SURFACE		1.f//below 1.f, lateral movement won't be smooth, because it sometimes go to altitude=0.68 just with left/right inputs
+#define ALTITUDE_TO_ENTER_GRAVITY				8.f
+#define ALTITUDE_TO_MOVE_ALONG_SURFACE			1.f//below 1.f, lateral movement won't be smooth, because it sometimes go to altitude=0.68 just with left/right inputs
+#define SPEED_TO_GET_STABILIZED_ON_SURFACE		5.f
 
 sf::Clock simulationStart;
 
@@ -250,7 +251,7 @@ void Marlin::update()
 					if (! ((altitude < 0 && m_isJumping) || (altitude > 0 && m_isDiving)))//not jumping from below the surface or diving from below the surface?
 					{
 						//kill tiny oscillations by sticking the Marlin right on the lane surface
-						if (getNormalizedSpeed() < abs(gravity) / 20)//0.5f; the stronger the gravity, the more it's necessary
+						if (getNormalizedSpeed() < SPEED_TO_GET_STABILIZED_ON_SURFACE)//the stronger the gravity, the higher the value must be
 						{
 							vec3 vectorToLaneNew = getPosition() - lane->getPosition();
 							vectorToLaneNew = normalize(vectorToLane);
