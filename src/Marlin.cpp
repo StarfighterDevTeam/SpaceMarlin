@@ -209,7 +209,8 @@ void Marlin::update()
 			}
 
 			//loose momentum
-			m_speed = vec3(0, 0, 0);
+			//m_speed = vec3(0, 0, 0);
+			m_speed *= 0.5f;
 			//printf("LOOSE MOMENTUM. ");
 		}
 
