@@ -115,14 +115,7 @@ void Marlin::getAltitudeAndAngleToLane(const Lane* lane, float &altitude, float 
 		angle = -angle;
 	}
 
-	if (angle < 0)
-	{
-		printf("lol)");
-	}
-
 	altitude = distance - lane->getCylinderRadius(angle);
-
-	
 }
 
 float Marlin::getAltitudeToLane(const Lane* lane) const
@@ -153,7 +146,7 @@ void Marlin::update()
 		vec3 vectorToLane = getPosition() - lane->getPosition();
 		vectorToLane = normalize(vectorToLane);
 
-		static float gravity = 0.f;//-25.f;
+		static float gravity = -25.f;//-25.f;
 		if (altitude > 0)
 		{
 			m_speed += vectorToLane * gravity * gData.dTime.asSeconds();
@@ -234,13 +227,13 @@ void Marlin::update()
 
 				m_speed = vec3(0, 0, 0);
 
-				printf("STICK TO LANE. ");
+				//printf("STICK TO LANE. ");
 			}
 
 			//loose momentum
 			//m_speed = vec3(0, 0, 0);
 			m_speed *= 0.5f;
-			printf("LOOSE MOMENTUM. ");
+			//printf("LOOSE MOMENTUM. ");
 		}
 
 		printf("\n");

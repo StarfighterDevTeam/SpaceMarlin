@@ -34,9 +34,14 @@ Lane::Lane()
 
 float Lane::getCylinderRadius(float radAngle) const
 {
-	float radius = cos(radAngle)*m_localToWorldMtx[0].x + sin(radAngle)*m_localToWorldMtx[1].y;
+	//float radius = cos(radAngle)*m_localToWorldMtx[0].x + sin(radAngle)*m_localToWorldMtx[1].y;
 
-	return abs(radius);
+	float x = cos(radAngle)*m_localToWorldMtx[0].x;
+	float y = sin(radAngle)*m_localToWorldMtx[1].y;
+
+	float r = sqrt(x*x + y*y);
+
+	return r;
 }
 
 vec3 Lane::getPosition() const
