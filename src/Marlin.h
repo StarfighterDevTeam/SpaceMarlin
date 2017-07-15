@@ -12,7 +12,7 @@ protected:
 	virtual const GPUProgram*	getProgram() const override;
 	virtual void				sendUniforms(const GPUProgram* program, const Camera& camera) const override;
 
-	std::vector<Lane*>			m_lanes;
+	std::vector<const Lane*>			m_lanes;
 
 	float m_surfaceSpeedLateral;
 	float m_airSpeedLateral;
@@ -26,18 +26,25 @@ protected:
 	float m_gravityAccelerationVertical;
 	float m_archimedeAccelerationVertical;
 
-	float m_mass;
-
 	vec3 m_speed;
+	vec3 m_speedMoveLateral;
+	float m_speedMax;
+
+	vec3 m_vectorPerpendicularToLaneAtJumpTime;
+
+	bool m_isJumping;
+	bool m_isDiving;
 
 public:
 	Marlin();
 
 	void update();
-	float getDistanceSquaredToLane(Lane* lane) const;
-	vec3 getGravitationalForce(Lane* lane) const;
-	vec3 getArchimedeThrust(Lane* lane) const;
-	bool addLane(Lane* lane);
+	float getDistanceSquaredToLane(const Lane* lane) const;
+	float getNormalizedSpeed() const;
+	float getAltitudeToLane(const Lane* lane) const;
+	void getAltitudeAndAngleToLane(const Lane* lane, float &altitude, float &angle) const;
+	bool addLane(const Lane* lane);
+	float getAngleToLane(const Lane* lane) const;
 };
 
 #endif // _MARLIN_H

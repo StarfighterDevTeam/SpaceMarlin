@@ -85,7 +85,7 @@ void Camera::setToDefault()
 	m_near = 0.1f;
 	m_far = 100.f;
 
-	m_position = vec3(0.f, 3.f, 6.f);
+	m_position = vec3(0.f, 0.f, 6.f);
 	m_front = glm::normalize(-m_position);
 	m_up = vec3(0.f, 1.f, 0.f);
 
