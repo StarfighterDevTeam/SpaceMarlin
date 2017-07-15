@@ -5,7 +5,7 @@
 
 Marlin::Marlin()
 {
-	m_surfaceSpeedLateral				= +5.f;;
+	m_surfaceSpeedLateral				= +3.0f;//angular speed
 	m_airSpeedLateral					= +2.5f;
 	m_jumpSpeedVertical					= +10.f;
 	m_diveSpeedVertical					= -7.f;//-10.f can go through lane if cylinder radius = 2
@@ -21,9 +21,11 @@ Marlin::Marlin()
 	m_mass								= 1.f;
 
 	m_speed								= vec3(0, 0, 0);
+	m_speedMoveLateral				= vec3(0, 0, 0);
+
 	//temp
 	setPosition				(glm::vec3(	0.f,//laterality
-										4.f,//altitude
+										2.f,//altitude
 										0.f));
 }
 
@@ -137,6 +139,8 @@ sf::Clock simulationStart;
 
 void Marlin::update()
 {
+	m_speedMoveLateral = vec3(0, 0, 0);
+
 	//Test
 	if (!m_lanes.empty() && simulationStart.getElapsedTime().asSeconds() > 6.f)
 	{
@@ -149,7 +153,7 @@ void Marlin::update()
 		vec3 vectorToLane = getPosition() - lane->getPosition();
 		vectorToLane = normalize(vectorToLane);
 
-		static float gravity = -25.f;
+		static float gravity = 0.f;//-25.f;
 		if (altitude > 0)
 		{
 			m_speed += vectorToLane * gravity * gData.dTime.asSeconds();
@@ -177,6 +181,28 @@ void Marlin::update()
 			}
 		}
 
+		//Move left
+		if (gData.inputMgr->isLeftPressed())
+		{
+			float angleAfterMove = angle + m_surfaceSpeedLateral * gData.dTime.asSeconds();
+
+			float speedX = lane->getCylinderRadius(0)			* (cos(angleAfterMove) - cos(angle));
+			float speedY = lane->getCylinderRadius(3.1415 / 2)	* (sin(angleAfterMove) - sin(angle));
+
+			m_speedMoveLateral = vec3(speedX, speedY, 0);
+		}
+
+		//Move right
+		if (gData.inputMgr->isRightPressed())
+		{
+			float angleAfterMove = angle - m_surfaceSpeedLateral * gData.dTime.asSeconds();
+
+			float speedX = lane->getCylinderRadius(0)			* (cos(angleAfterMove) - cos(angle));
+			float speedY = lane->getCylinderRadius(3.1415 / 2)	* (sin(angleAfterMove) - sin(angle));
+
+			m_speedMoveLateral = vec3(speedX, speedY, 0);
+		}
+
 		//speed limit
 		if (getNormalizedSpeed() > m_speedMax)
 		{
@@ -184,13 +210,14 @@ void Marlin::update()
 		}
 
 		//apply speed
-		move(m_speed * gData.dTime.asSeconds());
+		move((m_speed * gData.dTime.asSeconds()) 
+			+ m_speedMoveLateral);
 
 		//moving through the lane's surface? -> loose momentum
 		float altitudeNew, angleNew;
 		getAltitudeAndAngleToLane(lane, altitudeNew, angleNew);
 
-		//printf("altitude: %f", altitude);
+		printf("altitude: %f", altitude);
 
 		if ((altitude > 0 && altitudeNew <= 0)
 			|| (altitude < 0 && altitudeNew >= 0))
@@ -205,16 +232,18 @@ void Marlin::update()
 
 				move(vectorToStickToLane);
 
-				//printf("STICK TO LANE. ");
+				m_speed = vec3(0, 0, 0);
+
+				printf("STICK TO LANE. ");
 			}
 
 			//loose momentum
 			//m_speed = vec3(0, 0, 0);
 			m_speed *= 0.5f;
-			//printf("LOOSE MOMENTUM. ");
+			printf("LOOSE MOMENTUM. ");
 		}
 
-		//printf("\n");
+		printf("\n");
 	}
 
 	//OLD MOVE SYSTEM

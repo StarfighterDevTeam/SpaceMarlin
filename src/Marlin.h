@@ -29,6 +29,7 @@ protected:
 	float m_mass;
 
 	vec3 m_speed;
+	vec3 m_speedMoveLateral;
 	float m_speedMax;
 
 public:

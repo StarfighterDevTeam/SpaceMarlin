@@ -321,7 +321,7 @@ void Lane::update()
 
 	// BEGIN TEST
 	static vec3 debugPos = vec3(0, 0, 0);
-	static vec3 debugScale = vec3(2, 2, 2);
+	static vec3 debugScale = vec3(4, 2, 2);
 	m_localToWorldMtx = mat4(
 		vec4(debugScale.x, 0, 0, 0),
 		vec4(0, debugScale.y, 0, 0),
