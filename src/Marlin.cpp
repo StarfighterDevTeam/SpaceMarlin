@@ -131,7 +131,7 @@ float Marlin::getNormalizedSpeed() const
 }
 
 #define ALTITUDE_TO_ENTER_GRAVITY			8.f
-#define ALTITUDE_TO_MOVE_ALONG_SURFACE		0.7f//below 0.7f, lateral movement won't be smooth, because it sometimes go to altitude=0.68 just with left/right inputs
+#define ALTITUDE_TO_MOVE_ALONG_SURFACE		1.f//below 1.f, lateral movement won't be smooth, because it sometimes go to altitude=0.68 just with left/right inputs
 
 sf::Clock simulationStart;
 
