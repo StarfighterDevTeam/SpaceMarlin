@@ -26,11 +26,14 @@ protected:
 	float m_gravityAccelerationVertical;
 	float m_archimedeAccelerationVertical;
 
-	float m_mass;
-
 	vec3 m_speed;
 	vec3 m_speedMoveLateral;
 	float m_speedMax;
+
+	vec3 m_vectorPerpendicularToLaneAtJumpTime;
+
+	bool m_isJumping;
+	bool m_isDiving;
 
 public:
 	Marlin();
