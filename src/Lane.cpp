@@ -23,24 +23,25 @@ Lane::Lane()
 #endif
 
 	//Properties
-	m_cylinderRadius			= 5.f;
-	m_mass						= 100000000000.f;
-	m_position					= vec3(0, 0, 0);
+	static vec3 debugPos = vec3(0, 0, 0);
+	static vec3 debugScale = vec3(1, 1, 1);
+	m_localToWorldMtx = mat4(
+		vec4(debugScale.x, 0, 0, 0),
+		vec4(0, debugScale.y, 0, 0),
+		vec4(0, 0, debugScale.z, 0),
+		vec4(debugPos, 1));
 }
 
-float Lane::getCylinderRadius() const
+float Lane::getCylinderRadius(float radAngle) const
 {
-	return m_cylinderRadius;
+	float radius = cos(radAngle)*m_localToWorldMtx[0].x + sin(radAngle)*m_localToWorldMtx[1].y;
+
+	return abs(radius);
 }
 
 vec3 Lane::getPosition() const
 {
-	return m_position;
-}
-
-float Lane::getMass() const
-{
-	return m_mass;
+	return vec3(m_localToWorldMtx[3].x, m_localToWorldMtx[3].y, m_localToWorldMtx[3].z);
 }
 
 void Lane::init()
@@ -248,18 +249,8 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 	glutil::Enable<GL_BLEND> blendState;
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	mat4 localToWorldMtx;
-	// BEGIN TEST
-	static vec3 debugPos = vec3(0,0,0);
-	static vec3 debugScale = vec3(1,1,1);
-	localToWorldMtx = mat4(
-		vec4(debugScale.x, 0, 0,	0),
-		vec4(0, debugScale.y, 0,	0),
-		vec4(0, 0, debugScale.z,	0),
-		vec4(debugPos,				1));
-	// END TEST
-	mat4 localToViewMtx = camera.getWorldToViewMtx() * localToWorldMtx;
-	mat4 localToProjMtx = camera.getWorldToProjMtx() * localToWorldMtx;
+	mat4 localToViewMtx = camera.getWorldToViewMtx() * m_localToWorldMtx;
+	mat4 localToProjMtx = camera.getWorldToProjMtx() * m_localToWorldMtx;
 	const GPUProgram* laneProgram = gData.gpuProgramMgr->getProgram(PROG_LANE);
 	laneProgram->use();
 	laneProgram->sendUniform("gLocalToViewMtx", localToViewMtx);
@@ -267,7 +258,7 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 	laneProgram->sendUniform("gViewToProjMtx", camera.getViewToProjMtx());
 	//laneProgram->sendUniform("texAlbedo", 0);
 	laneProgram->sendUniform("gTime", gData.curFrameTime.asSeconds());
-	laneProgram->sendUniform("gLocalToWorldMtx", localToWorldMtx);
+	laneProgram->sendUniform("gLocalToWorldMtx", m_localToWorldMtx);
 	laneProgram->sendUniform("gWorldSpaceCamPos", camera.getPosition());
 
 	GLint textureSlot = 0;
@@ -327,6 +318,18 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 
 void Lane::update()
 {
+
+	// BEGIN TEST
+	static vec3 debugPos = vec3(0, 0, 0);
+	static vec3 debugScale = vec3(2, 2, 2);
+	m_localToWorldMtx = mat4(
+		vec4(debugScale.x, 0, 0, 0),
+		vec4(0, debugScale.y, 0, 0),
+		vec4(0, 0, debugScale.z, 0),
+		vec4(debugPos, 1));
+
+	// END TEST
+
 #if !defined(_LANE_USES_GPU)
 	// BEGIN TEST
 	{
