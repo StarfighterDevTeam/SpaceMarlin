@@ -41,8 +41,6 @@ protected:
 
 	MarlinState m_state;
 
-	float						m_lastAnimationTimeSecs;
-
 public:
 	Marlin();
 
