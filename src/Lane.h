@@ -49,7 +49,7 @@ private:
 
 	//Lane transformation
 	sf::Clock					m_transformationClock;
-	std::vector<mat4>			m_MtxVector;
+	std::vector<mat4>			m_mtxVector;
 };
 
 #endif

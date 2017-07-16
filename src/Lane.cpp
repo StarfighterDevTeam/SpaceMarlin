@@ -21,40 +21,6 @@ Lane::Lane()
 	for(GLuint& texId : m_waterFboId)
 		texId = INVALID_GL_ID;
 #endif
-
-	//Lane transformation
-	//Mtx 1
-	static vec3 debugPos = vec3(0, 0, 0);
-	static vec3 debugScale = vec3(1, 1, 1);
-	m_localToWorldMtx = mat4(
-		vec4(debugScale.x, 0, 0, 0),
-		vec4(0, debugScale.y, 0, 0),
-		vec4(0, 0, debugScale.z, 0),
-		vec4(debugPos, 1));
-
-	m_MtxVector.push_back(m_localToWorldMtx);
-
-	//Mtx 2
-	static vec3 debugPos2 = vec3(0, 0, 0);
-	static vec3 debugScale2 = vec3(4, 2, 1);
-	mat4 mtx2 = mat4(
-		vec4(debugScale2.x, 0, 0, 0),
-		vec4(0, debugScale2.y, 0, 0),
-		vec4(0, 0, debugScale2.z, 0),
-		vec4(debugPos2, 1));
-
-	m_MtxVector.push_back(mtx2);
-
-	//Mtx 3
-	static vec3 debugPos3 = vec3(-5, -5, 0);
-	static vec3 debugScale3 = vec3(3, 3, 1);
-	mat4 mtx3 = mat4(
-		vec4(debugScale3.x, 0, 0, 0),
-		vec4(0, debugScale3.y, 0, 0),
-		vec4(0, 0, debugScale3.z, 0),
-		vec4(debugPos3, 1));
-
-	m_MtxVector.push_back(mtx3);
 }
 
 float Lane::getCylinderRadius(float radAngle) const
@@ -231,6 +197,40 @@ void Lane::init()
 			logError("FBO not complete");
 	}
 #endif
+
+	//Init lane transformations
+	//Mtx 1
+	static vec3 debugPos = vec3(0, 0, 0);
+	static vec3 debugScale = vec3(1, 1, 1);
+	m_localToWorldMtx = mat4(
+		vec4(debugScale.x, 0, 0, 0),
+		vec4(0, debugScale.y, 0, 0),
+		vec4(0, 0, debugScale.z, 0),
+		vec4(debugPos, 1));
+
+	m_mtxVector.push_back(m_localToWorldMtx);
+
+	//Mtx 2
+	static vec3 debugPos2 = vec3(0, 0, 0);
+	static vec3 debugScale2 = vec3(1, 1, 1);
+	mat4 mtx2 = mat4(
+		vec4(debugScale2.x, 0, 0, 0),
+		vec4(0, debugScale2.y, 0, 0),
+		vec4(0, 0, debugScale2.z, 0),
+		vec4(debugPos2, 1));
+
+	m_mtxVector.push_back(mtx2);
+
+	//Mtx 3
+	static vec3 debugPos3 = vec3(0, 0, 0);
+	static vec3 debugScale3 = vec3(1, 1, 1);
+	mat4 mtx3 = mat4(
+		vec4(debugScale3.x, 0, 0, 0),
+		vec4(0, debugScale3.y, 0, 0),
+		vec4(0, 0, debugScale3.z, 0),
+		vec4(debugPos3, 1));
+
+	m_mtxVector.push_back(mtx3);
 }
 
 void Lane::shut()
@@ -355,38 +355,49 @@ sf::Clock	laneSimulationStart;
 
 void Lane::update()
 {
+	//sf::sleep(sf::seconds(1.f));
 	static float transformationTime = 3.f;
 	if (laneSimulationStart.getElapsedTime().asSeconds() > 6.f)
 	{
-		if (m_MtxVector.size() > 1)
+		if (m_mtxVector.size() > 1 && m_transformationClock.getElapsedTime().asSeconds() > transformationTime)
 		{
-			if (m_transformationClock.getElapsedTime().asSeconds() > transformationTime)
-			{
-				m_transformationClock.restart();
-				m_MtxVector.erase(m_MtxVector.begin());
-			}
-			else//matrix interpolation
-			{
-				vec3 pos1 = vec3(m_MtxVector[0][3].x, m_MtxVector[0][2].y, m_MtxVector[0][3].z);
-				vec3 scale1 = vec3(m_MtxVector[0][0].x, m_MtxVector[0][1].y, m_MtxVector[0][2].z);
+			m_transformationClock.restart();
+			m_mtxVector.erase(m_mtxVector.begin());
+		}
+			
+		if (m_mtxVector.size() > 1)//checking again because we might just have erased a matrix
+		{
+			assert(m_transformationClock.getElapsedTime().asSeconds() < transformationTime);
 
-				vec3 pos2 = vec3(m_MtxVector[1][3].x, m_MtxVector[1][3].y, m_MtxVector[1][3].z);
-				vec3 scale2 = vec3(m_MtxVector[1][0].x, m_MtxVector[1][1].y, m_MtxVector[1][2].z);
+			vec3 pos1 = vec3(m_mtxVector[0][3].x, m_mtxVector[0][3].y, m_mtxVector[0][3].z);
+			vec3 scale1 = vec3(m_mtxVector[0][0].x, m_mtxVector[0][1].y, m_mtxVector[0][2].z);
 
-				float a = interpolationMethod(pos1.x, pos2.x, m_transformationClock.getElapsedTime().asSeconds() / transformationTime);
-				float b = interpolationMethod(pos1.y, pos2.y, m_transformationClock.getElapsedTime().asSeconds() / transformationTime);
-				float c = interpolationMethod(pos1.z, pos2.z, m_transformationClock.getElapsedTime().asSeconds() / transformationTime);
+			vec3 pos2 = vec3(m_mtxVector[1][3].x, m_mtxVector[1][3].y, m_mtxVector[1][3].z);
+			vec3 scale2 = vec3(m_mtxVector[1][0].x, m_mtxVector[1][1].y, m_mtxVector[1][2].z);
 
-				float d = interpolationMethod(scale1.x, scale2.x, m_transformationClock.getElapsedTime().asSeconds() / transformationTime);
-				float e = interpolationMethod(scale1.y, scale2.y, m_transformationClock.getElapsedTime().asSeconds() / transformationTime);
-				float f = interpolationMethod(scale1.z, scale2.z, m_transformationClock.getElapsedTime().asSeconds() / transformationTime);
+			float t = m_transformationClock.getElapsedTime().asSeconds() / transformationTime;
 
-				m_localToWorldMtx = mat4(
-					vec4(d, 0, 0, 0),
-					vec4(0, e, 0, 0),
-					vec4(0, 0, f, 0),
-					vec4(a, b, c, 1));
-			}
+			float a = interpolationMethod(pos1.x, pos2.x, t);
+			float b = interpolationMethod(pos1.y, pos2.y, t);
+			float c = interpolationMethod(pos1.z, pos2.z, t);
+
+			float d = interpolationMethod(scale1.x, scale2.x, t);
+			float e = interpolationMethod(scale1.y, scale2.y, t);
+			float f = interpolationMethod(scale1.z, scale2.z, t);
+
+			//if (laneSimulationStart.getElapsedTime().asSeconds() > 7)
+			//{
+			//	printf("\nsimulation clock: %f | transformation clock : %f\n", laneSimulationStart.getElapsedTime().asSeconds(), m_transformationClock.getElapsedTime().asSeconds());
+			//	printf("stop");
+			//}
+
+			m_localToWorldMtx = mat4(
+				vec4(d, 0, 0, 0),
+				vec4(0, e, 0, 0),
+				vec4(0, 0, f, 0),
+				vec4(a, b, c, 1));
+
+			//printf("a: %f, b:%f, c:%f, d:%f, e:%f, f:%f, t:%f\n\n", a, b, c, d, e, f, t);
 		}
 	}
 	else
