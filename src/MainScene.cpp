@@ -60,6 +60,7 @@ bool MainScene::init()
 	m_camera->setPosition(vec3(-2, 3, 8));
 	m_camera->setFront(normalize(-m_camera->getPosition()));
 	m_camera->setUp(vec3(0,1,0));
+	m_camera->setFollowedObject(&m_bob);
 
 	initSceneFBO();
 

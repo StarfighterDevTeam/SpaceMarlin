@@ -14,8 +14,8 @@ public:
 		m_followedObject = NULL;
 	}
 
-	virtual void		init() override {Camera::init(); m_followedObject = NULL;}
-	virtual void		shut() override {Camera::shut(); m_followedObject = NULL;}
+	virtual void		init() override;
+	virtual void		shut() override;
 	virtual void		update() override;
 
 	void				setFollowedObject(const SceneObject* followedObject)		{m_followedObject = followedObject;}

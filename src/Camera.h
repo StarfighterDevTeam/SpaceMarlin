@@ -9,8 +9,8 @@ class SceneObject;
 class Camera
 {
 public:
-	Camera()										{setToDefault();}
-	virtual ~Camera()								{}
+	Camera()											{setToDefault();}
+	virtual ~Camera()									{}
 
 	virtual void		init();
 	virtual void		shut();
@@ -20,28 +20,28 @@ public:
 
 	void				setToDefault();
 
-	void				setFovRad(float fovRad)		{m_fovRad = fovRad;	m_dirty=true;}
-	void				setNear(float _near)		{m_near = _near;	m_dirty=true;}
-	void				setFar(float _far)			{m_far = _far;		m_dirty=true;}
+	void				setFovRad(float fovRad)			{m_fovRad = fovRad;	m_dirty=true;}
+	void				setNear(float _near)			{m_near = _near;	m_dirty=true;}
+	void				setFar(float _far)				{m_far = _far;		m_dirty=true;}
 	
-	void				setPosition(vec3 pos)		{m_position = pos;	m_dirty=true;}
-	void				setFront(vec3 front)		{m_front = front;	m_dirty=true;}
-	void				setUp(vec3 up)				{m_up = up;			m_dirty=true;}
+	void				setPosition(const vec3& pos)	{m_position = pos;	m_dirty=true;}
+	void				setFront(const vec3& front)		{m_front = front;	m_dirty=true;}
+	void				setUp(const vec3& up)			{m_up = up;			m_dirty=true;}
 
-	float				getFovRad()			const	{return m_fovRad;}
-	float				getNear()			const	{return m_near;}
-	float				getFar()			const	{return m_far;}
+	float				getFovRad()			const		{return m_fovRad;}
+	float				getNear()			const		{return m_near;}
+	float				getFar()			const		{return m_far;}
 
-	vec3				getPosition()		const	{return m_position;}
-	vec3				getFront()			const	{return m_front;}
-	vec3				getUp()				const	{return m_up;}
+	const vec3&			getPosition()		const		{return m_position;}
+	const vec3&			getFront()			const		{return m_front;}
+	const vec3&			getUp()				const		{return m_up;}
 	
 	const mat4&			getViewToProjMtx() const;
 	const mat4&			getWorldToViewMtx() const;
 	const mat4&			getWorldToProjMtx() const;
 
-	void				setFlyOver(bool isFlyOver)	{m_isFlyOver = isFlyOver;}
-	bool				isFlyOver() const			{return m_isFlyOver;}
+	void				setFlyOver(bool isFlyOver)		{m_isFlyOver = isFlyOver;}
+	bool				isFlyOver() const				{return m_isFlyOver;}
 
 private:
 	void				updateInternal();
