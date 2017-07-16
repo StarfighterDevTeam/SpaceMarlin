@@ -4,6 +4,13 @@
 
 #include "Model.h"
 
+enum MarlinState
+{
+	STATE_IDLE,
+	STATE_JUMPING,
+	STATE_DIVING,
+};
+
 class Lane;
 
 class Marlin : public Model
@@ -32,8 +39,7 @@ protected:
 
 	vec3 m_vectorPerpendicularToLaneAtJumpTime;
 
-	bool m_isJumping;
-	bool m_isDiving;
+	MarlinState m_state;
 
 public:
 	Marlin();
@@ -41,10 +47,8 @@ public:
 	void update();
 	float getDistanceSquaredToLane(const Lane* lane) const;
 	float getNormalizedSpeed() const;
-	float getAltitudeToLane(const Lane* lane) const;
 	void getAltitudeAndAngleToLane(const Lane* lane, float &altitude, float &angle) const;
-	bool addLane(const Lane* lane);
-	float getAngleToLane(const Lane* lane) const;
+	void addLane(const Lane* lane);
 };
 
 #endif // _MARLIN_H

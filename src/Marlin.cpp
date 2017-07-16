@@ -7,9 +7,10 @@ Marlin::Marlin()
 {
 	m_surfaceSpeedLateral					= +2.0f;//angular speed
 	m_airSpeedLateral						= +4.0f;
-	m_jumpSpeedVertical						= +10.f;
-	m_diveSpeedVertical						= -8.f;//-10.f can go through lane if cylinder radius = 2
 	m_diveSpeedLateral						= +2.5f;
+
+	m_jumpSpeedVertical						= +60.f;//acceleration
+	m_diveSpeedVertical						= -40.f;//acceleration
 	m_gravityAccelerationVertical			= -30.f;
 	m_archimedeAccelerationVertical			= +30;
 	m_offsetX								= 0;
@@ -22,8 +23,7 @@ Marlin::Marlin()
 	m_speedMoveLateral						= vec3(0, 0, 0);
 	m_vectorPerpendicularToLaneAtJumpTime	= vec3(0, 0, 0);
 
-	m_isJumping = false;
-	m_isDiving = false;
+	m_state = STATE_IDLE;
 
 	//temp
 	setPosition				(glm::vec3(	0.f,//laterality
@@ -45,52 +45,17 @@ void Marlin::sendUniforms(const GPUProgram* program, const Camera& camera) const
 	//program->sendUniform("gTime", gData.curFrameTime.asSeconds());
 }
 
-bool Marlin::addLane(const Lane* lane)
+void Marlin::addLane(const Lane* lane)
 {
-	if (lane)
-	{
-		m_lanes.push_back(lane);
-	}
-
-	return lane != NULL;
-}
-
-float Marlin::getAngleToLane(const Lane* lane) const
-{
-	const float a = getPosition().x - lane->getPosition().x;
-	const float b = getPosition().y - lane->getPosition().y;
-
-	if (a == 0 && b == 0)
-		return 0.f;
-
-	float distance_to_obj = (a * a) + (b * b);
-	distance_to_obj = sqrt(distance_to_obj);
-
-	float angle;
-	angle = acos(a / distance_to_obj);
-
-	if (b < 0)
-	{
-		angle = -angle;
-	}
-
-	return angle;
+	assert(lane);
+	m_lanes.push_back(lane);
 }
 
 float Marlin::getDistanceSquaredToLane(const Lane* lane) const
 {
 	vec3 d = getPosition() - lane->getPosition();
 
-	vec3 a = getPosition();
-	vec3 b = lane->getPosition();
-
 	float distSquared = d.x*d.x + d.y*d.y + d.z*d.z;
-
-	//float dx = getPosition().x - lane->getPosition().x;
-	//float dy = getPosition().y - lane->getPosition().y;
-	//float dz = getPosition().z - lane->getPosition().z;
-	//
-	//float distSquared = dx*dx + dy*dy + dz*dz;
 
 	return distSquared;
 }
@@ -110,19 +75,16 @@ void Marlin::getAltitudeAndAngleToLane(const Lane* lane, float &altitude, float 
 	float distance = (a * a) + (b * b);
 	distance = sqrt(distance);
 
-	angle = acos(a / distance);
+	//angle = acos(a / distance);
+	//
+	//if (b < 0)
+	//{
+	//	angle = -angle;
+	//}
 
-	if (b < 0)
-	{
-		angle = -angle;
-	}
+	angle = atan2(b, a);
 
 	altitude = distance - lane->getCylinderRadius(angle);
-}
-
-float Marlin::getAltitudeToLane(const Lane* lane) const
-{
-	return sqrt(getDistanceSquaredToLane(lane)) - lane->getCylinderRadius(getAngleToLane(lane));
 }
 
 float Marlin::getNormalizedSpeed() const
@@ -139,6 +101,7 @@ sf::Clock simulationStart;
 void Marlin::update()
 {
 	m_speedMoveLateral = vec3(0, 0, 0);
+	m_state = STATE_IDLE;
 
 	//Test
 	if (!m_lanes.empty() && simulationStart.getElapsedTime().asSeconds() > 6.f)
@@ -164,21 +127,21 @@ void Marlin::update()
 				//Jump
 				if (gData.inputMgr->isUpPressed())
 				{
-					if (abs(altitude) < ALTITUDE_TO_MOVE_ALONG_SURFACE && !m_isJumping)//Bob must be on the surface to jump
+					if (abs(altitude) < ALTITUDE_TO_MOVE_ALONG_SURFACE)//Bob must be on the surface to jump
 					{
-						m_speed += vectorToLane * m_jumpSpeedVertical;
-						m_isJumping = true;
-						m_vectorPerpendicularToLaneAtJumpTime = vectorPerpendicularToLane;
+						m_speed += vectorToLane * m_jumpSpeedVertical * gData.dTime.asSeconds();
+						m_state = STATE_JUMPING;
+						m_vectorPerpendicularToLaneAtJumpTime = vectorPerpendicularToLane;//save the system at the moment of jump to keep moving in this system while in the air
 					}
 				}
 
 				//Dive
 				if (gData.inputMgr->isDownPressed())
 				{
-					if (abs(altitude) < ALTITUDE_TO_MOVE_ALONG_SURFACE && !m_isDiving)//Bob must be on the surface to jump
+					if (abs(altitude) < ALTITUDE_TO_MOVE_ALONG_SURFACE)//Bob must be on the surface to jump
 					{
-						m_speed += vectorToLane * m_diveSpeedVertical;
-						m_isDiving = true;
+						m_speed += vectorToLane * m_diveSpeedVertical * gData.dTime.asSeconds();
+						m_state = STATE_DIVING;
 					}
 				}
 
@@ -205,9 +168,14 @@ void Marlin::update()
 
 						m_speedMoveLateral = vec3(speedX, speedY, 0);
 					}
-					else//bob is in the air
+					else if (altitude > 0)//bob is in the air
 					{
 						m_speedMoveLateral -= m_airSpeedLateral * m_vectorPerpendicularToLaneAtJumpTime * gData.dTime.asSeconds();
+					}
+					else//if (altitude < 0)//bob is underwater
+					{
+						m_speedMoveLateral.x += m_diveSpeedLateral * cos(angle) * gData.dTime.asSeconds();
+						m_speedMoveLateral.y += m_diveSpeedLateral * sin(angle) * gData.dTime.asSeconds();
 					}
 				}
 
@@ -223,9 +191,14 @@ void Marlin::update()
 
 						m_speedMoveLateral = vec3(speedX, speedY, 0);
 					}
-					else//bob is in the air
+					else if (altitude > 0)//bob is in the air
 					{
 						m_speedMoveLateral += m_airSpeedLateral * m_vectorPerpendicularToLaneAtJumpTime * gData.dTime.asSeconds();
+					}
+					else//if (altitude < 0)//bob is underwater
+					{
+						m_speedMoveLateral.x -= m_diveSpeedLateral * cos(angle) * gData.dTime.asSeconds();
+						m_speedMoveLateral.y -= m_diveSpeedLateral * sin(angle) * gData.dTime.asSeconds();
 					}
 				}
 
@@ -248,7 +221,7 @@ void Marlin::update()
 				if ((altitude > 0 && altitudeNew <= 0)//moving through lane's surface?
 					|| (altitude < 0 && altitudeNew >= 0))
 				{
-					if (! ((altitude < 0 && m_isJumping) || (altitude > 0 && m_isDiving)))//not jumping from below the surface or diving from below the surface?
+					if (! ((altitude < 0 && m_state == STATE_JUMPING) || (altitude > 0 && m_state == STATE_DIVING)))//not jumping from below the surface or diving from below the surface?
 					{
 						//kill tiny oscillations by sticking the Marlin right on the lane surface
 						if (getNormalizedSpeed() < SPEED_TO_GET_STABILIZED_ON_SURFACE)//the stronger the gravity, the higher the value must be
@@ -268,15 +241,6 @@ void Marlin::update()
 						//loose momentum
 						//m_speed = vec3(0, 0, 0);
 						m_speed *= 0.5f;
-
-						if (altitude > 0)
-						{
-							m_isJumping = false;
-						}
-						else if (altitude < 0)
-						{
-							m_isDiving = false;
-						}
 					}
 					
 					//printf("LOOSE MOMENTUM. ");
