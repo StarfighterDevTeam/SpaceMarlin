@@ -17,6 +17,8 @@ public:
 	void	update();
 
 	static bool eventIsDebugCamReleased(const sf::Event& evt);
+	static bool eventIsDebugSlowModeReleased(const sf::Event& evt);
+	static bool eventIsDebugWireframeReleased(const sf::Event& evt);
 
 	bool	isUpPressed();
 	bool	isUpTapped();
