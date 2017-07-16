@@ -164,7 +164,7 @@ void Marlin::update()
 						float angleAfterMove = angle + m_surfaceSpeedLateral * gData.dTime.asSeconds();
 
 						float speedX = lane->getCylinderRadius(0)			* (cos(angleAfterMove) - cos(angle));
-						float speedY = lane->getCylinderRadius(3.1415 / 2)	* (sin(angleAfterMove) - sin(angle));
+						float speedY = lane->getCylinderRadius(3.1415f / 2)	* (sin(angleAfterMove) - sin(angle));
 
 						m_speedMoveLateral = vec3(speedX, speedY, 0);
 					}
@@ -187,7 +187,7 @@ void Marlin::update()
 						float angleAfterMove = angle - m_surfaceSpeedLateral * gData.dTime.asSeconds();
 
 						float speedX = lane->getCylinderRadius(0)			* (cos(angleAfterMove) - cos(angle));
-						float speedY = lane->getCylinderRadius(3.1415 / 2)	* (sin(angleAfterMove) - sin(angle));
+						float speedY = lane->getCylinderRadius(3.1415f / 2)	* (sin(angleAfterMove) - sin(angle));
 
 						m_speedMoveLateral = vec3(speedX, speedY, 0);
 					}
@@ -216,7 +216,7 @@ void Marlin::update()
 				float altitudeNew, angleNew;
 				getAltitudeAndAngleToLane(lane, altitudeNew, angleNew);
 
-				printf("altitude: %f", altitude);
+				//printf("altitude: %f", altitude);
 
 				if ((altitude > 0 && altitudeNew <= 0)//moving through lane's surface?
 					|| (altitude < 0 && altitudeNew >= 0))

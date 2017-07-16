@@ -21,6 +21,8 @@ public:
 	float		getCylinderRadius(float radAngle) const;
 	vec3		getPosition() const;
 
+	float		interpolationMethod(float a, float b, float ratio) const;
+
 private:
 	static void	computeNormals(VtxLane* vertices, int nbVertices, const unsigned short* indices, int nbIndices);
 	void		updateWaterOnGPU();
@@ -44,6 +46,10 @@ private:
 	GLuint						m_vertexArrayId;
 	GLuint						m_indexBufferId;
 	GLuint						m_vertexBufferId;
+
+	//Lane transformation
+	sf::Clock					m_transformationClock;
+	std::vector<mat4>			m_MtxVector;
 };
 
 #endif
