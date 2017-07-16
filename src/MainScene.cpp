@@ -61,6 +61,7 @@ bool MainScene::init()
 	m_camera->setFront(normalize(-m_camera->getPosition()));
 	m_camera->setUp(vec3(0,1,0));
 	m_camera->setFollowedObject(&m_bob);
+	//m_camera->setFlyOver(true);
 
 	initSceneFBO();
 
@@ -131,7 +132,10 @@ void MainScene::draw()
 		// Draw lane
 		m_lane.draw(*m_camera, m_skybox.getSkyTexId(), m_sceneRefractionTexId);
 	}
+}
 
+void MainScene::drawAfter()
+{
 	// Post-process
 	{
 		glDisable(GL_DEPTH_TEST);

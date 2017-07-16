@@ -58,6 +58,9 @@ bool Game::init(sf::RenderWindow* window)
 	logInfo("GPU vendor: ", glGetString(GL_VENDOR));
 	//logInfo("OpenGL extensions: ", glGetString(GL_EXTENSIONS));	// TODO: unavailable in Core profile...
 
+	m_wireframe	= false;
+	m_slowMode	= false;
+
 	// Init GPUProgramManager
 #define INIT_MGR(mgr) do {mgr = new (std::remove_reference<decltype(*mgr)>::type); mgr->init(); } while(0)
 	INIT_MGR(gData.gpuProgramMgr);
@@ -112,15 +115,25 @@ void Game::run()
 		sf::Event event;
 		while (gData.window->pollEvent(event))
 		{
-			if (event.type == sf::Event::Closed)
+			if(event.type == sf::Event::Closed)
 			{
 				running = false;
 			}
-			else if (event.type == sf::Event::Resized)
+			else if(event.type == sf::Event::Resized)
 			{
 				gData.winSizeX = event.size.width;
 				gData.winSizeY = event.size.height;
 				glViewport(0, 0, event.size.width, event.size.height);
+			}
+			else if(gData.inputMgr->eventIsDebugSlowModeReleased(event))
+			{
+				m_slowMode = !m_slowMode;
+				logDebug("slow mode: ", m_slowMode ? "on" : "off");
+			}
+			else if(gData.inputMgr->eventIsDebugWireframeReleased(event))
+			{
+				m_wireframe = !m_wireframe;
+				logDebug("wireframe: ", m_wireframe ? "on" : "off");
 			}
 
 			m_scenes[m_curScene]->onEvent(event);
@@ -136,6 +149,13 @@ void Game::update()
 	sf::Time prevFrameTime = gData.curFrameTime;
 	gData.curFrameTime = gData.clock.getElapsedTime();
 	gData.dTime = sf::microseconds(gData.curFrameTime.asMicroseconds() - prevFrameTime.asMicroseconds());
+
+	if(m_slowMode)
+	{
+		static float sNbSeconds = 0.5f;
+		sf::sleep(sf::seconds(sNbSeconds));
+	}
+
 	gData.gpuProgramMgr->update();
 	gData.soundMgr->update();
 	gData.inputMgr->update();
@@ -144,7 +164,15 @@ void Game::update()
 
 void Game::draw()
 {
+	if(m_wireframe)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 	m_scenes[m_curScene]->draw();
+
+	if(m_wireframe)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	m_scenes[m_curScene]->drawAfter();
 
 	gData.window->display();
 }

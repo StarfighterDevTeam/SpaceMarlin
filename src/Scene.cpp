@@ -25,12 +25,17 @@ void Scene::draw()
 	m_camera->draw();
 }
 
+void Scene::drawAfter()
+{
+	m_camera->drawAfter();
+}
+
 void Scene::onEvent(const sf::Event& event)
 {
 	if(gData.inputMgr->eventIsDebugCamReleased(event))
 	{
 		m_camera->setFlyOver(!m_camera->isFlyOver());
-		logInfo("Toggling debug camera to: ", m_camera->isFlyOver() ? "on" : "off");
+		logDebug("Debug cam: ", m_camera->isFlyOver() ? "on" : "off");
 	}
 	m_camera->onEvent(event);
 }

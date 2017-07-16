@@ -72,6 +72,10 @@ void Camera::draw()
 {
 }
 
+void Camera::drawAfter()
+{
+}
+
 void Camera::onEvent(const sf::Event& event)
 {
 	if (event.type == sf::Event::Resized)

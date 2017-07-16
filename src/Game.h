@@ -17,6 +17,8 @@ private:
 	Scene*				m_scenes[NB_SCENES];
 	int					m_curScene;
 	aiLogStream			m_aiLogStream;
+	bool				m_wireframe;
+	bool				m_slowMode;
 
 public:
 	bool init(sf::RenderWindow* window);

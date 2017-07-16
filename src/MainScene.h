@@ -33,6 +33,7 @@ public:
 	virtual void	shut() override;
 	virtual void	update() override;
 	virtual void	draw() override;
+	virtual void	drawAfter() override;
 	virtual void	onEvent(const sf::Event& event) override;
 	virtual Camera*	createCamera() const override;
 

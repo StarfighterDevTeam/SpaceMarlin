@@ -16,6 +16,7 @@ public:
 	virtual void		shut();
 	virtual void		update();
 	virtual void		draw();
+	virtual void		drawAfter();
 	virtual void		onEvent(const sf::Event& event);
 
 	void				setToDefault();
