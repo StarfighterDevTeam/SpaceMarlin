@@ -5,7 +5,7 @@
 
 Marlin::Marlin()
 {
-	m_surfaceSpeedLateral					= +2.0f;//angular speed
+	m_surfaceSpeedLateral					= +1.3f;//angular speed
 	m_airSpeedLateral						= +4.0f;
 	m_diveSpeedLateral						= +2.5f;
 
@@ -75,14 +75,24 @@ void Marlin::getAltitudeAndAngleToLane(const Lane* lane, float &altitude, float 
 	float distance = (a * a) + (b * b);
 	distance = sqrt(distance);
 
-	//angle = acos(a / distance);
-	//
-	//if (b < 0)
-	//{
-	//	angle = -angle;
-	//}
+	//angle = atan2(b, a);
+	float laneWidth = lane->getCylinderRadius(0);
+	if (abs(a) > laneWidth)
+	{
+		float i = int(a >= 0) ? 1.f : -1.f;
+		angle = acos(i);
+	}
+	else
+	{
+		angle = acos(a / laneWidth);
+	}
+	if (b < 0)
+	{
+		angle = -angle;
+	}
 
-	angle = atan2(b, a);
+	float c = sin(angle)*3.1415;
+	printf("c: %f\n");
 
 	altitude = distance - lane->getCylinderRadius(angle);
 }
@@ -114,6 +124,8 @@ void Marlin::update()
 			//gravity acceleration
 			float altitude, angle;
 			getAltitudeAndAngleToLane(lane, altitude, angle);
+
+			//printf("altitude: %f, angle: %f\n", altitude, angle);
 
 			if (altitude < ALTITUDE_TO_ENTER_GRAVITY)
 			{
@@ -162,6 +174,14 @@ void Marlin::update()
 					if (abs(altitude) < ALTITUDE_TO_MOVE_ALONG_SURFACE)//bob is near the surface
 					{
 						float angleAfterMove = angle + m_surfaceSpeedLateral * gData.dTime.asSeconds();
+						if (angleAfterMove > 3.1415)
+						{
+							angleAfterMove -= 3.1415 * 2;
+						}
+						if (angleAfterMove < -3.1415)
+						{
+							angleAfterMove += 3.1415 * 2;
+						}
 
 						float speedX = lane->getCylinderRadius(0)			* (cos(angleAfterMove) - cos(angle));
 						float speedY = lane->getCylinderRadius(3.1415f / 2)	* (sin(angleAfterMove) - sin(angle));
@@ -185,6 +205,14 @@ void Marlin::update()
 					if (abs(altitude) < ALTITUDE_TO_MOVE_ALONG_SURFACE)//bob is near the surface
 					{
 						float angleAfterMove = angle - m_surfaceSpeedLateral * gData.dTime.asSeconds();
+						if (angleAfterMove > 3.1415)
+						{
+							angleAfterMove -= 3.1415 * 2;
+						}
+						if (angleAfterMove < -3.1415)
+						{
+							angleAfterMove += 3.1415 * 2;
+						}
 
 						float speedX = lane->getCylinderRadius(0)			* (cos(angleAfterMove) - cos(angle));
 						float speedY = lane->getCylinderRadius(3.1415f / 2)	* (sin(angleAfterMove) - sin(angle));
