@@ -26,12 +26,7 @@ protected:
 	float m_jumpSpeedVertical;
 	float m_diveSpeedVertical;
 	float m_diveSpeedLateral;
-	float m_offsetX;
-	float m_offsetZ;
-	float m_speedX;
-	float m_speedZ;
 	float m_gravityAccelerationVertical;
-	float m_archimedeAccelerationVertical;
 
 	vec3 m_speed;
 	vec3 m_speedMoveLateral;
