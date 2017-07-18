@@ -20,6 +20,8 @@ Marlin::Marlin()
 
 	m_state = STATE_IDLE;
 
+	m_lastAnimationTimeSecs = -1.f;
+
 	//temp
 	setPosition				(glm::vec3(	0.f,//laterality
 										2.f,//altitude
@@ -106,180 +108,191 @@ void Marlin::update()
 	m_speedMoveLateral = vec3(0, 0, 0);
 	m_state = STATE_IDLE;
 
-	//Test
-	if (!m_lanes.empty() && simulationStart.getElapsedTime().asSeconds() > 6.f)
+	if (m_lastAnimationTimeSecs < 0.f)
+		m_lastAnimationTimeSecs = gData.curFrameTime.asSeconds();
+
+	static float ANIMATIONS_PER_SECOND = 60.0f;
+
+	// do rendering to get ANIMATIONS_PER_SECOND
+	while (m_lastAnimationTimeSecs <= gData.curFrameTime.asSeconds())
 	{
-		size_t laneVectorSize = m_lanes.size();
-		for (size_t i = 0; i < laneVectorSize; i++)
+		//Test
+		if (!m_lanes.empty() && simulationStart.getElapsedTime().asSeconds() > 6.f)
 		{
-			const Lane* lane = m_lanes[i];
-
-			//gravity acceleration
-			float altitude, angle;
-			getAltitudeAndAngleToLane(lane, altitude, angle);
-
-			//normal vector
-			float anglounet = 0.2f;
-			vec3 p1 = vec3(lane->getCylinderRadius(0) * cos(angle), lane->getCylinderRadius(3.1415f / 2) * sin(angle), 0);
-			vec3 p2 = vec3(lane->getCylinderRadius(0) * cos(angle + anglounet), lane->getCylinderRadius(3.1415f / 2) * sin(angle + anglounet), 0);
-			vec3 tangentVector = normalize(p2 - p1);
-			vec3 normalVector = vec3(tangentVector.x * cos(-3.1415 / 2) - tangentVector.y * sin(-3.1415 / 2),
-								tangentVector.x * sin(-3.1415 / 2) - tangentVector.y * cos(-3.1415 / 2),
-								tangentVector.z);
-
-			//printf("altitude: %f, angle: %f\n", altitude, angle);
-
-			if (altitude < ALTITUDE_TO_ENTER_GRAVITY)
+			size_t laneVectorSize = m_lanes.size();
+			for (size_t i = 0; i < laneVectorSize; i++)
 			{
-				vec3 vectorToLane = getPosition() - lane->getPosition();
-				vectorToLane = normalize(vectorToLane);
+				const Lane* lane = m_lanes[i];
 
-				vec3 vectorPerpendicularToLane = vec3(	vectorToLane.x * cos(-3.1415 / 2) - vectorToLane.y * sin(-3.1415 / 2),
-														vectorToLane.x * sin(-3.1415 / 2) - vectorToLane.y * cos(-3.1415 / 2),
-														vectorToLane.z);
+				//gravity acceleration
+				float altitude, angle;
+				getAltitudeAndAngleToLane(lane, altitude, angle);
 
-				//Jump
-				if (gData.inputMgr->isUpPressed())
+				//normal vector
+				float anglounet = 0.2f;
+				vec3 p1 = vec3(lane->getCylinderRadius(0) * cos(angle), lane->getCylinderRadius(3.1415f / 2) * sin(angle), 0);
+				vec3 p2 = vec3(lane->getCylinderRadius(0) * cos(angle + anglounet), lane->getCylinderRadius(3.1415f / 2) * sin(angle + anglounet), 0);
+				vec3 tangentVector = normalize(p2 - p1);
+				vec3 normalVector = vec3(tangentVector.x * cos(-3.1415 / 2) - tangentVector.y * sin(-3.1415 / 2),
+					tangentVector.x * sin(-3.1415 / 2) - tangentVector.y * cos(-3.1415 / 2),
+					tangentVector.z);
+
+				//printf("altitude: %f, angle: %f\n", altitude, angle);
+
+				if (altitude < ALTITUDE_TO_ENTER_GRAVITY)
 				{
-					if (abs(altitude) < ALTITUDE_TO_JUMP_OR_DIVE)//Bob must be on the surface to jump
+					vec3 vectorToLane = getPosition() - lane->getPosition();
+					vectorToLane = normalize(vectorToLane);
+
+					vec3 vectorPerpendicularToLane = vec3(vectorToLane.x * cos(-3.1415 / 2) - vectorToLane.y * sin(-3.1415 / 2),
+						vectorToLane.x * sin(-3.1415 / 2) - vectorToLane.y * cos(-3.1415 / 2),
+						vectorToLane.z);
+
+					//Jump
+					if (gData.inputMgr->isUpPressed())
 					{
-						m_speed += normalVector * m_jumpSpeedVertical * gData.dTime.asSeconds();
-						m_state = STATE_JUMPING;
-						m_vectorPerpendicularToLaneAtJumpTime = tangentVector;//save the system at the moment of jump to keep moving in this system while in the air
+						if (abs(altitude) < ALTITUDE_TO_JUMP_OR_DIVE)//Bob must be on the surface to jump
+						{
+							m_speed += normalVector * m_jumpSpeedVertical * 1.0f / ANIMATIONS_PER_SECOND;
+							m_state = STATE_JUMPING;
+							m_vectorPerpendicularToLaneAtJumpTime = tangentVector;//save the system at the moment of jump to keep moving in this system while in the air
+						}
 					}
-				}
 
-				//Dive
-				if (gData.inputMgr->isDownPressed())
-				{
-					if (abs(altitude) < ALTITUDE_TO_JUMP_OR_DIVE)//Bob must be on the surface to jump
+					//Dive
+					if (gData.inputMgr->isDownPressed())
 					{
-						m_speed += normalVector * m_diveSpeedVertical * gData.dTime.asSeconds();
-						m_state = STATE_DIVING;
+						if (abs(altitude) < ALTITUDE_TO_JUMP_OR_DIVE)//Bob must be on the surface to jump
+						{
+							m_speed += normalVector * m_diveSpeedVertical * 1.0f / ANIMATIONS_PER_SECOND;
+							m_state = STATE_DIVING;
+						}
 					}
-				}
 
-				//Gravity
-				if (altitude > 0)
-				{
-					m_speed += normalVector * m_gravityAccelerationVertical * gData.dTime.asSeconds();
-				}
-				else if (altitude < 0)
-				{
-					m_speed += normalVector * (-m_gravityAccelerationVertical) * gData.dTime.asSeconds();//using an inverted gravity to simulate an Archimedes' thrust
-				}
-
-				//Move left
-				if (gData.inputMgr->isLeftPressed())
-				{
-					if (abs(altitude) < ALTITUDE_TO_MOVE_ALONG_SURFACE)//bob is near the surface
+					//Gravity
+					if (altitude > 0)
 					{
-						float angleAfterMove = angle + m_surfaceSpeedLateral * gData.dTime.asSeconds();
-						if (angleAfterMove > 3.1415f)
-						{
-							angleAfterMove -= 3.1415f * 2;
-						}
-						if (angleAfterMove < -3.1415f)
-						{
-							angleAfterMove += 3.1415f * 2;
-						}
-
-						float speedX = lane->getCylinderRadius(0)			* (cos(angleAfterMove) - cos(angle));
-						float speedY = lane->getCylinderRadius(3.1415f / 2)	* (sin(angleAfterMove) - sin(angle));
-
-						m_speedMoveLateral = vec3(speedX, speedY, 0);
+						m_speed += normalVector * m_gravityAccelerationVertical * 1.0f / ANIMATIONS_PER_SECOND;
 					}
-					//else if (altitude > 0)//bob is in the air
-					//{
-					//	m_speedMoveLateral -= m_airSpeedLateral * m_vectorPerpendicularToLaneAtJumpTime * gData.dTime.asSeconds();
-					//}
-					//else//if (altitude < 0)//bob is underwater
-					//{
-					//	m_speedMoveLateral.x += m_diveSpeedLateral * cos(angle) * gData.dTime.asSeconds();
-					//	m_speedMoveLateral.y += m_diveSpeedLateral * sin(angle) * gData.dTime.asSeconds();
-					//}
-				}
-
-				//Move right
-				if (gData.inputMgr->isRightPressed())
-				{
-					if (abs(altitude) < ALTITUDE_TO_MOVE_ALONG_SURFACE)//bob is near the surface
+					else if (altitude < 0)
 					{
-						float angleAfterMove = angle - m_surfaceSpeedLateral * gData.dTime.asSeconds();
-						if (angleAfterMove > 3.1415f)
-						{
-							angleAfterMove -= 3.1415f * 2;
-						}
-						if (angleAfterMove < -3.1415f)
-						{
-							angleAfterMove += 3.1415f * 2;
-						}
-
-						float speedX = lane->getCylinderRadius(0)			* (cos(angleAfterMove) - cos(angle));
-						float speedY = lane->getCylinderRadius(3.1415f / 2)	* (sin(angleAfterMove) - sin(angle));
-
-						m_speedMoveLateral = vec3(speedX, speedY, 0);
+						m_speed += normalVector * (-m_gravityAccelerationVertical) * 1.0f / ANIMATIONS_PER_SECOND;//using an inverted gravity to simulate an Archimedes' thrust
 					}
-					//else if (altitude > 0)//bob is in the air
-					//{
-					//	m_speedMoveLateral += m_airSpeedLateral * m_vectorPerpendicularToLaneAtJumpTime * gData.dTime.asSeconds();
-					//}
-					//else//if (altitude < 0)//bob is underwater
-					//{
-					//	m_speedMoveLateral.x -= m_diveSpeedLateral * cos(angle) * gData.dTime.asSeconds();
-					//	m_speedMoveLateral.y -= m_diveSpeedLateral * sin(angle) * gData.dTime.asSeconds();
-					//}
-				}
 
-				//speed limit
-				if (getNormalizedSpeed() > m_speedMax)
-				{
-					m_speed = normalize(m_speed) * m_speedMax;
-				}
-
-				//apply speed
-				move((m_speed * gData.dTime.asSeconds())
-					+ m_speedMoveLateral);
-
-				//moving through the lane's surface? -> loose momentum
-				float altitudeNew, angleNew;
-				getAltitudeAndAngleToLane(lane, altitudeNew, angleNew);
-
-				//printf("altitude: %f", altitude);
-
-				if ((altitude > 0 && altitudeNew <= 0)//moving through lane's surface?
-					|| (altitude < 0 && altitudeNew >= 0))
-				{
-					if (! ((altitude < 0 && m_state == STATE_JUMPING) || (altitude > 0 && m_state == STATE_DIVING)))//not jumping from below the surface or diving from below the surface?
+					//Move left
+					if (gData.inputMgr->isLeftPressed())
 					{
-						//kill tiny oscillations by sticking the Marlin right on the lane surface
-						if (getNormalizedSpeed() < SPEED_TO_GET_STABILIZED_ON_SURFACE)//the stronger the gravity, the higher the value must be
+						if (abs(altitude) < ALTITUDE_TO_MOVE_ALONG_SURFACE)//bob is near the surface
 						{
-							vec3 p3 = vec3(lane->getCylinderRadius(0) * cos(angleNew), lane->getCylinderRadius(3.1415f / 2) * sin(angleNew), 0);
-							vec3 p4 = vec3(lane->getCylinderRadius(0) * cos(angleNew + anglounet), lane->getCylinderRadius(3.1415f / 2) * sin(angleNew + anglounet), 0);
-							vec3 tangentVectorNew = normalize(p4 - p3);
-							vec3 normalVectorNew = vec3(tangentVectorNew.x * cos(-3.1415 / 2) - tangentVectorNew.y * sin(-3.1415 / 2),
-														tangentVectorNew.x * sin(-3.1415 / 2) - tangentVectorNew.y * cos(-3.1415 / 2),
-														tangentVectorNew.z);
-						
-							vec3 vectorToStickToLane = normalVectorNew * (-altitudeNew);
-						
-							move(vectorToStickToLane);
-						
-							m_speed = vec3(0, 0, 0);
-						
-							//printf("STICK TO LANE. ");
+							float angleAfterMove = angle + m_surfaceSpeedLateral * 1.0f / ANIMATIONS_PER_SECOND;
+							if (angleAfterMove > 3.1415f)
+							{
+								angleAfterMove -= 3.1415f * 2;
+							}
+							if (angleAfterMove < -3.1415f)
+							{
+								angleAfterMove += 3.1415f * 2;
+							}
+
+							float speedX = lane->getCylinderRadius(0)			* (cos(angleAfterMove) - cos(angle));
+							float speedY = lane->getCylinderRadius(3.1415f / 2)	* (sin(angleAfterMove) - sin(angle));
+
+							m_speedMoveLateral = vec3(speedX, speedY, 0);
+						}
+						//else if (altitude > 0)//bob is in the air
+						//{
+						//	m_speedMoveLateral -= m_airSpeedLateral * m_vectorPerpendicularToLaneAtJumpTime * gData.dTime.asSeconds();
+						//}
+						//else//if (altitude < 0)//bob is underwater
+						//{
+						//	m_speedMoveLateral.x += m_diveSpeedLateral * cos(angle) * gData.dTime.asSeconds();
+						//	m_speedMoveLateral.y += m_diveSpeedLateral * sin(angle) * gData.dTime.asSeconds();
+						//}
+					}
+
+					//Move right
+					if (gData.inputMgr->isRightPressed())
+					{
+						if (abs(altitude) < ALTITUDE_TO_MOVE_ALONG_SURFACE)//bob is near the surface
+						{
+							float angleAfterMove = angle - m_surfaceSpeedLateral * 1.0f / ANIMATIONS_PER_SECOND;
+							if (angleAfterMove > 3.1415f)
+							{
+								angleAfterMove -= 3.1415f * 2;
+							}
+							if (angleAfterMove < -3.1415f)
+							{
+								angleAfterMove += 3.1415f * 2;
+							}
+
+							float speedX = lane->getCylinderRadius(0)			* (cos(angleAfterMove) - cos(angle));
+							float speedY = lane->getCylinderRadius(3.1415f / 2)	* (sin(angleAfterMove) - sin(angle));
+
+							m_speedMoveLateral = vec3(speedX, speedY, 0);
+						}
+						//else if (altitude > 0)//bob is in the air
+						//{
+						//	m_speedMoveLateral += m_airSpeedLateral * m_vectorPerpendicularToLaneAtJumpTime * gData.dTime.asSeconds();
+						//}
+						//else//if (altitude < 0)//bob is underwater
+						//{
+						//	m_speedMoveLateral.x -= m_diveSpeedLateral * cos(angle) * gData.dTime.asSeconds();
+						//	m_speedMoveLateral.y -= m_diveSpeedLateral * sin(angle) * gData.dTime.asSeconds();
+						//}
+					}
+
+					//speed limit
+					if (getNormalizedSpeed() > m_speedMax)
+					{
+						m_speed = normalize(m_speed) * m_speedMax;
+					}
+
+					//apply speed
+					move((m_speed * 1.0f / ANIMATIONS_PER_SECOND)
+						+ m_speedMoveLateral);
+
+					//moving through the lane's surface? -> loose momentum
+					float altitudeNew, angleNew;
+					getAltitudeAndAngleToLane(lane, altitudeNew, angleNew);
+
+					//printf("altitude: %f", altitude);
+
+					if ((altitude > 0 && altitudeNew <= 0)//moving through lane's surface?
+						|| (altitude < 0 && altitudeNew >= 0))
+					{
+						if (!((altitude < 0 && m_state == STATE_JUMPING) || (altitude > 0 && m_state == STATE_DIVING)))//not jumping from below the surface or diving from below the surface?
+						{
+							//kill tiny oscillations by sticking the Marlin right on the lane surface
+							if (getNormalizedSpeed() < SPEED_TO_GET_STABILIZED_ON_SURFACE)//the stronger the gravity, the higher the value must be
+							{
+								vec3 p3 = vec3(lane->getCylinderRadius(0) * cos(angleNew), lane->getCylinderRadius(3.1415f / 2) * sin(angleNew), 0);
+								vec3 p4 = vec3(lane->getCylinderRadius(0) * cos(angleNew + anglounet), lane->getCylinderRadius(3.1415f / 2) * sin(angleNew + anglounet), 0);
+								vec3 tangentVectorNew = normalize(p4 - p3);
+								vec3 normalVectorNew = vec3(tangentVectorNew.x * cos(-3.1415 / 2) - tangentVectorNew.y * sin(-3.1415 / 2),
+									tangentVectorNew.x * sin(-3.1415 / 2) - tangentVectorNew.y * cos(-3.1415 / 2),
+									tangentVectorNew.z);
+
+								vec3 vectorToStickToLane = normalVectorNew * (-altitudeNew);
+
+								move(vectorToStickToLane);
+
+								m_speed = vec3(0, 0, 0);
+
+								//printf("STICK TO LANE. ");
+							}
+
+							//loose momentum
+							//m_speed = vec3(0, 0, 0);
+							m_speed *= 0.5f;
 						}
 
-						//loose momentum
-						//m_speed = vec3(0, 0, 0);
-						m_speed *= 0.5f;
+						//printf("LOOSE MOMENTUM. ");
 					}
-					
-					//printf("LOOSE MOMENTUM. ");
 				}
 			}
 		}
+
+		m_lastAnimationTimeSecs += (1.0f / ANIMATIONS_PER_SECOND);
 	}
 
 	//OLD MOVE SYSTEM
