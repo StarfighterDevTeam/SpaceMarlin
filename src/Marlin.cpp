@@ -274,6 +274,15 @@ void Marlin::update()
 		m_lastAnimationTimeSecs += (1.0f / ANIMATIONS_PER_SECOND);
 	}
 
+	// Reset up vector according to gravity to lane
+	if(m_lanes.size())
+	{
+		const Lane* lane = m_lanes[0];
+		const vec3 newUpVector = normalize(getPosition() - lane->getPosition());
+		m_localToWorldMtx[1] = vec4(newUpVector,0);
+		m_localToWorldMtx[0] = vec4(cross(newUpVector, vec3(m_localToWorldMtx[2])), 0);
+	}
+
 	//OLD MOVE SYSTEM
 	//bool bobIsJumping = m_offsetZ > 0;
 	//bool bobIsDiving = m_offsetZ < 0;
