@@ -5,13 +5,13 @@
 
 Marlin::Marlin()
 {
-	m_surfaceSpeedLateral					= +1.3f;//angular speed
+	m_surfaceSpeedLateral					= +6.0f;//angular speed
 	m_airSpeedLateral						= +5.0f;
 	m_diveSpeedLateral						= +3.5f;
 
 	m_jumpSpeedVertical						= +200.f;//acceleration
 	m_diveSpeedVertical						= -150.f;//acceleration
-	m_gravityAccelerationVertical = -20.f;//-45.f;
+	m_gravityAccelerationVertical			= -35.f;
 	m_speedMax								= 20.f;
 
 	m_speed									= vec3(0, 0, 0);
@@ -161,23 +161,7 @@ void Marlin::update()
 					{
 						if (abs(altitude) < ALTITUDE_TO_MOVE_ALONG_SURFACE)//bob is near the surface
 						{
-							float angleAfterMove = angle + m_surfaceSpeedLateral * 1.0f / ANIMATIONS_PER_SECOND;
-							if (angleAfterMove > 3.1415f)
-							{
-								angleAfterMove -= 3.1415f * 2;
-							}
-							if (angleAfterMove < -3.1415f)
-							{
-								angleAfterMove += 3.1415f * 2;
-							}
-
-							float speedX = lane->getCylinderRadius() * (cos(angleAfterMove) - cos(angle));
-							float speedY = lane->getCylinderRadius() * (sin(angleAfterMove) - sin(angle));
-
-							m_surfaceSpeedLateral = 8.f;
 							m_speedMoveLateral -= m_surfaceSpeedLateral * tangeantToLane * gData.dTime.asSeconds();
-
-							//m_speedMoveLateral = vec3(speedX, speedY, 0);
 						}
 						else if (altitude > 0)//bob is in the air
 						{
@@ -185,8 +169,7 @@ void Marlin::update()
 						}
 						else//if (altitude < 0)//bob is underwater
 						{
-							m_speedMoveLateral.x += m_diveSpeedLateral * cos(angle) * gData.dTime.asSeconds();
-							m_speedMoveLateral.y += m_diveSpeedLateral * sin(angle) * gData.dTime.asSeconds();
+							m_speedMoveLateral -= m_diveSpeedLateral * tangeantToLane * gData.dTime.asSeconds();
 						}
 					}
 
@@ -195,20 +178,7 @@ void Marlin::update()
 					{
 						if (abs(altitude) < ALTITUDE_TO_MOVE_ALONG_SURFACE)//bob is near the surface
 						{
-							float angleAfterMove = angle - m_surfaceSpeedLateral * 1.0f / ANIMATIONS_PER_SECOND;
-							if (angleAfterMove > 3.1415f)
-							{
-								angleAfterMove -= 3.1415f * 2;
-							}
-							if (angleAfterMove < -3.1415f)
-							{
-								angleAfterMove += 3.1415f * 2;
-							}
-
-							float speedX = lane->getCylinderRadius() * (cos(angleAfterMove) - cos(angle));
-							float speedY = lane->getCylinderRadius() * (sin(angleAfterMove) - sin(angle));
-
-							m_speedMoveLateral = vec3(speedX, speedY, 0);
+							m_speedMoveLateral += m_surfaceSpeedLateral * tangeantToLane * gData.dTime.asSeconds();
 						}
 						else if (altitude > 0)//bob is in the air
 						{
@@ -216,8 +186,7 @@ void Marlin::update()
 						}
 						else//if (altitude < 0)//bob is underwater
 						{
-							m_speedMoveLateral.x -= m_diveSpeedLateral * cos(angle) * gData.dTime.asSeconds();
-							m_speedMoveLateral.y -= m_diveSpeedLateral * sin(angle) * gData.dTime.asSeconds();
+							m_speedMoveLateral += m_diveSpeedLateral * tangeantToLane * gData.dTime.asSeconds();
 						}
 					}
 
@@ -226,9 +195,6 @@ void Marlin::update()
 					{
 						m_speed = normalize(m_speed) * m_speedMax;
 					}
-
-
-					printf("speed: %f \n", getNormalizedSpeed());
 
 					//apply speed
 					move((m_speed * 1.0f / ANIMATIONS_PER_SECOND)
