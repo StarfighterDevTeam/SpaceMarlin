@@ -18,7 +18,7 @@ public:
 	void		draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexId);
 	void		update();
 
-	float		getCylinderRadius(float radAngle) const;
+	float		getCylinderRadius() const;
 	vec3		getPosition() const;
 
 	float		interpolationMethod(float a, float b, float ratio) const;

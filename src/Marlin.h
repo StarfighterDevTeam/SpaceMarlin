@@ -26,20 +26,17 @@ protected:
 	float m_jumpSpeedVertical;
 	float m_diveSpeedVertical;
 	float m_diveSpeedLateral;
-	float m_offsetX;
-	float m_offsetZ;
-	float m_speedX;
-	float m_speedZ;
 	float m_gravityAccelerationVertical;
-	float m_archimedeAccelerationVertical;
 
 	vec3 m_speed;
 	vec3 m_speedMoveLateral;
 	float m_speedMax;
 
-	vec3 m_vectorPerpendicularToLaneAtJumpTime;
+	vec3 m_vectorTangebtToLaneAtJumpTime;
 
 	MarlinState m_state;
+
+	float m_lastAnimationTimeSecs;
 
 public:
 	Marlin();
