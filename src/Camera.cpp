@@ -1,5 +1,6 @@
 #include "Camera.h"
 #include "InputManager.h"
+#include "glutil/GPUProgram.h"
 #include <glm/gtx/euler_angles.hpp>
 
 void Camera::init()
@@ -120,6 +121,12 @@ const mat4& Camera::getViewToProjMtx() const
 	return m_viewToProjMtx;
 }
 
+const mat4& Camera::getProjToViewMtx() const
+{
+	const_cast<Camera*>(this)->updateInternal();
+	return m_projToViewMtx;
+}
+
 const mat4& Camera::getWorldToViewMtx() const
 {
 	const_cast<Camera*>(this)->updateInternal();
@@ -130,4 +137,16 @@ const mat4& Camera::getWorldToProjMtx() const
 {
 	const_cast<Camera*>(this)->updateInternal();
 	return m_worldToProjMtx;
+}
+
+const mat4& Camera::getViewToWorldRotMtx() const
+{
+	const_cast<Camera*>(this)->updateInternal();
+	return m_viewToWorldRotMtx;
+}
+
+const mat4& Camera::getProjToWorldRotMtx() const
+{
+	const_cast<Camera*>(this)->updateInternal();
+	return m_projToWorldRotMtx;
 }

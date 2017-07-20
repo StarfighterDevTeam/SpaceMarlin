@@ -33,6 +33,8 @@ enum GPUProgramId
 
 #define SETUP_PROGRAM_VERTEX_ATTRIB(progId)	HANDLE_##progId(NO_ACTION, NO_ACTION, HANDLE_ATTRIBUTE_SETUP_VERTEX_ATTRIB)
 
+class Camera;
+
 class GPUProgramManager
 {
 public:
@@ -41,6 +43,7 @@ public:
 	void						update();
 
 	const GPUProgram*			getProgram(GPUProgramId id) const {return m_programs[id];}
+	void						sendCommonUniforms(const GPUProgram* program, const Camera& camera, const mat4& localToWorldMtx);
 
 private:
 	static GPUProgram*			createProgram(GPUProgramId id);

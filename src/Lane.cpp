@@ -5,7 +5,11 @@
 #include "glutil/glutil.h"
 
 static const ivec2 gSideNbVtx(100,100);
+//static const ivec2 gSideNbVtx(10,10);
+//static const ivec2 gSideNbVtx(4,4);
 static const float gGridSize = 10.f;
+
+//#define _TEST_LANE_CPU_CYLINDER
 
 #ifdef _LANE_USES_GPU
 	#define _IF_LANE_USES_GPU(a, b) a
@@ -90,7 +94,32 @@ void Lane::init()
 
 	// Init vertices positions
 	pInitVertices->resize(gSideNbVtx.x*gSideNbVtx.y);
-	
+
+#ifdef _TEST_LANE_CPU_CYLINDER
+	const int nbVerticesPerRing = gSideNbVtx.x;
+	const int nbRings = gSideNbVtx.y;
+
+	assert(nbRings > 1);
+	assert(nbVerticesPerRing > 1);
+	const double distBetweenRings			= 1. / nbRings;
+	const double angleBetweenRingVertices	= (2. * M_PI) / nbVerticesPerRing;
+
+	const vec2 toUV = vec2(1.f/(nbRings-1), 1.f/(nbVerticesPerRing-1));
+	for(int y=0 ; y < nbRings ; y++)
+	{
+		const float posZ = (float)(-y * distBetweenRings);
+		for(int x=0 ; x < nbVerticesPerRing ; x++)
+		{
+			VtxLane& vtx = (*pInitVertices)[x + y*nbVerticesPerRing];
+			const double angle = x * angleBetweenRingVertices - M_PI_2;
+			vtx.pos.x = (float)cos(angle);
+			vtx.pos.y = (float)sin(angle);
+			vtx.pos.z = posZ;
+			vtx.normal = vec3(vtx.pos.x, vtx.pos.y, 0);
+			vtx.uv = vec2(x * toUV.x, y * toUV.y);
+		}
+	}
+#else
 	VtxLane vtx;
 	vtx.pos.y = 0.f;
 	vtx.normal = vec3(0,1,0);
@@ -104,11 +133,37 @@ void Lane::init()
 			(*pInitVertices)[x + z*gSideNbVtx.x] = vtx;
 		}
 	}
+#endif
 
 #if !defined(_LANE_USES_GPU)
 	m_vertices[1] = m_vertices[2] = m_vertices[0];
 #endif
 
+#ifdef _TEST_LANE_CPU_CYLINDER
+	for(int y = 0 ; y < nbRings-1 ; y++)
+	{
+		int x=0;
+		for( ; x < nbVerticesPerRing-1 ; x++)
+		{
+			m_indices.push_back((x+0) + (y+0)*nbVerticesPerRing);
+			m_indices.push_back((x+0) + (y+1)*nbVerticesPerRing);
+			m_indices.push_back((x+1) + (y+1)*nbVerticesPerRing);
+
+			m_indices.push_back((x+0) + (y+0)*nbVerticesPerRing);
+			m_indices.push_back((x+1) + (y+1)*nbVerticesPerRing);
+			m_indices.push_back((x+1) + (y+0)*nbVerticesPerRing);
+		}
+
+		int n = 1 - nbVerticesPerRing;
+		m_indices.push_back((x+0) + (y+0)*nbVerticesPerRing);
+		m_indices.push_back((x+0) + (y+1)*nbVerticesPerRing);
+		m_indices.push_back((x+n) + (y+1)*nbVerticesPerRing);
+
+		m_indices.push_back((x+0) + (y+0)*nbVerticesPerRing);
+		m_indices.push_back((x+n) + (y+1)*nbVerticesPerRing);
+		m_indices.push_back((x+n) + (y+0)*nbVerticesPerRing);
+	}
+#else
 	for(int z = 0 ; z < gSideNbVtx.y-1 ; z++)
 	{
 		for(int x = 0 ; x < gSideNbVtx.x-1 ; x++)
@@ -122,6 +177,7 @@ void Lane::init()
 			m_indices.push_back((x+1) + (z+0)*gSideNbVtx.x);
 		}
 	}
+#endif
 	
 	// Send to GPU
 	{
@@ -285,17 +341,12 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 	glutil::Enable<GL_BLEND> blendState;
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	mat4 localToViewMtx = camera.getWorldToViewMtx() * m_localToWorldMtx;
-	mat4 localToProjMtx = camera.getWorldToProjMtx() * m_localToWorldMtx;
 	const GPUProgram* laneProgram = gData.gpuProgramMgr->getProgram(PROG_LANE);
 	laneProgram->use();
-	laneProgram->sendUniform("gLocalToViewMtx", localToViewMtx);
-	laneProgram->sendUniform("gLocalToProjMtx", localToProjMtx);
-	laneProgram->sendUniform("gViewToProjMtx", camera.getViewToProjMtx());
-	//laneProgram->sendUniform("texAlbedo", 0);
-	laneProgram->sendUniform("gTime", gData.curFrameTime.asSeconds());
-	laneProgram->sendUniform("gLocalToWorldMtx", m_localToWorldMtx);
-	laneProgram->sendUniform("gWorldSpaceCamPos", camera.getPosition());
+	gData.gpuProgramMgr->sendCommonUniforms(
+		laneProgram,
+		camera,
+		m_localToWorldMtx);
 
 	GLint textureSlot = 0;
 
@@ -319,10 +370,6 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 	laneProgram->sendUniform("gTexelSize", vec2(1.f/gSideNbVtx.x, 1.f/gSideNbVtx.y));
 	laneProgram->sendUniform("gDistBetweenTexels", vec2(gGridSize / gSideNbVtx.x, gGridSize / gSideNbVtx.y));
 #endif
-
-	GLint curVp[4];
-	glGetIntegerv(GL_VIEWPORT, curVp);
-	laneProgram->sendUniform("gVpSize", vec2(curVp[2], curVp[3]));
 
 	glBindVertexArray(m_vertexArrayId);
 
@@ -350,12 +397,68 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 		gData.drawer->draw2DTexturedQuad(m_heightsTexId[i], vec2(i*(10+gSideNbVtx.x),10), vec2(gSideNbVtx.x, gSideNbVtx.y));
 #endif
 	// END TEST
+
+	// BEGIN debug normals
+	static bool gbDebugDrawNormals = false;
+	if(gbDebugDrawNormals)
+	{
+		mat3 localToWorldNormalMtx = glm::transpose(glm::inverse(mat3(m_localToWorldMtx)));
+		//const int nbVerticesPerRing = gSideNbVtx.x;
+		const int nbVerticesPerRing = 50;
+		const double angleBetweenRingVertices	= (2. * M_PI) / nbVerticesPerRing;
+		for(int x=0 ; x < nbVerticesPerRing ; x++)
+		{
+			vec3 localSpacePos;
+			const double angle = x * angleBetweenRingVertices - M_PI_2;
+			localSpacePos.x = (float)cos(angle);
+			localSpacePos.y = (float)sin(angle);
+			localSpacePos.z = 0;
+
+			vec4 worldSpacePos = m_localToWorldMtx * vec4(localSpacePos,1);
+			worldSpacePos.x /= worldSpacePos.w;
+			worldSpacePos.y /= worldSpacePos.w;
+			worldSpacePos.z /= worldSpacePos.w;
+			worldSpacePos.w = 1;
+
+			static float gfNormalSize = 1.f;
+			vec3 localSpaceNormal = localSpacePos;
+			vec3 worldSpaceNormal = glm::normalize(localToWorldNormalMtx * localSpaceNormal);
+			vec3 worldSpacePosEnd = vec3(worldSpacePos) + gfNormalSize * worldSpaceNormal;
+			gData.drawer->drawLine(camera, worldSpacePos, COLOR_RED, worldSpacePosEnd, COLOR_RED);
+		}
+	}
+	// END debug normals
 }
 
 sf::Clock	laneSimulationStart;
 
 void Lane::update()
 {
+	// BEGIN TEST
+	static bool gbDebugTest = false;
+	if(gbDebugTest)
+	{
+		static vec3 debugPos = vec3(0, 0, 0);
+		static vec3 debugScale = vec3(4, 0.3, 1);
+		static float gfDebugAngle = 0.f;
+		static bool gbDebugUseTime = false;
+		if(gbDebugUseTime)
+		{
+			static float gfSpeed = 0.001f;
+			gfDebugAngle += gfSpeed * gData.dTime.asMilliseconds();
+		}
+		m_localToWorldMtx = mat4(
+			vec4(debugScale.x, 0, 0, 0),
+			vec4(0, debugScale.y, 0, 0),
+			vec4(0, 0, debugScale.z, 0),
+			vec4(debugPos, 1));
+
+		static vec3 gvDebugRotAxis = vec3(0,0,1);
+		mat4 laneRotMtx = glm::rotate(mat4(), gfDebugAngle, gvDebugRotAxis);
+		m_localToWorldMtx = laneRotMtx * m_localToWorldMtx;
+	}
+	// END TEST
+
 	//sf::sleep(sf::seconds(1.f));
 	static float transformationTime = 3.f;
 	if (laneSimulationStart.getElapsedTime().asSeconds() > 6.f)

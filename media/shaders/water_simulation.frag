@@ -25,5 +25,7 @@ void main()
 //			);
 
 	fragHeight = 0.1*sin(-gTime*5 + uv.y*10)*0.5;
+	//fragHeight = 0.5*sin(-gTime*5 + uv.x*10)*0.5;
 	//fragHeight = 0.1*sin(0.5*5 + uv.y*10)*0.5;
+	//fragHeight=0;
 }

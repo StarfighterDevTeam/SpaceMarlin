@@ -14,4 +14,5 @@ void main()
 	fragColor = texture(texSky, worldSpaceDir.xyz);
 	if(fragColor.a < 0.5)
 		discard;
+	//fragColor = vec4(0.3,0.3,0.3,1);
 }

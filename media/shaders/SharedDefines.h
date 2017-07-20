@@ -41,15 +41,18 @@
 	
 // -------- Part common to all GPU programs --------
 #define HANDLE_PROG_COMMON(BEGIN_PROGRAM, HANDLE_UNIFORM, HANDLE_ATTRIBUTE)	\
-	/* uniforms */									\
-	HANDLE_UNIFORM(float,		gTime)				\
-	HANDLE_UNIFORM(mat4,		gLocalToProjMtx)	\
-	HANDLE_UNIFORM(mat4,		gLocalToViewMtx)	\
-	HANDLE_UNIFORM(mat4,		gLocalToWorldMtx)	\
-	HANDLE_UNIFORM(vec3,		gWorldSpaceCamPos)	\
-	HANDLE_UNIFORM(mat4,		gProjToWorldRotMtx)	\
-	HANDLE_UNIFORM(mat4,		gViewToProjMtx)		\
-	HANDLE_UNIFORM(vec2,		gVpSize)			\
+	/* uniforms */										\
+	HANDLE_UNIFORM(float,		gTime)					\
+	HANDLE_UNIFORM(mat4,		gLocalToProjMtx)		\
+	HANDLE_UNIFORM(mat4,		gLocalToViewMtx)		\
+	HANDLE_UNIFORM(mat4,		gLocalToWorldMtx)		\
+	HANDLE_UNIFORM(mat3,		gLocalToWorldNormalMtx)	\
+	HANDLE_UNIFORM(mat4,		gWorldToViewMtx)		\
+	HANDLE_UNIFORM(mat4,		gWorldToProjMtx)		\
+	HANDLE_UNIFORM(vec3,		gWorldSpaceCamPos)		\
+	HANDLE_UNIFORM(mat4,		gProjToWorldRotMtx)		\
+	HANDLE_UNIFORM(mat4,		gViewToProjMtx)			\
+	HANDLE_UNIFORM(vec2,		gVpSize)				\
 	/* done */
 
 // -------- Part common to all fullscreen triangle programs --------

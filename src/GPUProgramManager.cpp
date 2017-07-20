@@ -1,4 +1,6 @@
 #include "GPUProgramManager.h"
+#include "Camera.h"
+#include "glutil\glutil.h"
 
 struct GPUProgramMetadata
 {
@@ -107,6 +109,31 @@ void GPUProgramManager::update()
 		}
 	}
 #endif
+}
+
+void GPUProgramManager::sendCommonUniforms(const GPUProgram* program, const Camera& camera, const mat4& localToWorldMtx)
+{
+	const mat4& worldToViewMtx = camera.getWorldToViewMtx();
+	const mat4& worldToProjMtx = camera.getWorldToProjMtx();
+	const mat4& projToWorldRotMtx = camera.getProjToWorldRotMtx();
+	const mat4& viewToProjMtx = camera.getViewToProjMtx();
+	mat4 localToProjMtx = worldToProjMtx * localToWorldMtx;
+	mat4 localToViewMtx = worldToViewMtx * localToWorldMtx;
+	mat3 localToWorldNormalMtx = glm::transpose(glm::inverse(mat3(localToWorldMtx)));
+	
+	program->sendUniform("gTime", gData.curFrameTime.asSeconds());
+	program->sendUniform("gLocalToProjMtx", localToProjMtx);
+	program->sendUniform("gLocalToViewMtx", localToViewMtx);
+	program->sendUniform("gLocalToWorldMtx", localToWorldMtx);
+	program->sendUniform("gLocalToWorldNormalMtx", localToWorldNormalMtx, false, Hash::AT_RUNTIME);
+	program->sendUniform("gWorldToViewMtx", worldToViewMtx);
+	program->sendUniform("gWorldToProjMtx", worldToProjMtx);
+	program->sendUniform("gProjToWorldRotMtx", projToWorldRotMtx);
+	program->sendUniform("gViewToProjMtx", viewToProjMtx);
+	
+	GLint curVp[4];
+	glGetIntegerv(GL_VIEWPORT, curVp);
+	program->sendUniform("gVpSize", vec2(curVp[2], curVp[3]));
 }
 
 GPUProgram* GPUProgramManager::createProgram(GPUProgramId id)

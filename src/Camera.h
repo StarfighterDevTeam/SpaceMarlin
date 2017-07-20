@@ -5,6 +5,7 @@
 #include "Globals.h"
 
 class SceneObject;
+class GPUProgram;
 
 class Camera
 {
@@ -38,8 +39,12 @@ public:
 	const vec3&			getUp()				const		{return m_up;}
 	
 	const mat4&			getViewToProjMtx() const;
+	const mat4&			getProjToViewMtx() const;
 	const mat4&			getWorldToViewMtx() const;
 	const mat4&			getWorldToProjMtx() const;
+
+	const mat4&			getViewToWorldRotMtx() const;
+	const mat4&			getProjToWorldRotMtx() const;
 
 	void				setFlyOver(bool isFlyOver)		{m_isFlyOver = isFlyOver;}
 	bool				isFlyOver() const				{return m_isFlyOver;}

@@ -7,8 +7,11 @@ out vec3 varViewSpacePos;
 out vec3 varWorldSpaceNormal;
 out vec3 varWorldSpaceViewVec;
 
+//out vec3 varDebug;
+
 void main()
 {
+#if 1
 	vec3 lPlanePos = pos;
 	vec3 lPlaneNormal = normal;
 
@@ -51,4 +54,37 @@ void main()
 	varViewSpacePos = vec3( gLocalToViewMtx * vec4(lPos,1) );
 	
 	gl_Position = gLocalToProjMtx * vec4(lPos, 1);
+#else
+	vec3 lPos = pos;
+	vec3 lNormal = normal;
+
+	lPos.z *= 3.1415;
+	
+	float waterHeight	= textureLod(texHeights, uv, 0).r;
+	float heightRight	= textureLod(texHeights, uv + vec2(+gTexelSize.x,0), 0).r;
+	float heightTop		= textureLod(texHeights, uv + vec2(0, +gTexelSize.y), 0).r;
+	vec3 posRight	= vec3( 0+ gDistBetweenTexels.x	, heightRight,	0);
+	vec3 posTop		= vec3(	0						, heightTop,	0 + gDistBetweenTexels.y);
+	vec3 lPlaneNormal = normalize(cross(posTop, posRight));
+	// TODO: rotate lPlaneNormal
+
+	//float waterHeight = 1*(0.5+0.5*sin(10*gTime));
+	//lPos += lNormal * waterHeight;
+	
+	vec4 worldSpacePos = gLocalToWorldMtx * vec4(lPos, 1);
+	worldSpacePos.xyz /= worldSpacePos.w;
+
+	vec3 worldSpaceNormal = normalize(gLocalToWorldNormalMtx * lNormal);
+	worldSpacePos.xyz += waterHeight * worldSpaceNormal;
+
+	varWorldSpaceViewVec = worldSpacePos.xyz - gWorldSpaceCamPos;
+	varWorldSpaceNormal = worldSpaceNormal;
+	varViewSpaceNormal = mat3(gWorldToViewMtx) * worldSpaceNormal;
+	varViewSpacePos = vec3(gWorldToViewMtx * worldSpacePos);
+	
+	gl_Position = gWorldToProjMtx * worldSpacePos;
+
+	//varDebug = worldSpaceNormal;
+	varDebug = lPlaneNormal;
+#endif
 }
