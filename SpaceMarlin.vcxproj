@@ -92,6 +92,11 @@
     <None Include="media\shaders\water_simulation.frag" />
     <None Include="media\shaders\water_simulation.vert" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="AntTweakBar.vcxproj">
+      <Project>{7cd04e55-4579-4367-9ad9-bd3c66eee2ab}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B700DAF9-9781-433C-BD0F-EFFC6CB37795}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -140,7 +145,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>assimp-3.3.1\include;SFML-2.4.2\include;glew-2.0.0\include;glm-0.9.8.4\glm</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>assimp-3.3.1\include;SFML-2.4.2\include;glew-2.0.0\include;glm-0.9.8.4\glm;AntTweakBar-1.16\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
@@ -158,7 +163,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>assimp-3.3.1\include;SFML-2.4.2\include;glew-2.0.0\include;glm-0.9.8.4\glm</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>assimp-3.3.1\include;SFML-2.4.2\include;glew-2.0.0\include;glm-0.9.8.4\glm;AntTweakBar-1.16\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>

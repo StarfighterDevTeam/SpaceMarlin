@@ -14,3 +14,5 @@ assimp_log.txt
 *.VC.db
 *.VC.VC.opendb
 *.vcxproj.user
+x64/Debug/
+x64/Release/

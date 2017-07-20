@@ -4,6 +4,7 @@
 
 #define SFML_STATIC
 #define _USE_MATH_DEFINES
+#define _USE_ANTTWEAKBAR
 
 #pragma warning(error : 4715)	// "not all control paths return a value"
 
@@ -21,6 +22,12 @@
 #include <sstream>
 
 #include <GL/glew.h>
+
+#ifdef _USE_ANTTWEAKBAR
+	#define TW_STATIC
+	#define TW_NO_LIB_PRAGMA
+	#include <AntTweakBar.h>
+#endif
 
 #include <SFML/Config.hpp>
 #include <SFML/Audio.hpp>

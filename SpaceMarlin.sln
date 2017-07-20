@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpaceMarlin", "SpaceMarlin.vcxproj", "{B700DAF9-9781-433C-BD0F-EFFC6CB37795}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AntTweakBar", "AntTweakBar.vcxproj", "{7CD04E55-4579-4367-9AD9-BD3C66EEE2AB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -13,8 +15,13 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{B700DAF9-9781-433C-BD0F-EFFC6CB37795}.Debug|x64.ActiveCfg = Debug|x64
 		{B700DAF9-9781-433C-BD0F-EFFC6CB37795}.Debug|x64.Build.0 = Debug|x64
+		{B700DAF9-9781-433C-BD0F-EFFC6CB37795}.Debug|x64.Deploy.0 = Debug|x64
 		{B700DAF9-9781-433C-BD0F-EFFC6CB37795}.Release|x64.ActiveCfg = Release|x64
 		{B700DAF9-9781-433C-BD0F-EFFC6CB37795}.Release|x64.Build.0 = Release|x64
+		{7CD04E55-4579-4367-9AD9-BD3C66EEE2AB}.Debug|x64.ActiveCfg = Debug|x64
+		{7CD04E55-4579-4367-9AD9-BD3C66EEE2AB}.Debug|x64.Build.0 = Debug|x64
+		{7CD04E55-4579-4367-9AD9-BD3C66EEE2AB}.Release|x64.ActiveCfg = Release|x64
+		{7CD04E55-4579-4367-9AD9-BD3C66EEE2AB}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

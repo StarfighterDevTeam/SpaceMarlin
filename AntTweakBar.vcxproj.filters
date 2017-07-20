@@ -1,0 +1,216 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Private Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Public Header Files">
+      <UniqueIdentifier>{b732ddfa-056f-48f4-96dc-521363a21552}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AntTweakBar-1.16\include\AntTweakBar.h">
+      <Filter>Public Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AntTweakBar-1.16\src\AntPerfTimer.h">
+      <Filter>Private Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AntTweakBar-1.16\src\LoadOGL.h">
+      <Filter>Private Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AntTweakBar-1.16\src\LoadOGLCore.h">
+      <Filter>Private Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AntTweakBar-1.16\src\MiniGLFW.h">
+      <Filter>Private Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AntTweakBar-1.16\src\MiniGLUT.h">
+      <Filter>Private Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AntTweakBar-1.16\src\MiniSDL12.h">
+      <Filter>Private Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AntTweakBar-1.16\src\MiniSDL13.h">
+      <Filter>Private Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AntTweakBar-1.16\src\MiniSFML16.h">
+      <Filter>Private Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AntTweakBar-1.16\src\resource.h">
+      <Filter>Private Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AntTweakBar-1.16\src\TwBar.h">
+      <Filter>Private Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AntTweakBar-1.16\src\TwColors.h">
+      <Filter>Private Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AntTweakBar-1.16\src\TwDirect3D9.h">
+      <Filter>Private Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AntTweakBar-1.16\src\TwDirect3D10.h">
+      <Filter>Private Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AntTweakBar-1.16\src\TwDirect3D11.h">
+      <Filter>Private Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AntTweakBar-1.16\src\TwFonts.h">
+      <Filter>Private Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AntTweakBar-1.16\src\TwGraph.h">
+      <Filter>Private Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AntTweakBar-1.16\src\TwMgr.h">
+      <Filter>Private Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AntTweakBar-1.16\src\TwOpenGL.h">
+      <Filter>Private Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AntTweakBar-1.16\src\TwOpenGLCore.h">
+      <Filter>Private Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AntTweakBar-1.16\src\TwPrecomp.h">
+      <Filter>Private Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AntTweakBar-1.16\src\res\TwXCursors.h">
+      <Filter>Private Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="AntTweakBar-1.16\src\res\cur00000.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="AntTweakBar-1.16\src\res\cur00001.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="AntTweakBar-1.16\src\res\cur00002.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="AntTweakBar-1.16\src\res\cur00003.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="AntTweakBar-1.16\src\res\cur00004.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="AntTweakBar-1.16\src\res\cur00005.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="AntTweakBar-1.16\src\res\cur00006.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="AntTweakBar-1.16\src\res\cur00007.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="AntTweakBar-1.16\src\res\cur00008.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="AntTweakBar-1.16\src\res\cur00009.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="AntTweakBar-1.16\src\res\cur00010.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="AntTweakBar-1.16\src\res\cur00011.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="AntTweakBar-1.16\src\res\cur00012.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="AntTweakBar-1.16\src\res\cur00013.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="AntTweakBar-1.16\src\res\FontFixed1.pgm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="AntTweakBar-1.16\src\res\FontLargeAA.pgm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="AntTweakBar-1.16\src\res\FontNormal.pgm">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="AntTweakBar-1.16\src\res\FontSmall.pgm">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="AntTweakBar-1.16\src\res\FontChars.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="AntTweakBar-1.16\src\AntTweakBar.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AntTweakBar-1.16\src\LoadOGL.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\LoadOGLCore.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwBar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwColors.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwDirect3D9.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwDirect3D10.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwDirect3D11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwEventGLFW.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwEventGLUT.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwEventSDL.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwEventSDL12.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwEventSDL13.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwEventSFML.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwEventWin.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwEventX11.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwFonts.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwMgr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwOpenGL.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwOpenGLCore.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwPrecomp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

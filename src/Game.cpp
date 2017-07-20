@@ -58,6 +58,16 @@ bool Game::init(sf::RenderWindow* window)
 	logInfo("GPU vendor: ", glGetString(GL_VENDOR));
 	//logInfo("OpenGL extensions: ", glGetString(GL_EXTENSIONS));	// TODO: unavailable in Core profile...
 
+	// Init AntTweakBar
+#ifdef _USE_ANTTWEAKBAR
+	if (!TwInit(TW_OPENGL_CORE, NULL))
+	{
+		logError("AntTweakBar initialization failed: ", TwGetLastError());
+		return false;
+	}
+	TwWindowSize(gData.winSizeX, gData.winSizeY);
+#endif
+
 	m_wireframe	= false;
 	m_slowMode	= false;
 
@@ -105,6 +115,11 @@ void Game::shut()
 	SHUT_MGR(gData.gpuProgramMgr);
 	SHUT_MGR(gData.soundMgr);
 	SHUT_MGR(gData.inputMgr);
+
+	// Shut AntTweakBar
+#ifdef _USE_ANTTWEAKBAR
+	TwTerminate();
+#endif
 }
 
 void Game::run()
@@ -124,6 +139,9 @@ void Game::run()
 				gData.winSizeX = event.size.width;
 				gData.winSizeY = event.size.height;
 				glViewport(0, 0, event.size.width, event.size.height);
+			#ifdef _USE_ANTTWEAKBAR
+				TwWindowSize(gData.winSizeX, gData.winSizeY);
+			#endif
 			}
 			else if(gData.inputMgr->eventIsDebugSlowModeReleased(event))
 			{
@@ -137,6 +155,9 @@ void Game::run()
 			}
 
 			m_scenes[m_curScene]->onEvent(event);
+		#ifdef _USE_ANTTWEAKBAR
+			TwEventSFML(&event, SFML_VERSION_MAJOR, SFML_VERSION_MINOR);
+		#endif
 		}
 
 		update();
@@ -174,6 +195,10 @@ void Game::draw()
 
 	m_scenes[m_curScene]->drawAfter();
 
+#ifdef _USE_ANTTWEAKBAR
+	TwDraw();
+#endif
+
 	gData.window->display();
 }
 
@@ -189,7 +214,7 @@ std::string getExePath()
 {
 #ifdef _WIN32
 	char buff[MAX_PATH] = "";
-	GetModuleFileNameA(GetModuleHandle(NULL), buff, sizeof(buff));
+	GetModuleFileNameA(GetModuleHandleA(NULL), buff, sizeof(buff));
 #else
     char buff[PATH_MAX] = "";
     ssize_t len = ::readlink("/proc/self/exe", buff, sizeof(buff)-1);

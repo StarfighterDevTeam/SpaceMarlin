@@ -50,6 +50,10 @@ private:
 	//Lane transformation
 	sf::Clock					m_transformationClock;
 	std::vector<mat4>			m_mtxVector;
+
+#ifdef _USE_ANTTWEAKBAR
+	TwBar*						m_debugBar;
+#endif
 };
 
 #endif

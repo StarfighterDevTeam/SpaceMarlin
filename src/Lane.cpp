@@ -281,6 +281,13 @@ void Lane::init()
 		vec4(debugPos3, 1));
 
 	m_mtxVector.push_back(mtx3);
+
+#ifdef _USE_ANTTWEAKBAR
+	m_debugBar = TwNewBar("Lane");
+	TwAddVarRW(m_debugBar, "PosX", TW_TYPE_FLOAT, &m_localToWorldMtx[3].x, " opened=true help='X pos' ");
+	TwAddVarRW(m_debugBar, "PosY", TW_TYPE_FLOAT, &m_localToWorldMtx[3].y, " opened=true help='Y pos' ");
+	TwAddVarRW(m_debugBar, "PosZ", TW_TYPE_FLOAT, &m_localToWorldMtx[3].z, " opened=true help='Z pos' ");
+#endif
 }
 
 void Lane::shut()
@@ -311,6 +318,11 @@ void Lane::shut()
 	glDeleteBuffers(1, &m_vertexBufferId); m_vertexBufferId = INVALID_GL_ID;
 	glDeleteBuffers(1, &m_indexBufferId); m_indexBufferId = INVALID_GL_ID;
 	glDeleteVertexArrays(1, &m_vertexArrayId); m_vertexArrayId = INVALID_GL_ID;
+
+#ifdef _USE_ANTTWEAKBAR
+	TwDeleteBar(m_debugBar);
+	m_debugBar = NULL;
+#endif
 }
 
 void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexId)

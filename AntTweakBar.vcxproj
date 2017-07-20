@@ -1,0 +1,187 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AntTweakBar-1.16\include\AntTweakBar.h" />
+    <ClInclude Include="AntTweakBar-1.16\src\AntPerfTimer.h" />
+    <ClInclude Include="AntTweakBar-1.16\src\LoadOGL.h" />
+    <ClInclude Include="AntTweakBar-1.16\src\LoadOGLCore.h" />
+    <ClInclude Include="AntTweakBar-1.16\src\MiniGLFW.h" />
+    <ClInclude Include="AntTweakBar-1.16\src\MiniGLUT.h" />
+    <ClInclude Include="AntTweakBar-1.16\src\MiniSDL12.h" />
+    <ClInclude Include="AntTweakBar-1.16\src\MiniSDL13.h" />
+    <ClInclude Include="AntTweakBar-1.16\src\MiniSFML16.h" />
+    <ClInclude Include="AntTweakBar-1.16\src\resource.h" />
+    <ClInclude Include="AntTweakBar-1.16\src\res\TwXCursors.h" />
+    <ClInclude Include="AntTweakBar-1.16\src\TwBar.h" />
+    <ClInclude Include="AntTweakBar-1.16\src\TwColors.h" />
+    <ClInclude Include="AntTweakBar-1.16\src\TwDirect3D10.h" />
+    <ClInclude Include="AntTweakBar-1.16\src\TwDirect3D11.h" />
+    <ClInclude Include="AntTweakBar-1.16\src\TwDirect3D9.h" />
+    <ClInclude Include="AntTweakBar-1.16\src\TwFonts.h" />
+    <ClInclude Include="AntTweakBar-1.16\src\TwGraph.h" />
+    <ClInclude Include="AntTweakBar-1.16\src\TwMgr.h" />
+    <ClInclude Include="AntTweakBar-1.16\src\TwOpenGL.h" />
+    <ClInclude Include="AntTweakBar-1.16\src\TwOpenGLCore.h" />
+    <ClInclude Include="AntTweakBar-1.16\src\TwPrecomp.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="AntTweakBar-1.16\src\res\cur00000.cur" />
+    <None Include="AntTweakBar-1.16\src\res\cur00001.cur" />
+    <None Include="AntTweakBar-1.16\src\res\cur00002.cur" />
+    <None Include="AntTweakBar-1.16\src\res\cur00003.cur" />
+    <None Include="AntTweakBar-1.16\src\res\cur00004.cur" />
+    <None Include="AntTweakBar-1.16\src\res\cur00005.cur" />
+    <None Include="AntTweakBar-1.16\src\res\cur00006.cur" />
+    <None Include="AntTweakBar-1.16\src\res\cur00007.cur" />
+    <None Include="AntTweakBar-1.16\src\res\cur00008.cur" />
+    <None Include="AntTweakBar-1.16\src\res\cur00009.cur" />
+    <None Include="AntTweakBar-1.16\src\res\cur00010.cur" />
+    <None Include="AntTweakBar-1.16\src\res\cur00011.cur" />
+    <None Include="AntTweakBar-1.16\src\res\cur00012.cur" />
+    <None Include="AntTweakBar-1.16\src\res\cur00013.cur" />
+    <None Include="AntTweakBar-1.16\src\res\FontFixed1.pgm" />
+    <None Include="AntTweakBar-1.16\src\res\FontLargeAA.pgm" />
+    <None Include="AntTweakBar-1.16\src\res\FontNormal.pgm" />
+    <None Include="AntTweakBar-1.16\src\res\FontSmall.pgm" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="AntTweakBar-1.16\src\res\FontChars.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="AntTweakBar-1.16\src\AntTweakBar.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AntTweakBar-1.16\src\LoadOGL.cpp" />
+    <ClCompile Include="AntTweakBar-1.16\src\LoadOGLCore.cpp" />
+    <ClCompile Include="AntTweakBar-1.16\src\TwBar.cpp" />
+    <ClCompile Include="AntTweakBar-1.16\src\TwColors.cpp" />
+    <ClCompile Include="AntTweakBar-1.16\src\TwDirect3D10.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwDirect3D11.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwDirect3D9.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwEventGLFW.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwEventGLUT.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwEventSDL.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwEventSDL12.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwEventSDL13.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwEventSFML.cpp" />
+    <ClCompile Include="AntTweakBar-1.16\src\TwEventWin.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwEventX11.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="AntTweakBar-1.16\src\TwFonts.cpp" />
+    <ClCompile Include="AntTweakBar-1.16\src\TwMgr.cpp" />
+    <ClCompile Include="AntTweakBar-1.16\src\TwOpenGL.cpp" />
+    <ClCompile Include="AntTweakBar-1.16\src\TwOpenGLCore.cpp" />
+    <ClCompile Include="AntTweakBar-1.16\src\TwPrecomp.cpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{7CD04E55-4579-4367-9AD9-BD3C66EEE2AB}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>AntTweakBar</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>TW_EXPORTS;TW_STATIC;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>AntTweakBar-1.16\include</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>AntTweakBar-1.16\res</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>TW_EXPORTS;TW_STATIC;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>AntTweakBar-1.16\include</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>AntTweakBar-1.16\res</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
