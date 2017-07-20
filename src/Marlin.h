@@ -32,7 +32,7 @@ protected:
 	vec3 m_speedMoveLateral;
 	float m_speedMax;
 
-	vec3 m_vectorPerpendicularToLaneAtJumpTime;
+	vec3 m_vectorTangebtToLaneAtJumpTime;
 
 	MarlinState m_state;
 

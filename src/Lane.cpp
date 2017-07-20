@@ -23,16 +23,9 @@ Lane::Lane()
 #endif
 }
 
-float Lane::getCylinderRadius(float radAngle) const
+float Lane::getCylinderRadius() const
 {
-	//float radius = cos(radAngle)*m_localToWorldMtx[0].x + sin(radAngle)*m_localToWorldMtx[1].y;
-
-	float x = cos(radAngle)*m_localToWorldMtx[0].x;
-	float y = sin(radAngle)*m_localToWorldMtx[1].y;
-
-	float r = sqrt(x*x + y*y);
-
-	return r;
+	return m_localToWorldMtx[0].x;
 }
 
 float Lane::interpolationMethod(float a, float b, float ratio) const
@@ -202,7 +195,7 @@ void Lane::init()
 	//Init lane transformations
 	//Mtx 1
 	static vec3 debugPos = vec3(0, 0, 0);
-	static vec3 debugScale = vec3(1, 1, 1);
+	static vec3 debugScale = vec3(2, 2, 1);
 	m_localToWorldMtx = mat4(
 		vec4(debugScale.x, 0, 0, 0),
 		vec4(0, debugScale.y, 0, 0),
@@ -213,7 +206,7 @@ void Lane::init()
 
 	//Mtx 2
 	static vec3 debugPos2 = vec3(0, 0, 0);
-	static vec3 debugScale2 = vec3(1, 1, 1);
+	static vec3 debugScale2 = vec3(3, 3, 1);
 	mat4 mtx2 = mat4(
 		vec4(debugScale2.x, 0, 0, 0),
 		vec4(0, debugScale2.y, 0, 0),
@@ -223,8 +216,8 @@ void Lane::init()
 	m_mtxVector.push_back(mtx2);
 
 	//Mtx 3
-	static vec3 debugPos3 = vec3(0, 0, 0);
-	static vec3 debugScale3 = vec3(1, 1, 1);
+	static vec3 debugPos3 = vec3(2, 0, 0);
+	static vec3 debugScale3 = vec3(4, 4, 1);
 	mat4 mtx3 = mat4(
 		vec4(debugScale3.x, 0, 0, 0),
 		vec4(0, debugScale3.y, 0, 0),
