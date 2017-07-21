@@ -14,17 +14,17 @@ void main()
 
 	vec2 uv = varUv;
 	//uv.y += gTexelSize.y;
-//	fragHeight =
-//		gTerm1 * texture(texHeights1, uv).r +
-//		gTerm2 * texture(texHeights2, uv).r +
-//		gTerm3 * (
-//			texture(texHeights1, uv + gTexelSize * vec2(-1, 0)).r +
-//			texture(texHeights1, uv + gTexelSize * vec2(+1, 0)).r +
-//			texture(texHeights1, uv + gTexelSize * vec2(0, -1)).r +
-//			texture(texHeights1, uv + gTexelSize * vec2(0, +1)).r
-//			);
+	fragHeight =
+		gTerm1 * texture(texHeights1, uv).r +
+		gTerm2 * texture(texHeights2, uv).r +
+		gTerm3 * (
+			texture(texHeights1, uv + gTexelSize * vec2(-1, 0)).r +
+			texture(texHeights1, uv + gTexelSize * vec2(+1, 0)).r +
+			texture(texHeights1, uv + gTexelSize * vec2(0, -1)).r +
+			texture(texHeights1, uv + gTexelSize * vec2(0, +1)).r
+			);
 
-	fragHeight = 0.1*sin(-gTime*5 + uv.y*10)*0.5;
+//	fragHeight = 0.1*sin(-gTime*5 + uv.y*10)*0.5;
 	//fragHeight = 0.5*sin(-gTime*5 + uv.x*10)*0.5;
 	//fragHeight = 0.1*sin(0.5*5 + uv.y*10)*0.5;
 	//fragHeight=0;

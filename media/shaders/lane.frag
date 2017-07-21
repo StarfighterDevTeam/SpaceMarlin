@@ -8,6 +8,8 @@ in vec3 varViewSpacePos;
 in vec3 varWorldSpaceNormal;
 in vec3 varWorldSpaceViewVec;
 
+in vec3 varDebug;
+
 layout(location=0) out vec4 fragColor;
 
 void main()
@@ -35,6 +37,8 @@ void main()
 	vec3 color =	reflectionFactor * (specular + ambient) +
 					(1-reflectionFactor) * texture(texRefraction, refractionUv).rgb;
 	fragColor = vec4(color, 1);
+
+	fragColor = vec4(varDebug,1);
 	//fragColor = vec4(varViewSpaceNormal.rgb,1);
 	//fragColor = vec4(varWorldSpaceNormal.rgb,1);
 	//fragColor = vec4(vViewVec.rgb,1);
