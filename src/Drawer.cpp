@@ -74,6 +74,37 @@ void Drawer::drawLine(const Camera& camera, glm::vec3 pos0, glm::vec4 col0, glm:
 	glBindVertexArray(0);
 }
 
+void Drawer::drawCross(const Camera& camera, glm::vec3 pos, glm::vec4 col, float size)
+{
+	const GPUProgram* program = gData.gpuProgramMgr->getProgram(PROG_SIMPLE);
+	program->use();
+	program->sendUniform("gLocalToProjMtx", camera.getWorldToProjMtx());	// no localToWorld as we're giving coordinates in world space
+
+	const mat4& viewToWorldRotMtx = camera.getViewToWorldRotMtx();
+	const vec3 worldSpaceViewX = vec3(viewToWorldRotMtx[0]);
+	const vec3 worldSpaceViewY = vec3(viewToWorldRotMtx[1]);
+
+	glBindVertexArray(m_lineVertexArrayId);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, m_lineVertexBufferId);
+
+	const float halfSize = 0.5f * size;
+	VtxSimple vertices[] = {
+		{pos - worldSpaceViewX * halfSize, col},
+		{pos + worldSpaceViewX * halfSize, col},
+		{pos - worldSpaceViewY * halfSize, col},
+		{pos + worldSpaceViewY * halfSize, col},
+	};
+	const size_t nbVertices = _countof(vertices);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), (const GLvoid*)vertices, GL_STREAM_DRAW);
+	
+	// - draw
+	glDrawArrays(GL_LINES, 0, nbVertices);
+
+	glBindVertexArray(0);
+}
+
+
 void Drawer::draw2DTexturedQuad(GLuint texId, glm::vec2 pos, glm::vec2 size)
 {
 	glutil::Disable<GL_DEPTH_TEST>	depthTestState;

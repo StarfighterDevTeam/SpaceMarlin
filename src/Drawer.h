@@ -20,6 +20,7 @@ public:
 	void		shut();
 
 	void		drawLine(const Camera& camera, glm::vec3 pos0, glm::vec4 col0, glm::vec3 pos1, glm::vec4 col1);
+	void		drawCross(const Camera& camera, glm::vec3 pos, glm::vec4 col, float size);
 	void		draw2DTexturedQuad(GLuint texId, glm::vec2 pos, glm::vec2 size);
 };
 
