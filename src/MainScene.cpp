@@ -51,9 +51,25 @@ bool MainScene::init()
 	if(!m_bob.loadFromFile((gData.assetsPath + "/models/marlin/marlin.fbx").c_str()))
 		return false;
 
-	// Lane
-	m_lane.init();
-	m_bob.addLane(&m_lane);
+	// Lanes
+	m_lanes.push_back(Lane());
+	//m_lanes.push_back(Lane());
+	size_t lanesVectorSize = m_lanes.size();
+	for (size_t i = 0; i < lanesVectorSize; i++)
+	{
+		vec3 debugPos = vec3(10.f*i, 0, 0);
+		vec3 debugScale = vec3(1, 1, 1);
+
+		mat4 initialMtx = mat4(
+			vec4(debugScale.x, 0, 0, 0),
+			vec4(0, debugScale.y, 0, 0),
+			vec4(0, 0, debugScale.z, 0),
+			vec4(debugPos, 1));
+
+		m_lanes[i].init(initialMtx);
+		m_bob.addLane(&m_lanes[i]);
+	}
+	
 	m_camera = (FollowCamera*)getCamera();
 	assert(m_camera);
 
@@ -76,7 +92,11 @@ void MainScene::shut()
 
 	m_skybox.unload();
 	m_bob.unload();
-	m_lane.shut();
+	size_t lanesVectorSize = m_lanes.size();
+	for (size_t i = 0; i < lanesVectorSize; i++)
+	{
+		m_lanes[i].shut();
+	}
 
 	shutSceneFBO();
 	m_postProcessTriangle.shut();
@@ -86,7 +106,11 @@ void MainScene::update()
 {
 	Scene::update();
 
-	m_lane.update();
+	size_t lanesVectorSize = m_lanes.size();
+	for (size_t i = 0; i < lanesVectorSize; i++)
+	{
+		m_lanes[i].update();
+	}
 
 	//static float gfCurAngle = 0.f;
 	//static float gfSpeed = 0.001f;
@@ -130,7 +154,11 @@ void MainScene::draw()
 		glCopyTexImage2D(GL_TEXTURE_2D, 0, RT_FORMAT, 0, 0, gData.winSizeX, gData.winSizeY, 0);
 
 		// Draw lane
-		m_lane.draw(*m_camera, m_skybox.getSkyTexId(), m_sceneRefractionTexId);
+		size_t lanesVectorSize = m_lanes.size();
+		for (size_t i = 0; i < lanesVectorSize; i++)
+		{
+			m_lanes[i].draw(*m_camera, m_skybox.getSkyTexId(), m_sceneRefractionTexId);
+		}
 	}
 }
 

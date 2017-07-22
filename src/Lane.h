@@ -14,7 +14,7 @@ class Lane
 {
 public:
 	Lane();
-	void		init();
+	void		init(mat4 initialMtx);
 	void		shut();
 	void		draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexId);
 	void		update();
