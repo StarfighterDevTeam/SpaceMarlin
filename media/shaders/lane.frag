@@ -38,7 +38,7 @@ void main()
 					(1-reflectionFactor) * texture(texRefraction, refractionUv).rgb;
 	fragColor = vec4(color, 1);
 
-	fragColor = vec4(varDebug,1);
+	//fragColor = vec4(varDebug,1);
 	//fragColor = vec4(varViewSpaceNormal.rgb,1);
 	//fragColor = vec4(varWorldSpaceNormal.rgb,1);
 	//fragColor = vec4(vViewVec.rgb,1);
