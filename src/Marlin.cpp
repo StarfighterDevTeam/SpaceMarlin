@@ -178,11 +178,6 @@ void Marlin::update()
 						if (abs(altitude) < ALTITUDE_TO_MOVE_ALONG_SURFACE)//bob is near the surface
 						{
 							m_speedMoveLateral += m_surfaceSpeedLateral * tangentToLane * 1.0f / ANIMATIONS_PER_SECOND;
-
-							if (getPosition().x > 7)
-							{
-								printf("lol");
-							}
 						}
 						else if (altitude > 0)//bob is in the air
 						{
@@ -192,8 +187,6 @@ void Marlin::update()
 						{
 							m_speedMoveLateral += m_diveSpeedLateral * tangentToLane * 1.0f / ANIMATIONS_PER_SECOND;
 						}
-
-						printf("speed: %f, %f, posx: %f\n", m_speedMoveLateral.x, m_speedMoveLateral.y, getPosition().x);
 					}
 
 					//speed limit
