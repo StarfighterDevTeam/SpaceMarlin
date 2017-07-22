@@ -9,7 +9,7 @@ static const ivec2 gSideNbVtx(100,100);
 //static const ivec2 gSideNbVtx(4,4);
 static const float gGridSize = 10.f;
 
-//#define _TEST_LANE_CPU_CYLINDER
+#define _TEST_LANE_CPU_CYLINDER
 
 #ifdef _LANE_USES_GPU
 	#define _IF_LANE_USES_GPU(a, b) a
@@ -32,14 +32,135 @@ float Lane::getCylinderRadius() const
 	return m_localToWorldMtx[0].x;
 }
 
+#ifdef _LANE_OLD_TRANSFORMATIONS
 float Lane::interpolationMethod(float a, float b, float ratio) const
 {
 	return (1-ratio)*a + ratio*b;
 }
+#endif
 
 vec3 Lane::getPosition() const
 {
 	return vec3(m_localToWorldMtx[3].x, m_localToWorldMtx[3].y, m_localToWorldMtx[3].z);
+}
+
+vec3 Lane::getNormalToSurface(const vec3& worldSpacePos) const
+{
+	// TODO: handle Z
+
+	const mat4 worldToLocalMtx = glm::inverse(m_localToWorldMtx);	// TODO: overkill + should be stored and updated once per frame
+	vec4 localSpacePos = worldToLocalMtx * vec4(worldSpacePos,1);
+	//localSpacePos.x /= localSpacePos.w;
+	//localSpacePos.y /= localSpacePos.w;
+	//localSpacePos.z /= localSpacePos.w;
+	//localSpacePos.w = 1;
+	vec2 p = vec2(localSpacePos.x / localSpacePos.w, localSpacePos.y / localSpacePos.w);
+
+	const Keyframe& kf = m_curKeyframe;
+	const float xOffsetOnC0 = (kf.r0 - kf.r1) * kf.r0 / kf.dist;
+	const float xOffsetOnC1 = (kf.r0 - kf.r1) * kf.r1 / kf.dist;
+
+	vec2 backupNormal = vec2(0,1);
+	vec2 backupTangent = vec2(-1,0);
+
+	vec3 localSpaceNormal;
+	if(p.x > 0.5f*kf.dist + xOffsetOnC1)
+	{
+		// Compute normal relative to C1
+		localSpaceNormal = vec3(
+			safeNormalize(p - vec2(0.5f*kf.dist, 0.f), backupNormal),
+			0);
+	}
+	else if(p.x < -0.5f*kf.dist + xOffsetOnC0)
+	{
+		// Compute normal relative to C2
+		localSpaceNormal = vec3(
+			safeNormalize(p - vec2(-0.5f*kf.dist, 0.f), backupNormal),
+			0);
+	}
+	else if(p.y > 0.f)
+	{
+		// Compute normal relative to top tangent segment of capsule
+		const float theta = acos( (kf.r0 - kf.r1) / kf.dist );
+		const vec2 startPos = vec2(0.5*kf.dist + xOffsetOnC1, xOffsetOnC1 * tan(theta));
+		const vec2 endPos = vec2(-0.5*kf.dist + xOffsetOnC0, xOffsetOnC0 * tan(theta));
+		
+		const vec2 tangentVector = safeNormalize(endPos - startPos, backupTangent);
+		localSpaceNormal = vec3(tangentVector.y, -tangentVector.x, 0);
+	}
+	else /*if(p.y <= 0.f)*/
+	{
+		// Compute normal relative to bottom tangent segment of capsule
+		const float theta = acos( (kf.r0 - kf.r1) / kf.dist );
+		const vec2 startPos = vec2(-0.5*kf.dist + xOffsetOnC0, -xOffsetOnC0 * tan(theta));
+		const vec2 endPos = vec2(0.5*kf.dist + xOffsetOnC1, -xOffsetOnC1 * tan(theta));
+		
+		const vec2 tangentVector = safeNormalize(endPos - startPos, backupTangent);
+		localSpaceNormal = vec3(tangentVector.y, -tangentVector.x, 0);
+	}
+
+	vec3 worldSpaceNormal = mat3(m_localToWorldMtx) * localSpaceNormal;
+	
+	return worldSpaceNormal;
+}
+
+float Lane::getDistToSurface(const vec3& worldSpacePos) const
+{
+	// TODO: handle Z
+
+	const mat4 worldToLocalMtx = glm::inverse(m_localToWorldMtx);	// TODO: overkill + should be stored and updated once per frame
+	vec4 localSpacePos = worldToLocalMtx * vec4(worldSpacePos,1);
+	//localSpacePos.x /= localSpacePos.w;
+	//localSpacePos.y /= localSpacePos.w;
+	//localSpacePos.z /= localSpacePos.w;
+	//localSpacePos.w = 1;
+	vec2 p = vec2(localSpacePos.x / localSpacePos.w, localSpacePos.y / localSpacePos.w);
+
+	const Keyframe& kf = m_curKeyframe;
+	const float xOffsetOnC0 = (kf.r0 - kf.r1) * kf.r0 / kf.dist;
+	const float xOffsetOnC1 = (kf.r0 - kf.r1) * kf.r1 / kf.dist;
+	const float theta = acos( (kf.r0 - kf.r1) / kf.dist );
+	const float yOffsetOnC0 = xOffsetOnC0 * tan(theta);
+	const float yOffsetOnC1 = xOffsetOnC1 * tan(theta);
+	
+	const vec2 segments[4] = {
+		// top segment
+		vec2(-0.5*kf.dist + xOffsetOnC0, yOffsetOnC0),	// left (C0)
+		vec2(0.5*kf.dist + xOffsetOnC1, yOffsetOnC1),	// right (C1)
+
+		// bottom segment
+		vec2(-0.5*kf.dist + xOffsetOnC0, -yOffsetOnC0),	// left (C0)
+		vec2(0.5*kf.dist + xOffsetOnC1, -yOffsetOnC1),	// right (C1)
+	};
+
+	const vec2& segStart	= p.y >= 0 ? segments[0] : segments[2];
+	const vec2& segEnd		= p.y >= 0 ? segments[1] : segments[3];
+	const vec2 segment		= segEnd - segStart;
+	const float u			= glm::dot(p - segStart, segment) / glm::dot(segment, segment);
+	if(u < 0)
+	{
+		const vec2 c0Center = vec2(-0.5f*kf.dist, 0);
+		return glm::length(p - c0Center) - kf.r0;	// signed distance to C0
+	}
+	else if(u > 1)
+	{
+		const vec2 c1Center = vec2(0.5f*kf.dist, 0);
+		return glm::length(p - c1Center) - kf.r1;	// signed distance to C1
+	}
+	else
+	{
+		// signed distance to the segment
+		const vec2	h		= segStart + u * segment;
+		const float s		=	-safeSign(p.y) *
+								safeSign(glm::determinant(mat2(p - segStart, segment)));
+		return s * glm::length(p - h);
+	}
+}
+
+vec3 Lane::getGravityVector(const vec3& worldSpacePos) const
+{
+	// TODO: have a different gravity vector when the distance between the cylinders is > threshold
+	return getNormalToSurface(worldSpacePos);
 }
 
 void Lane::init()
@@ -104,7 +225,7 @@ void Lane::init()
 		for(int x=0 ; x < nbVerticesPerRing ; x++)
 		{
 			VtxLane& vtx = (*pInitVertices)[x + y*nbVerticesPerRing];
-			const double angle = x * angleBetweenRingVertices - M_PI_2;
+			const double angle = x * angleBetweenRingVertices;
 			vtx.pos.x = (float)cos(angle);
 			vtx.pos.y = (float)sin(angle);
 			vtx.pos.z = posZ;
@@ -248,6 +369,7 @@ void Lane::init()
 	}
 #endif
 
+#ifdef _LANE_OLD_TRANSFORMATIONS
 	//Init lane transformations
 	//Mtx 1
 	static vec3 debugPos = vec3(0, 0, 0);
@@ -281,6 +403,7 @@ void Lane::init()
 		vec4(debugPos3, 1));
 
 	m_mtxVector.push_back(mtx3);
+#endif
 
 #ifdef _USE_ANTTWEAKBAR
 	m_debugBar = TwNewBar("Lane");
@@ -376,6 +499,18 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 	laneProgram->sendUniform("gDistBetweenTexels", vec2(gGridSize / gSideNbVtx.x, gGridSize / gSideNbVtx.y));
 #endif
 
+	// Send test keyframe to shader
+	m_curKeyframe.dist = 4.f;
+	m_curKeyframe.r0 = 2.f;
+	m_curKeyframe.r1 = 0.8f;
+	
+	m_localToWorldMtx = glm::translate(glm::yawPitchRoll(m_curKeyframe.yaw, m_curKeyframe.pitch, m_curKeyframe.roll), m_curKeyframe.pos);
+
+	laneProgram->sendUniform("gKeyframeDist", m_curKeyframe.dist);
+	laneProgram->sendUniform("gKeyframeR0", m_curKeyframe.r0);
+	laneProgram->sendUniform("gKeyframeR1", m_curKeyframe.r1);
+	laneProgram->sendUniform("gKeyframeLocalToWorldMtx", m_localToWorldMtx, false, Hash::AT_RUNTIME);
+
 	glBindVertexArray(m_vertexArrayId);
 
 #if !defined(_LANE_USES_GPU)
@@ -407,32 +542,37 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 	static bool gbDebugDrawNormals = false;
 	if(gbDebugDrawNormals)
 	{
-		mat3 localToWorldNormalMtx = glm::transpose(glm::inverse(mat3(m_localToWorldMtx)));
-		//const int nbVerticesPerRing = gSideNbVtx.x;
-		const int nbVerticesPerRing = 50;
-		const double angleBetweenRingVertices	= (2. * M_PI) / nbVerticesPerRing;
-		for(int x=0 ; x < nbVerticesPerRing ; x++)
+		for(float y=-5.f ; y <= 5.f; y += 0.25f)
 		{
-			vec3 localSpacePos;
-			const double angle = x * angleBetweenRingVertices - M_PI_2;
-			localSpacePos.x = (float)cos(angle);
-			localSpacePos.y = (float)sin(angle);
-			localSpacePos.z = 0;
-
-			vec4 worldSpacePos = m_localToWorldMtx * vec4(localSpacePos,1);
-			worldSpacePos.x /= worldSpacePos.w;
-			worldSpacePos.y /= worldSpacePos.w;
-			worldSpacePos.z /= worldSpacePos.w;
-			worldSpacePos.w = 1;
-
-			static float gfNormalSize = 1.f;
-			vec3 localSpaceNormal = localSpacePos;
-			vec3 worldSpaceNormal = glm::normalize(localToWorldNormalMtx * localSpaceNormal);
-			vec3 worldSpacePosEnd = vec3(worldSpacePos) + gfNormalSize * worldSpaceNormal;
-			gData.drawer->drawLine(camera, worldSpacePos, COLOR_RED, worldSpacePosEnd, COLOR_RED);
+			for(float x=-5.f ; x <= 5.f; x += 0.25f)
+			{
+				const vec3 worldSpacePos = vec3(x,y,0);
+				const vec3 worldSpaceNormal = getNormalToSurface(worldSpacePos);
+				static float gfDebugNormalSize = 0.1f;
+				gData.drawer->drawLine(camera, worldSpacePos, COLOR_RED, worldSpacePos + gfDebugNormalSize * worldSpaceNormal, COLOR_WHITE);
+			}
 		}
 	}
 	// END debug normals
+
+	// BEGIN debug SDF
+	static bool gbDebugDrawDistToSurface = false;
+	if(gbDebugDrawDistToSurface)
+	{
+		for(float y=-5.f ; y <= 5.f; y += 0.25f)
+		{
+			for(float x=-5.f ; x <= 5.f; x += 0.25f)
+			{
+				const vec3 worldSpacePos = vec3(x,y,0);
+				const float distToSurface = getDistToSurface(worldSpacePos);
+				static float gfCrossSize = 0.1f;
+				static float gfColorScale = 1.f;
+				const vec4 color = distToSurface > 0.f ? vec4(0, distToSurface*gfColorScale, 0, 1) : vec4(-distToSurface*gfColorScale, 0, 0, 1);
+				gData.drawer->drawCross(camera, worldSpacePos, color, gfCrossSize);
+			}
+		}
+	}
+	// END debug SDF
 }
 
 sf::Clock	laneSimulationStart;
@@ -464,6 +604,7 @@ void Lane::update()
 	}
 	// END TEST
 
+#ifdef _LANE_OLD_TRANSFORMATIONS
 	//sf::sleep(sf::seconds(1.f));
 	static float transformationTime = 3.f;
 	if (laneSimulationStart.getElapsedTime().asSeconds() > 6.f)
@@ -513,6 +654,7 @@ void Lane::update()
 	{
 		m_transformationClock.restart();
 	}
+#endif
 
 	// BEGIN TEST
 	//static vec3 debugPos = vec3(0, 0, 0);

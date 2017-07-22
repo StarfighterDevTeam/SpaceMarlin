@@ -39,14 +39,18 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_precision.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/euler_angles.hpp>
 using glm::ivec2;
 using glm::ivec3;
 using glm::ivec4;
 using glm::vec2;
 using glm::vec3;
 using glm::vec4;
+using glm::mat2;
 using glm::mat3;
 using glm::mat4;
+using glm::quat;
 
 #define COLOR_RED		glm::vec4(1,0,0,1)
 #define COLOR_GREEN		glm::vec4(0,1,0,1)
@@ -73,6 +77,22 @@ T clamp(T a, T minVal, T maxVal)
 	if(a < minVal)
 		a = minVal;
 	return a;
+}
+
+template <class TVec>
+TVec safeNormalize(const TVec& v, const TVec& backup)
+{
+	float len = glm::length(v);
+	if(len*len < 0.000001f)
+		return backup;
+	return v * (1.f/len);
+}
+
+// GLM and GLSL sign() returns 0 for 0, this one returns either 1 or -1
+// https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/sign.xhtml
+inline float safeSign(float x)
+{
+	return x >= 0.f ? 1.f : -1.f;
 }
 
 #ifndef _WIN32
