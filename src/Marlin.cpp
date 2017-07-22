@@ -214,6 +214,7 @@ void Marlin::update()
 				getAltitudeAndAngleToLane(lane, altitudeNew, angleNew);
 
 				//printf("altitude: %f", altitude);
+				const vec3 normalToLaneNew = normalize(getPosition() - lane->getPosition());
 
 				if ((altitude > 0 && altitudeNew <= 0)//moving through lane's surface?
 					|| (altitude < 0 && altitudeNew >= 0))
@@ -223,8 +224,6 @@ void Marlin::update()
 						//kill tiny oscillations by sticking the Marlin right on the lane surface
 						if (getNormalizedSpeed(m_speed) < SPEED_TO_GET_STABILIZED_ON_SURFACE)//the stronger the gravity, the higher the value must be
 						{
-							const vec3 normalToLaneNew = normalize(getPosition() - lane->getPosition());
-
 							const vec3 vectorToStickToLane = normalToLaneNew * (-altitudeNew);
 
 							move(vectorToStickToLane);
@@ -241,109 +240,13 @@ void Marlin::update()
 
 					//printf("LOOSE MOMENTUM. ");
 				}
+
+				// Reset up vector according to gravity to lane
+				m_localToWorldMtx[1] += (vec4(normalToLaneNew, 0) - m_localToWorldMtx[1]) * 0.05f;
+				m_localToWorldMtx[0] += (vec4(cross(normalToLaneNew, vec3(m_localToWorldMtx[2])), 0) - m_localToWorldMtx[0]) * 0.05f;
 			}
 		}
 
 		m_lastAnimationTimeSecs += (1.0f / ANIMATIONS_PER_SECOND);
 	}
-
-	// Reset up vector according to gravity to lane
-	if(m_lanes.size())
-	{
-		const Lane* lane = m_lanes[0];
-		const vec3 newUpVector = normalize(getPosition() - lane->getPosition());
-		m_localToWorldMtx[1] = vec4(newUpVector,0);
-		m_localToWorldMtx[0] = vec4(cross(newUpVector, vec3(m_localToWorldMtx[2])), 0);
-	}
-
-	//OLD MOVE SYSTEM
-	//bool bobIsJumping = m_offsetZ > 0;
-	//bool bobIsDiving = m_offsetZ < 0;
-	//
-	////Deceleration
-	//m_speedX = 0;
-	//
-	////Move left
-	//if (gData.inputMgr->isLeftPressed())
-	//{
-	//	if (m_offsetZ == 0)
-	//	{
-	//		m_speedX -= m_surfaceSpeedLateral;
-	//	}
-	//	else if (m_offsetZ > 0)
-	//	{
-	//		m_speedX -= m_airSpeedLateral;
-	//	}
-	//	else//if (m_bobOffsetZ < 0)
-	//	{
-	//		m_speedX -= m_diveSpeedLateral;
-	//	}
-	//}
-	//
-	////Move right
-	//if (gData.inputMgr->isRightPressed())
-	//{
-	//	if (m_offsetZ == 0)
-	//	{
-	//		m_speedX += m_surfaceSpeedLateral;
-	//	}
-	//	else if (m_offsetZ > 0)
-	//	{
-	//		m_speedX += m_airSpeedLateral;
-	//	}
-	//	else//if (m_bobOffsetZ < 0)
-	//	{
-	//		m_speedX += m_diveSpeedLateral;
-	//	}
-	//}
-	//
-	////Jump
-	//if (gData.inputMgr->isUpTapped())
-	//{
-	//	if (m_offsetZ == 0)//Bob must be on the surface to jump
-	//	{
-	//		m_speedZ += m_jumpSpeedVertical;
-	//	}
-	//}
-	//
-	////Dive
-	//if (gData.inputMgr->isDownTapped())
-	//{
-	//	if (m_offsetZ == 0)//Bob must be on the surface to dive
-	//	{
-	//		m_speedZ += m_diveSpeedVertical;
-	//	}
-	//}
-	//
-	////Speed limits
-	//if (m_speedX > m_surfaceSpeedLateral) m_speedX = m_surfaceSpeedLateral;
-	//if (m_speedX < -m_surfaceSpeedLateral) m_speedX = -m_surfaceSpeedLateral;
-	//
-	////Gravity force
-	//if (m_offsetZ > 0)
-	//{
-	//	m_speedZ += m_gravityAccelerationVertical * gData.dTime.asSeconds();
-	//}
-	////Archimed force
-	//if (m_offsetZ < 0)
-	//{
-	//	m_speedZ += m_archimedeAccelerationVertical * gData.dTime.asSeconds();
-	//}
-	//
-	////Apply speed to offset
-	//m_offsetX += m_speedX * gData.dTime.asSeconds();
-	//m_offsetZ += m_speedZ * gData.dTime.asSeconds();
-	//
-	////Returning back to the surface from a jump or a dive
-	//if ((m_offsetZ <= 0 && bobIsJumping)
-	//	|| (m_offsetZ >= 0 && bobIsDiving))
-	//{
-	//	m_speedZ = 0;
-	//	m_offsetZ = 0;
-	//}
-	//
-	////Apply offset to position
-	//setPosition(glm::vec3(m_offsetX,
-	//	m_offsetZ,
-	//	0.f));
 }
