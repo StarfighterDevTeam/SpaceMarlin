@@ -242,8 +242,11 @@ void Marlin::update()
 				}
 
 				// Reset up vector according to gravity to lane
-				m_localToWorldMtx[1] += (vec4(normalToLaneNew, 0) - m_localToWorldMtx[1]) * 0.05f;
-				m_localToWorldMtx[0] += (vec4(cross(normalToLaneNew, vec3(m_localToWorldMtx[2])), 0) - m_localToWorldMtx[0]) * 0.05f;
+				m_localToWorldMtx[1] += (vec4(normalToLaneNew, 0) - m_localToWorldMtx[1]) * 0.95f * 1.0f / ANIMATIONS_PER_SECOND;
+				m_localToWorldMtx[0] += (vec4(cross(normalToLaneNew, vec3(m_localToWorldMtx[2])), 0) - m_localToWorldMtx[0]) * 0.95f * 1.0f / ANIMATIONS_PER_SECOND;
+
+				//m_localToWorldMtx = glm::rotate(m_localToWorldMtx, (angleNew - angle) * 100.0f / ANIMATIONS_PER_SECOND, vec3(0,0,01));
+				//printf("angle: %f , angle New: %f\n", angle, angleNew);
 			}
 		}
 
