@@ -16,15 +16,15 @@ class FollowCamera;
 class MainScene : public Scene
 {
 private:
-	Skybox			m_skybox;
-	Marlin			m_bob;
-	Lane			m_lane;
-	FollowCamera*	m_camera;
+	Skybox				m_skybox;
+	Marlin				m_bob;
+	std::vector<Lane>	m_lanes;
+	FollowCamera*		m_camera;
 
-	GLuint			m_sceneRefractionTexId;
-	GLuint			m_sceneFboId;
-	GLuint			m_sceneTexId;
-	GLuint			m_sceneDepthRenderbufferId;
+	GLuint				m_sceneRefractionTexId;
+	GLuint				m_sceneFboId;
+	GLuint				m_sceneTexId;
+	GLuint				m_sceneDepthRenderbufferId;
 
 	FullScreenTriangle	m_postProcessTriangle;
 

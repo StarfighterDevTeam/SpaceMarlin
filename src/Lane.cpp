@@ -42,7 +42,7 @@ vec3 Lane::getPosition() const
 	return vec3(m_localToWorldMtx[3].x, m_localToWorldMtx[3].y, m_localToWorldMtx[3].z);
 }
 
-void Lane::init()
+void Lane::init(mat4 initialMtx)
 {
 #ifdef _LANE_USES_GPU
 	assert(m_heightsTexId[0] == INVALID_GL_ID);
@@ -250,13 +250,7 @@ void Lane::init()
 
 	//Init lane transformations
 	//Mtx 1
-	static vec3 debugPos = vec3(0, 0, 0);
-	static vec3 debugScale = vec3(2, 2, 1);
-	m_localToWorldMtx = mat4(
-		vec4(debugScale.x, 0, 0, 0),
-		vec4(0, debugScale.y, 0, 0),
-		vec4(0, 0, debugScale.z, 0),
-		vec4(debugPos, 1));
+	m_localToWorldMtx = initialMtx;
 
 	m_mtxVector.push_back(m_localToWorldMtx);
 
@@ -269,7 +263,7 @@ void Lane::init()
 		vec4(0, 0, debugScale2.z, 0),
 		vec4(debugPos2, 1));
 
-	m_mtxVector.push_back(mtx2);
+	//m_mtxVector.push_back(mtx2);
 
 	//Mtx 3
 	static vec3 debugPos3 = vec3(2, 0, 0);
@@ -280,13 +274,13 @@ void Lane::init()
 		vec4(0, 0, debugScale3.z, 0),
 		vec4(debugPos3, 1));
 
-	m_mtxVector.push_back(mtx3);
+	//m_mtxVector.push_back(mtx3);
 
 #ifdef _USE_ANTTWEAKBAR
 	m_debugBar = TwNewBar("Lane");
-	TwAddVarRW(m_debugBar, "PosX", TW_TYPE_FLOAT, &m_localToWorldMtx[3].x, " opened=true help='X pos' ");
-	TwAddVarRW(m_debugBar, "PosY", TW_TYPE_FLOAT, &m_localToWorldMtx[3].y, " opened=true help='Y pos' ");
-	TwAddVarRW(m_debugBar, "PosZ", TW_TYPE_FLOAT, &m_localToWorldMtx[3].z, " opened=true help='Z pos' ");
+	TwAddVarRW(m_debugBar, "PosX", TW_TYPE_FLOAT, &m_localToWorldMtx[3].x,"");
+	TwAddVarRW(m_debugBar, "PosY", TW_TYPE_FLOAT, &m_localToWorldMtx[3].y,"");
+	TwAddVarRW(m_debugBar, "PosZ", TW_TYPE_FLOAT, &m_localToWorldMtx[3].z,"");
 #endif
 }
 
