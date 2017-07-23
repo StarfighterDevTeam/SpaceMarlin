@@ -173,7 +173,7 @@ void Game::update()
 
 	if(m_slowMode)
 	{
-		static float sNbSeconds = 0.5f;
+		static float sNbSeconds = 0.1f;
 		sf::sleep(sf::seconds(sNbSeconds));
 	}
 
