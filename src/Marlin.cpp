@@ -16,7 +16,7 @@ Marlin::Marlin()
 
 	m_speed									= vec3(0, 0, 0);
 	m_speedMoveLateral						= vec3(0, 0, 0);
-	m_vectorTangentToLaneAtJumpTime			= vec3(0, 0, 0);
+	m_tangentToGravityAtJumpTime			= vec3(0, 0, 0);
 
 	m_state = STATE_IDLE;
 
@@ -48,38 +48,32 @@ void Marlin::addLane(const Lane* lane)
 	m_lanes.push_back(lane);
 }
 
-float Marlin::getDistanceSquaredToLane(const Lane* lane) const
-{
-	vec3 d = getPosition() - lane->getPosition();
-
-	float distSquared = d.x*d.x + d.y*d.y + d.z*d.z;
-
-	return distSquared;
-}
-
 void Marlin::getAltitudeAndAngleToLane(const Lane* lane, float &altitude, float &angle) const
 {
-	const float a = getPosition().x - lane->getPosition().x;
-	const float b = getPosition().y - lane->getPosition().y;
+	//const float a = getPosition().x - lane->getPosition().x;
+	//const float b = getPosition().y - lane->getPosition().y;
+	//
+	//if (a == 0 && b == 0)
+	//{
+	//	altitude = 0;
+	//	angle = 0;
+	//	return;
+	//}
+	//
+	//float distance = (a * a) + (b * b);
+	//distance = sqrt(distance);
+	//
+	//angle = atan2(b, a);
+	//
+	//altitude = distance - lane->getCylinderRadius();
 
-	if (a == 0 && b == 0)
-	{
-		altitude = 0;
-		angle = 0;
-		return;
-	}
-
-	float distance = (a * a) + (b * b);
-	distance = sqrt(distance);
-
-	angle = atan2(b, a);
-
-	altitude = distance - lane->getCylinderRadius();
+	
 }
 
-float Marlin::getNormalizedSpeed(vec3 speed) const
+float Marlin::getVec3Length(const vec3 vector)
 {
-	return sqrt(speed.x*speed.x + speed.y*speed.y + speed.z*speed.z);
+	float length = sqrt(vector.x*vector.x + vector.y*vector.y + vector.z*vector.z);
+	return length;
 }
 
 #define ALTITUDE_TO_ENTER_GRAVITY				15.f
@@ -113,7 +107,9 @@ void Marlin::update()
 			size_t laneVectorSize = m_lanes.size();
 			for (size_t i = 0; i < laneVectorSize; i++)
 			{	
-				getAltitudeAndAngleToLane(m_lanes[i], altitude, angle);
+				//getAltitudeAndAngleToLane(m_lanes[i], altitude, angle);
+
+				altitude = m_lanes[i]->getDistToSurface(getPosition());
 
 				if (abs(altitude) < minAltitude)
 				{
@@ -126,22 +122,25 @@ void Marlin::update()
 			if (laneIndex >= 0)
 			{
 				const Lane* lane = m_lanes[laneIndex];
-				getAltitudeAndAngleToLane(lane, altitude, angle);
+				//getAltitudeAndAngleToLane(lane, altitude, angle);
+				altitude = lane->getDistToSurface(getPosition());
 
-				const vec3 normalToLane = normalize(getPosition() - lane->getPosition());
+				//const vec3 gravityVector = normalize(getPosition() - lane->getPosition());
+				const vec3 gravityVector = lane->getGravityVector(getPosition());
+				const vec3 tangentToGravity = vec3(gravityVector.y, -gravityVector.x, 0);
 
-				vec3 tangentToLane = vec3(	normalToLane.x * cos(-3.1415 / 2) - normalToLane.y * sin(-3.1415 / 2),
-											normalToLane.x * sin(-3.1415 / 2) - normalToLane.y * cos(-3.1415 / 2),
-											normalToLane.z);
+				//vec3 tangentToGravity = vec3(	gravityVector.x * cos(-3.1415 / 2) - gravityVector.y * sin(-3.1415 / 2),
+				//							gravityVector.x * sin(-3.1415 / 2) - gravityVector.y * cos(-3.1415 / 2),
+				//							gravityVector.z);
 
 				//Jump
 				if (gData.inputMgr->isUpPressed())
 				{
 					if (abs(altitude) < ALTITUDE_TO_JUMP_OR_DIVE)//Bob must be on the surface to jump
 					{
-						m_speed += normalToLane * m_jumpSpeedVertical * 1.0f / ANIMATIONS_PER_SECOND;
+						m_speed += gravityVector * m_jumpSpeedVertical * 1.0f / ANIMATIONS_PER_SECOND;
 						m_state = STATE_JUMPING;
-						m_vectorTangentToLaneAtJumpTime = tangentToLane;//save the system at the moment of jump to keep moving in this system while in the air
+						m_tangentToGravityAtJumpTime = tangentToGravity;//save the system at the moment of jump to keep moving in this system while in the air
 					}
 				}
 
@@ -150,7 +149,7 @@ void Marlin::update()
 				{
 					if (abs(altitude) < ALTITUDE_TO_JUMP_OR_DIVE)//Bob must be on the surface to jump
 					{
-						m_speed += normalToLane * m_diveSpeedVertical * 1.0f / ANIMATIONS_PER_SECOND;
+						m_speed += gravityVector * m_diveSpeedVertical * 1.0f / ANIMATIONS_PER_SECOND;
 						m_state = STATE_DIVING;
 					}
 				}
@@ -158,11 +157,11 @@ void Marlin::update()
 				//Gravity
 				if (altitude > 0)
 				{
-					m_speed += normalToLane * m_gravityAccelerationVertical * 1.0f / ANIMATIONS_PER_SECOND;
+					m_speed += gravityVector * m_gravityAccelerationVertical * 1.0f / ANIMATIONS_PER_SECOND;
 				}
 				else if (altitude < 0)
 				{
-					m_speed += normalToLane * (-m_gravityAccelerationVertical) * 1.0f / ANIMATIONS_PER_SECOND;//using an inverted gravity to simulate an Archimedes' thrust
+					m_speed += gravityVector * (-m_gravityAccelerationVertical) * 1.0f / ANIMATIONS_PER_SECOND;//using an inverted gravity to simulate an Archimedes' thrust
 				}
 
 				//Move left
@@ -170,15 +169,15 @@ void Marlin::update()
 				{
 					if (abs(altitude) < ALTITUDE_TO_MOVE_ALONG_SURFACE)//bob is near the surface
 					{
-						m_speedMoveLateral -= m_surfaceSpeedLateral * tangentToLane * 1.0f / ANIMATIONS_PER_SECOND;
+						m_speedMoveLateral -= m_surfaceSpeedLateral * tangentToGravity * 1.0f / ANIMATIONS_PER_SECOND;
 					}
 					else if (altitude > 0)//bob is in the air
 					{
-						m_speedMoveLateral -= m_airSpeedLateral * tangentToLane * 1.0f / ANIMATIONS_PER_SECOND;
+						m_speedMoveLateral -= m_airSpeedLateral * tangentToGravity * 1.0f / ANIMATIONS_PER_SECOND;
 					}
 					else//if (altitude < 0)//bob is underwater
 					{
-						m_speedMoveLateral -= m_diveSpeedLateral * tangentToLane * 1.0f / ANIMATIONS_PER_SECOND;
+						m_speedMoveLateral -= m_diveSpeedLateral * tangentToGravity * 1.0f / ANIMATIONS_PER_SECOND;
 					}
 				}
 
@@ -187,20 +186,20 @@ void Marlin::update()
 				{
 					if (abs(altitude) < ALTITUDE_TO_MOVE_ALONG_SURFACE)//bob is near the surface
 					{
-						m_speedMoveLateral += m_surfaceSpeedLateral * tangentToLane * 1.0f / ANIMATIONS_PER_SECOND;
+						m_speedMoveLateral += m_surfaceSpeedLateral * tangentToGravity * 1.0f / ANIMATIONS_PER_SECOND;
 					}
 					else if (altitude > 0)//bob is in the air
 					{
-						m_speedMoveLateral += m_airSpeedLateral * tangentToLane * 1.0f / ANIMATIONS_PER_SECOND;
+						m_speedMoveLateral += m_airSpeedLateral * tangentToGravity * 1.0f / ANIMATIONS_PER_SECOND;
 					}
 					else//if (altitude < 0)//bob is underwater
 					{
-						m_speedMoveLateral += m_diveSpeedLateral * tangentToLane * 1.0f / ANIMATIONS_PER_SECOND;
+						m_speedMoveLateral += m_diveSpeedLateral * tangentToGravity * 1.0f / ANIMATIONS_PER_SECOND;
 					}
 				}
 
 				//speed limit
-				if (getNormalizedSpeed(m_speed) > m_speedMax)
+				if (Marlin::getVec3Length(m_speed) > m_speedMax)
 				{
 					m_speed = normalize(m_speed) * m_speedMax;
 				}
@@ -210,11 +209,13 @@ void Marlin::update()
 					+ m_speedMoveLateral);
 
 				//moving through the lane's surface? -> loose momentum
-				float altitudeNew, angleNew;
-				getAltitudeAndAngleToLane(lane, altitudeNew, angleNew);
+				//float altitudeNew, angleNew;
+				//getAltitudeAndAngleToLane(lane, altitudeNew, angleNew);
+				float altitudeNew = lane->getDistToSurface(getPosition());
 
 				//printf("altitude: %f", altitude);
-				const vec3 normalToLaneNew = normalize(getPosition() - lane->getPosition());
+				//const vec3 gravityVectorNew = normalize(getPosition() - lane->getPosition());
+				const vec3 gravityVectorNew = lane->getNormalToSurface(getPosition());
 
 				if ((altitude > 0 && altitudeNew <= 0)//moving through lane's surface?
 					|| (altitude < 0 && altitudeNew >= 0))
@@ -222,9 +223,9 @@ void Marlin::update()
 					if (!((altitude < 0 && m_state == STATE_JUMPING) || (altitude > 0 && m_state == STATE_DIVING)))//not jumping from below the surface or diving from below the surface?
 					{
 						//kill tiny oscillations by sticking the Marlin right on the lane surface
-						if (getNormalizedSpeed(m_speed) < SPEED_TO_GET_STABILIZED_ON_SURFACE)//the stronger the gravity, the higher the value must be
+						if (Marlin::getVec3Length(m_speed) < SPEED_TO_GET_STABILIZED_ON_SURFACE)//the stronger the gravity, the higher the value must be
 						{
-							const vec3 vectorToStickToLane = normalToLaneNew * (-altitudeNew);
+							const vec3 vectorToStickToLane = gravityVectorNew * (-altitudeNew);
 
 							move(vectorToStickToLane);
 
@@ -242,8 +243,8 @@ void Marlin::update()
 				}
 
 				// Reset up vector according to gravity to lane
-				m_localToWorldMtx[1] += (vec4(normalToLaneNew, 0) - m_localToWorldMtx[1]) * 0.95f * 1.0f / ANIMATIONS_PER_SECOND;
-				m_localToWorldMtx[0] += (vec4(cross(normalToLaneNew, vec3(m_localToWorldMtx[2])), 0) - m_localToWorldMtx[0]) * 0.95f * 1.0f / ANIMATIONS_PER_SECOND;
+				m_localToWorldMtx[1] += (vec4(gravityVectorNew, 0) - m_localToWorldMtx[1]) * 0.95f * 1.0f / ANIMATIONS_PER_SECOND;
+				m_localToWorldMtx[0] += (vec4(cross(gravityVectorNew, vec3(m_localToWorldMtx[2])), 0) - m_localToWorldMtx[0]) * 0.95f * 1.0f / ANIMATIONS_PER_SECOND;
 
 				//m_localToWorldMtx = glm::rotate(m_localToWorldMtx, (angleNew - angle) * 100.0f / ANIMATIONS_PER_SECOND, vec3(0,0,01));
 				//printf("angle: %f , angle New: %f\n", angle, angleNew);

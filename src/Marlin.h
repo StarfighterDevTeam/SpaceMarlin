@@ -32,7 +32,7 @@ protected:
 	vec3 m_speedMoveLateral;
 	float m_speedMax;
 
-	vec3 m_vectorTangentToLaneAtJumpTime;
+	vec3 m_tangentToGravityAtJumpTime;
 
 	MarlinState m_state;
 
@@ -42,8 +42,7 @@ public:
 	Marlin();
 
 	void update();
-	float getDistanceSquaredToLane(const Lane* lane) const;
-	float getNormalizedSpeed(vec3 speed) const;
+	static float getVec3Length(const vec3 vector);
 	void getAltitudeAndAngleToLane(const Lane* lane, float &altitude, float &angle) const;
 	void addLane(const Lane* lane);
 };
