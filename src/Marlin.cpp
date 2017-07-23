@@ -96,9 +96,9 @@ void Marlin::update()
 			//find the closest lane (size of the normal vector to lane)
 			int laneIndex = -1;
 			float minAltitude = ALTITUDE_TO_ENTER_GRAVITY;
-			float altitude, angle;
+			float altitude;
 
-			int laneVectorSize = m_lanes.size();
+			int laneVectorSize = (int)m_lanes.size();
 			for (int i = 0; i < laneVectorSize; i++)
 			{	
 				//getAltitudeAndAngleToLane(m_lanes[i], altitude, angle);
@@ -237,11 +237,11 @@ void Marlin::update()
 				}
 
 				// Reset up vector according to gravity to lane
-				m_localToWorldMtx[1] += (vec4(gravityVectorNew, 0) - m_localToWorldMtx[1]) * 0.95f * 1.0f / ANIMATIONS_PER_SECOND;
-				m_localToWorldMtx[0] += (vec4(cross(gravityVectorNew, vec3(m_localToWorldMtx[2])), 0) - m_localToWorldMtx[0]) * 0.95f * 1.0f / ANIMATIONS_PER_SECOND;
-
-				//m_localToWorldMtx = glm::rotate(m_localToWorldMtx, (angleNew - angle) * 100.0f / ANIMATIONS_PER_SECOND, vec3(0,0,01));
-				//printf("angle: %f , angle New: %f\n", angle, angleNew);
+				const vec3 oldUpVector = vec3(m_localToWorldMtx[1]);
+				const vec3 newUpVector = glm::normalize(oldUpVector + (gravityVectorNew - oldUpVector) * 3.f / ANIMATIONS_PER_SECOND);
+				
+				m_localToWorldMtx[1] = vec4(newUpVector,0);
+				m_localToWorldMtx[0] = vec4(cross(newUpVector, vec3(m_localToWorldMtx[2])), 0);
 			}
 		}
 
