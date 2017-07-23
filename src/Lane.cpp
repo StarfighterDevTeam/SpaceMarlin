@@ -8,6 +8,8 @@ static const ivec2 gSideNbVtx(100,100);
 //static const ivec2 gSideNbVtx(10,10);
 //static const ivec2 gSideNbVtx(4,4);
 static const float gGridSize = 10.f;
+static bool gbDebugDrawNormals = false;
+static bool gbDebugDrawDistToSurface = false;
 
 #define _TEST_LANE_CPU_CYLINDER
 
@@ -406,6 +408,8 @@ void Lane::init(mat4 initialMtx)
 	TwAddVarRW(m_debugBar, "PosX", TW_TYPE_FLOAT, &m_localToWorldMtx[3].x,"");
 	TwAddVarRW(m_debugBar, "PosY", TW_TYPE_FLOAT, &m_localToWorldMtx[3].y,"");
 	TwAddVarRW(m_debugBar, "PosZ", TW_TYPE_FLOAT, &m_localToWorldMtx[3].z,"");
+	TwAddVarRW(m_debugBar, "Draw SDF", TW_TYPE_BOOLCPP, &gbDebugDrawDistToSurface,"");
+	TwAddVarRW(m_debugBar, "Draw normals", TW_TYPE_BOOLCPP, &gbDebugDrawNormals,"");
 #endif
 }
 
@@ -535,7 +539,6 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 	// END TEST
 
 	// BEGIN debug normals
-	static bool gbDebugDrawNormals = false;
 	if(gbDebugDrawNormals)
 	{
 		for(float y=-5.f ; y <= 5.f; y += 0.25f)
@@ -552,7 +555,6 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 	// END debug normals
 
 	// BEGIN debug SDF
-	static bool gbDebugDrawDistToSurface = false;
 	if(gbDebugDrawDistToSurface)
 	{
 		for(float y=-5.f ; y <= 5.f; y += 0.25f)
