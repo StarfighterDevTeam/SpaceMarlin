@@ -94,12 +94,12 @@ void Marlin::update()
 		if (!m_lanes.empty() && simulationStart.getElapsedTime().asSeconds() > 6.f)
 		{
 			//find the closest lane (size of the normal vector to lane)
-			size_t laneIndex = -1;
+			int laneIndex = -1;
 			float minAltitude = ALTITUDE_TO_ENTER_GRAVITY;
 			float altitude, angle;
 
-			size_t laneVectorSize = m_lanes.size();
-			for (size_t i = 0; i < laneVectorSize; i++)
+			int laneVectorSize = m_lanes.size();
+			for (int i = 0; i < laneVectorSize; i++)
 			{	
 				//getAltitudeAndAngleToLane(m_lanes[i], altitude, angle);
 
