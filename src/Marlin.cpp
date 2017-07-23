@@ -70,12 +70,6 @@ void Marlin::getAltitudeAndAngleToLane(const Lane* lane, float &altitude, float 
 	
 }
 
-float Marlin::getVec3Length(const vec3 vector)
-{
-	float length = sqrt(vector.x*vector.x + vector.y*vector.y + vector.z*vector.z);
-	return length;
-}
-
 #define ALTITUDE_TO_ENTER_GRAVITY				15.f
 #define ALTITUDE_TO_MOVE_ALONG_SURFACE			0.6f
 #define ALTITUDE_TO_JUMP_OR_DIVE				0.4f
@@ -199,7 +193,7 @@ void Marlin::update()
 				}
 
 				//speed limit
-				if (Marlin::getVec3Length(m_speed) > m_speedMax)
+				if (dot(m_speed,m_speed) > m_speedMax*m_speedMax)
 				{
 					m_speed = normalize(m_speed) * m_speedMax;
 				}
@@ -223,7 +217,7 @@ void Marlin::update()
 					if (!((altitude < 0 && m_state == STATE_JUMPING) || (altitude > 0 && m_state == STATE_DIVING)))//not jumping from below the surface or diving from below the surface?
 					{
 						//kill tiny oscillations by sticking the Marlin right on the lane surface
-						if (Marlin::getVec3Length(m_speed) < SPEED_TO_GET_STABILIZED_ON_SURFACE)//the stronger the gravity, the higher the value must be
+						if (glm::dot(m_speed,m_speed) < SPEED_TO_GET_STABILIZED_ON_SURFACE*SPEED_TO_GET_STABILIZED_ON_SURFACE)//the stronger the gravity, the higher the value must be
 						{
 							const vec3 vectorToStickToLane = gravityVectorNew * (-altitudeNew);
 
