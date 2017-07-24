@@ -48,28 +48,6 @@ void Marlin::addLane(const Lane* lane)
 	m_lanes.push_back(lane);
 }
 
-void Marlin::getAltitudeAndAngleToLane(const Lane* lane, float &altitude, float &angle) const
-{
-	//const float a = getPosition().x - lane->getPosition().x;
-	//const float b = getPosition().y - lane->getPosition().y;
-	//
-	//if (a == 0 && b == 0)
-	//{
-	//	altitude = 0;
-	//	angle = 0;
-	//	return;
-	//}
-	//
-	//float distance = (a * a) + (b * b);
-	//distance = sqrt(distance);
-	//
-	//angle = atan2(b, a);
-	//
-	//altitude = distance - lane->getCylinderRadius();
-
-	
-}
-
 #define ALTITUDE_TO_ENTER_GRAVITY				15.f
 #define ALTITUDE_TO_MOVE_ALONG_SURFACE			0.6f
 #define ALTITUDE_TO_JUMP_OR_DIVE				0.4f
@@ -99,8 +77,6 @@ void Marlin::update()
 			const int laneVectorSize = (int)m_lanes.size();
 			for (int i = 0; i < laneVectorSize; i++)
 			{	
-				//getAltitudeAndAngleToLane(m_lanes[i], altitude, angle);
-
 				altitude = m_lanes[i]->getDistToSurface(getPosition());
 
 				if (abs(altitude) < minAltitude)
@@ -114,16 +90,13 @@ void Marlin::update()
 			if (laneIndex >= 0)
 			{
 				const Lane* lane = m_lanes[laneIndex];
-				//getAltitudeAndAngleToLane(lane, altitude, angle);
 				altitude = lane->getDistToSurface(getPosition());
 
-				//const vec3 gravityVector = normalize(getPosition() - lane->getPosition());
-				const vec3 gravityVector = lane->getGravityVector(getPosition());
-				const vec3 tangentToGravity = vec3(gravityVector.y, -gravityVector.x, 0);
+				//const vec3 gravityVector = lane->getGravityVector(getPosition());
+				//const vec3 tangentToGravity = vec3(gravityVector.y, -gravityVector.x, 0);
 
-				//vec3 tangentToGravity = vec3(	gravityVector.x * cos(-3.1415 / 2) - gravityVector.y * sin(-3.1415 / 2),
-				//							gravityVector.x * sin(-3.1415 / 2) - gravityVector.y * cos(-3.1415 / 2),
-				//							gravityVector.z);
+				vec3 gravityVector, tangentToGravity, uselessVector;
+				lane->getCoordinateSystem(getPosition(), tangentToGravity, gravityVector, uselessVector);
 
 				//Jump
 				if (gData.inputMgr->isUpPressed())

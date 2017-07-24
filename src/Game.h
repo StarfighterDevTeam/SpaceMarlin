@@ -28,6 +28,17 @@ public:
 private:
 	void update();
 	void draw();
+
+	//Music
+	sf::Music m_curMusic;
+	bool m_musicActivated;
+	std::string m_musicFileName;
+	bool m_askingMusic_fade_out;
+	float m_musicVolume;
+
+	void ToggleMusic(bool activateMusic);
+	void PlayMusic(std::string musicFilename);
+	void SetMusicVolume(float musicVolume);
 };
 
 #endif	// _GAME_H
