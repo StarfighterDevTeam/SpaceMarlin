@@ -56,13 +56,54 @@ private:
 		float	yaw,pitch,roll;	// rotation of the lane
 		vec3	pos;	// position of the center of the capsule
 
+		// Precomputed values
+		struct PrecomputedData
+		{
+			float	halfDist;
+			float	theta;
+			float	tanTheta;
+			float	capsulePerimeter;
+
+			float	threshold0;
+			float	threshold1;
+			float	threshold2;
+			float	threshold3;
+			float	threshold0to1;
+			float	threshold2to3;
+
+			float	xOffsetOnC0;
+			float	xOffsetOnC1;
+
+			float	yOffsetOnC0;
+			float	yOffsetOnC1;
+
+			vec2	topLeftPos;
+			vec2	topRightPos;
+			vec2	topTangentVector;
+
+			vec2	bottomLeftPos;
+			vec2	bottomRightPos;
+			vec2	bottomTangentVector;
+
+			mat4	localToWorldMtx;
+			mat4	worldToLocalMtx;
+
+		private:
+			void update(float dist, float r0, float r1, float yaw, float pitch, float roll, const vec3& pos);
+			friend struct Keyframe;
+		};
+		PrecomputedData	precomp;
+
 		Keyframe() :
 			dist(1.f),
 			r0(1.f), r1(1.f),
 			yaw(0.f), pitch(0.f), roll(0.f),
 			pos(0.f,0.f,0.f)
 		{
+			updatePrecomputedData();
 		}
+
+		void updatePrecomputedData() {precomp.update(dist, r0, r1, yaw, pitch, roll, pos);}
 	};
 
 	Keyframe					m_curKeyframe;

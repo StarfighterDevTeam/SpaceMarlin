@@ -60,45 +60,31 @@ void Lane::getLocalSpaceCoordinateSystem(const vec3& localSpacePos, vec3& localS
 	vec2 p = vec2(localSpacePos);
 
 	const Keyframe& kf = m_curKeyframe;
-	const float xOffsetOnC0 = (kf.r0 - kf.r1) * kf.r0 / kf.dist;
-	const float xOffsetOnC1 = (kf.r0 - kf.r1) * kf.r1 / kf.dist;
-
+	
 	vec2 backupNormal = vec2(0,1);
 	vec2 backupTangent = vec2(-1,0);
 
-	if(p.x > 0.5f*kf.dist + xOffsetOnC1)
+	if(p.x > kf.precomp.halfDist + kf.precomp.xOffsetOnC1)
 	{
 		// Compute normal relative to C1
 		localSpaceNormal = vec3(
-			safeNormalize(p - vec2(0.5f*kf.dist, 0.f), backupNormal),
+			safeNormalize(p - vec2(kf.precomp.halfDist, 0.f), backupNormal),
 			0);
 	}
-	else if(p.x < -0.5f*kf.dist + xOffsetOnC0)
+	else if(p.x < -kf.precomp.halfDist + kf.precomp.xOffsetOnC0)
 	{
 		// Compute normal relative to C2
 		localSpaceNormal = vec3(
-			safeNormalize(p - vec2(-0.5f*kf.dist, 0.f), backupNormal),
+			safeNormalize(p - vec2(-kf.precomp.halfDist, 0.f), backupNormal),
 			0);
 	}
 	else if(p.y > 0.f)
 	{
-		// Compute normal relative to top tangent segment of capsule
-		const float theta = acos( (kf.r0 - kf.r1) / kf.dist );
-		const vec2 startPos = vec2(0.5*kf.dist + xOffsetOnC1, xOffsetOnC1 * tan(theta));
-		const vec2 endPos = vec2(-0.5*kf.dist + xOffsetOnC0, xOffsetOnC0 * tan(theta));
-		
-		const vec2 tangentVector = safeNormalize(endPos - startPos, backupTangent);
-		localSpaceNormal = vec3(tangentVector.y, -tangentVector.x, 0);
+		localSpaceNormal = vec3(kf.precomp.topTangentVector.y, -kf.precomp.topTangentVector.x, 0);
 	}
 	else //if(p.y <= 0.f)
 	{
-		// Compute normal relative to bottom tangent segment of capsule
-		const float theta = acos( (kf.r0 - kf.r1) / kf.dist );
-		const vec2 startPos = vec2(-0.5*kf.dist + xOffsetOnC0, -xOffsetOnC0 * tan(theta));
-		const vec2 endPos = vec2(0.5*kf.dist + xOffsetOnC1, -xOffsetOnC1 * tan(theta));
-		
-		const vec2 tangentVector = safeNormalize(endPos - startPos, backupTangent);
-		localSpaceNormal = vec3(tangentVector.y, -tangentVector.x, 0);
+		localSpaceNormal = vec3(kf.precomp.bottomTangentVector.y, -kf.precomp.bottomTangentVector.x, 0);
 	}
 
 	localSpaceRight = vec3(localSpaceNormal.y, -localSpaceNormal.x, 0);
@@ -117,34 +103,19 @@ float Lane::getDistToSurface(const vec3& worldSpacePos) const
 	vec2 p = vec2(localSpacePos.x / localSpacePos.w, localSpacePos.y / localSpacePos.w);
 
 	const Keyframe& kf = m_curKeyframe;
-	const float xOffsetOnC0 = (kf.r0 - kf.r1) * kf.r0 / kf.dist;
-	const float xOffsetOnC1 = (kf.r0 - kf.r1) * kf.r1 / kf.dist;
-	const float theta = acos( (kf.r0 - kf.r1) / kf.dist );
-	const float yOffsetOnC0 = xOffsetOnC0 * tan(theta);
-	const float yOffsetOnC1 = xOffsetOnC1 * tan(theta);
 	
-	const vec2 segments[4] = {
-		// top segment
-		vec2(-0.5*kf.dist + xOffsetOnC0, yOffsetOnC0),	// left (C0)
-		vec2(0.5*kf.dist + xOffsetOnC1, yOffsetOnC1),	// right (C1)
-
-		// bottom segment
-		vec2(-0.5*kf.dist + xOffsetOnC0, -yOffsetOnC0),	// left (C0)
-		vec2(0.5*kf.dist + xOffsetOnC1, -yOffsetOnC1),	// right (C1)
-	};
-
-	const vec2& segStart	= p.y >= 0 ? segments[0] : segments[2];
-	const vec2& segEnd		= p.y >= 0 ? segments[1] : segments[3];
+	const vec2& segStart	= p.y >= 0 ? kf.precomp.topLeftPos : kf.precomp.bottomLeftPos;
+	const vec2& segEnd		= p.y >= 0 ? kf.precomp.topRightPos : kf.precomp.bottomRightPos;
 	const vec2 segment		= segEnd - segStart;
 	const float u			= glm::dot(p - segStart, segment) / glm::dot(segment, segment);
 	if(u < 0)
 	{
-		const vec2 c0Center = vec2(-0.5f*kf.dist, 0);
+		const vec2 c0Center = vec2(-kf.precomp.halfDist, 0);
 		return glm::length(p - c0Center) - kf.r0;	// signed distance to C0
 	}
 	else if(u > 1)
 	{
-		const vec2 c1Center = vec2(0.5f*kf.dist, 0);
+		const vec2 c1Center = vec2(kf.precomp.halfDist, 0);
 		return glm::length(p - c1Center) - kf.r1;	// signed distance to C1
 	}
 	else
@@ -170,10 +141,7 @@ void Lane::init(mat4 initialMtx)
 	m_curBufferIdx = 0;
 	m_lastAnimationTimeSecs = -1.f;
 
-	std::vector<VtxLane>* pInitVertices = NULL;
-
 	std::vector<VtxLane> vertices;
-	pInitVertices = &vertices;
 
 	// Create heights textures for water simulation
 	for(int i=0 ; i < _countof(m_heightsTexId) ; i++)
@@ -200,7 +168,7 @@ void Lane::init(mat4 initialMtx)
 	}
 
 	// Init vertices positions
-	pInitVertices->resize(gSideNbVtx.x*gSideNbVtx.y);
+	vertices.resize(gSideNbVtx.x*gSideNbVtx.y);
 
 	const int nbVerticesPerRing = gSideNbVtx.x;
 	const int nbRings = gSideNbVtx.y;
@@ -216,7 +184,7 @@ void Lane::init(mat4 initialMtx)
 		const float posZ = (float)(-y * distBetweenRings);
 		for(int x=0 ; x < nbVerticesPerRing ; x++)
 		{
-			VtxLane& vtx = (*pInitVertices)[x + y*nbVerticesPerRing];
+			VtxLane& vtx = vertices[x + y*nbVerticesPerRing];
 			const double angle = x * angleBetweenRingVertices;
 			vtx.pos.x = (float)cos(angle);
 			vtx.pos.y = (float)sin(angle);
@@ -260,7 +228,7 @@ void Lane::init(mat4 initialMtx)
 		// Load into the VBO
 		glGenBuffers(1, &m_vertexBufferId);
 		glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
-		glBufferData(GL_ARRAY_BUFFER, pInitVertices->size() * sizeof(VtxLane), &(*pInitVertices)[0], vbUsage);
+		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(VtxLane), &vertices[0], vbUsage);
 
 		// Generate a buffer for the indices as well
 		glGenBuffers(1, &m_indexBufferId);
@@ -404,18 +372,27 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 	laneProgram->sendUniform("gTexelSize", vec2(1.f/gSideNbVtx.x, 1.f/gSideNbVtx.y));
 	laneProgram->sendUniform("gDistBetweenTexels", vec2(gGridSize / gSideNbVtx.x, gGridSize / gSideNbVtx.y));
 
-	// Send test keyframe to shader
-	m_curKeyframe.dist = 4.f;
-	m_curKeyframe.r0 = 2.f;
-	m_curKeyframe.r1 = 0.8f;
-	
-	m_localToWorldMtx = glm::translate(glm::yawPitchRoll(m_curKeyframe.yaw, m_curKeyframe.pitch, m_curKeyframe.roll), m_curKeyframe.pos);
-	m_worldToLocalMtx = glm::inverse(m_localToWorldMtx);
-
-	laneProgram->sendUniform("gKeyframeDist", m_curKeyframe.dist);
-	laneProgram->sendUniform("gKeyframeR0", m_curKeyframe.r0);
-	laneProgram->sendUniform("gKeyframeR1", m_curKeyframe.r1);
-	laneProgram->sendUniform("gKeyframeLocalToWorldMtx", m_localToWorldMtx, false, Hash::AT_RUNTIME);
+	// Send keyframe information
+	const Keyframe& kf = m_curKeyframe;
+	laneProgram->sendUniform("gKeyframeDist",					kf.dist);
+	laneProgram->sendUniform("gKeyframeR0",						kf.r0);
+	laneProgram->sendUniform("gKeyframeR1",						kf.r1);
+	laneProgram->sendUniform("gKeyframeHalfDist",				kf.precomp.halfDist);
+	laneProgram->sendUniform("gKeyframeTheta",					kf.precomp.theta);
+	laneProgram->sendUniform("gKeyframeCapsulePerimeter",		kf.precomp.capsulePerimeter,			Hash::AT_RUNTIME);
+	laneProgram->sendUniform("gKeyframeThreshold0",				kf.precomp.threshold0);
+	laneProgram->sendUniform("gKeyframeThreshold1",				kf.precomp.threshold1);
+	laneProgram->sendUniform("gKeyframeThreshold2",				kf.precomp.threshold2);
+	laneProgram->sendUniform("gKeyframeThreshold3",				kf.precomp.threshold3);
+	laneProgram->sendUniform("gKeyframeThreshold0to1",			kf.precomp.threshold0to1,				Hash::AT_RUNTIME);
+	laneProgram->sendUniform("gKeyframeThreshold2to3",			kf.precomp.threshold2to3,				Hash::AT_RUNTIME);
+	laneProgram->sendUniform("gKeyframeTopRightPos",			kf.precomp.topRightPos);
+	laneProgram->sendUniform("gKeyframeTopLeftPos",				kf.precomp.topLeftPos);
+	laneProgram->sendUniform("gKeyframeBottomLeftPos",			kf.precomp.bottomLeftPos,				Hash::AT_RUNTIME);
+	laneProgram->sendUniform("gKeyframeBottomRightPos",			kf.precomp.bottomRightPos,				Hash::AT_RUNTIME);
+	laneProgram->sendUniform("gKeyframeTopTangentVector",		kf.precomp.topTangentVector,			Hash::AT_RUNTIME);
+	laneProgram->sendUniform("gKeyframeBottomTangentVector",	kf.precomp.bottomTangentVector,			Hash::AT_RUNTIME);
+	laneProgram->sendUniform("gKeyframeLocalToWorldMtx",		kf.precomp.localToWorldMtx,		false,	Hash::AT_RUNTIME);
 
 	glBindVertexArray(m_vertexArrayId);
 
@@ -493,6 +470,14 @@ void Lane::debugDraw(const Camera& camera)
 
 void Lane::update()
 {
+	// Test keyframe
+	m_curKeyframe.dist = 4.f;
+	m_curKeyframe.r0 = 2.f;
+	m_curKeyframe.r1 = 0.8f;
+	m_curKeyframe.updatePrecomputedData();
+	m_localToWorldMtx = m_curKeyframe.precomp.localToWorldMtx;
+	m_worldToLocalMtx = m_curKeyframe.precomp.worldToLocalMtx;
+
 	if(gbDebugMoveLane)
 	{
 		static vec3 debugPos = vec3(0, 0, 0);
@@ -587,4 +572,41 @@ void Lane::updateWaterOnGPU()
 	glViewport(savedVp[0], savedVp[1], savedVp[2], savedVp[3]);
 
 	glBindVertexArray(0);
+}
+
+void Lane::Keyframe::PrecomputedData::update(float dist, float r0, float r1, float yaw, float pitch, float roll, const vec3& pos)
+{
+	constexpr float _2pi = 2*(float)M_PI;
+	halfDist	= dist*0.5f;
+	theta		= acos( (r0 - r1) / dist );
+	tanTheta	= tan(theta);
+
+	const float lengthOnC0		= ((float)M_PI - theta) * r0;
+	const float lengthOnC1		= theta * r1;
+	const float lengthTangent	= tanTheta * (r0 - r1);
+	capsulePerimeter			= 2 * (lengthOnC1 + lengthTangent + lengthOnC0);
+
+	threshold0		= lengthOnC1;
+	threshold1		= threshold0 + lengthTangent;
+	threshold2		= threshold1 + 2*lengthOnC0;
+	threshold3		= threshold2 + lengthTangent;
+	threshold0to1	= threshold1 - threshold0;
+	threshold2to3	= threshold3 - threshold2;
+
+	xOffsetOnC0 = (r0 - r1) * r0 / dist;
+	xOffsetOnC1 = (r0 - r1) * r1 / dist;
+
+	yOffsetOnC0 = xOffsetOnC0 * tanTheta;
+	yOffsetOnC1 = xOffsetOnC1 * tanTheta;
+
+	topLeftPos			= vec2(-halfDist + xOffsetOnC0, yOffsetOnC0);
+	topRightPos			= vec2(halfDist + xOffsetOnC1, yOffsetOnC1);
+	topTangentVector	= glm::normalize(topLeftPos - topRightPos);
+
+	bottomLeftPos		= vec2(-halfDist + xOffsetOnC0, -yOffsetOnC0);
+	bottomRightPos		= vec2(halfDist + xOffsetOnC1, -yOffsetOnC1);
+	bottomTangentVector	= glm::normalize(bottomRightPos - bottomLeftPos);
+
+	localToWorldMtx = glm::translate(glm::yawPitchRoll(yaw, pitch, roll), pos);
+	worldToLocalMtx = glm::inverse(localToWorldMtx);	// TODO: overkill...
 }

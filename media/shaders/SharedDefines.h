@@ -135,6 +135,21 @@
 	HANDLE_UNIFORM(float, gKeyframeDist)									\
 	HANDLE_UNIFORM(float, gKeyframeR0)										\
 	HANDLE_UNIFORM(float, gKeyframeR1)										\
+	HANDLE_UNIFORM(float, gKeyframeHalfDist)								\
+	HANDLE_UNIFORM(float, gKeyframeTheta)									\
+	HANDLE_UNIFORM(float, gKeyframeCapsulePerimeter)						\
+	HANDLE_UNIFORM(float, gKeyframeThreshold0)								\
+	HANDLE_UNIFORM(float, gKeyframeThreshold1)								\
+	HANDLE_UNIFORM(float, gKeyframeThreshold2)								\
+	HANDLE_UNIFORM(float, gKeyframeThreshold3)								\
+	HANDLE_UNIFORM(float, gKeyframeThreshold0to1)							\
+	HANDLE_UNIFORM(float, gKeyframeThreshold2to3)							\
+	HANDLE_UNIFORM(vec2, gKeyframeTopRightPos)								\
+	HANDLE_UNIFORM(vec2, gKeyframeTopLeftPos)								\
+	HANDLE_UNIFORM(vec2, gKeyframeBottomLeftPos)							\
+	HANDLE_UNIFORM(vec2, gKeyframeBottomRightPos)								\
+	HANDLE_UNIFORM(vec2, gKeyframeTopTangentVector)							\
+	HANDLE_UNIFORM(vec2, gKeyframeBottomTangentVector)						\
 	HANDLE_UNIFORM(mat4, gKeyframeLocalToWorldMtx)							\
 	/* attributes */														\
 	HANDLE_ATTRIBUTE(VtxLane, vec3, float, GL_FLOAT, GL_FALSE, pos,		0)	\
