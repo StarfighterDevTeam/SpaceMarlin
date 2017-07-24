@@ -27,14 +27,37 @@ vec3 Lane::getPosition() const
 
 vec3 Lane::getNormalToSurface(const vec3& worldSpacePos) const
 {
+	vec3 worldSpaceRight;
+	vec3 worldSpaceNormal;
+	vec3 worldSpaceBack;
+	getCoordinateSystem(worldSpacePos, worldSpaceRight, worldSpaceNormal, worldSpaceBack);
+	return worldSpaceNormal;
+}
+
+void Lane::getCoordinateSystem(const vec3& worldSpacePos, vec3& worldSpaceRight, vec3& worldSpaceNormal, vec3& worldSpaceBack) const
+{
 	// TODO: handle Z
 
 	vec4 localSpacePos = m_worldToLocalMtx * vec4(worldSpacePos,1);
-	//localSpacePos.x /= localSpacePos.w;
-	//localSpacePos.y /= localSpacePos.w;
-	//localSpacePos.z /= localSpacePos.w;
+	localSpacePos.x /= localSpacePos.w;
+	localSpacePos.y /= localSpacePos.w;
+	localSpacePos.z /= localSpacePos.w;
 	//localSpacePos.w = 1;
-	vec2 p = vec2(localSpacePos.x / localSpacePos.w, localSpacePos.y / localSpacePos.w);
+	
+	vec3 localSpaceRight, localSpaceNormal, localSpaceBack;
+	getLocalSpaceCoordinateSystem(vec3(localSpacePos), localSpaceRight, localSpaceNormal, localSpaceBack);
+
+	const mat3 localToWorldRotMtx = mat3(m_localToWorldMtx);
+	worldSpaceRight		= localToWorldRotMtx * localSpaceRight;
+	worldSpaceNormal	= localToWorldRotMtx * localSpaceNormal;
+	worldSpaceBack		= localToWorldRotMtx * localSpaceBack;
+}
+
+void Lane::getLocalSpaceCoordinateSystem(const vec3& localSpacePos, vec3& localSpaceRight, vec3& localSpaceNormal, vec3& localSpaceBack) const
+{
+	// TODO: handle Z
+
+	vec2 p = vec2(localSpacePos);
 
 	const Keyframe& kf = m_curKeyframe;
 	const float xOffsetOnC0 = (kf.r0 - kf.r1) * kf.r0 / kf.dist;
@@ -43,7 +66,6 @@ vec3 Lane::getNormalToSurface(const vec3& worldSpacePos) const
 	vec2 backupNormal = vec2(0,1);
 	vec2 backupTangent = vec2(-1,0);
 
-	vec3 localSpaceNormal;
 	if(p.x > 0.5f*kf.dist + xOffsetOnC1)
 	{
 		// Compute normal relative to C1
@@ -79,16 +101,8 @@ vec3 Lane::getNormalToSurface(const vec3& worldSpacePos) const
 		localSpaceNormal = vec3(tangentVector.y, -tangentVector.x, 0);
 	}
 
-	vec3 worldSpaceNormal = mat3(m_localToWorldMtx) * localSpaceNormal;
-	
-	return worldSpaceNormal;
-}
-
-void Lane::getCoordinateSystem(const vec3& worldSpacePos, vec3& worldSpaceRight, vec3& worldSpaceNormal, vec3& worldSpaceBack) const
-{
-	worldSpaceNormal = getNormalToSurface(worldSpacePos);
-	worldSpaceRight = vec3(worldSpaceNormal.y, -worldSpaceNormal.x, 0);
-	worldSpaceBack = vec3(0,0,1);	// could be something else later (affected by waves...)
+	localSpaceRight = vec3(localSpaceNormal.y, -localSpaceNormal.x, 0);
+	localSpaceBack = vec3(0,0,1);	// could be something else later (affected by waves...)
 }
 
 float Lane::getDistToSurface(const vec3& worldSpacePos) const
@@ -441,7 +455,7 @@ void Lane::debugDraw(const Camera& camera)
 				gData.drawer->drawLine(camera, worldSpacePos, COLOR_RED, worldSpacePos + gfDebugNormalSize * worldSpaceNormal, COLOR_WHITE);
 			}
 		}
-	}
+}
 
 	if(gbDebugDrawCoordinateSystems)
 	{
