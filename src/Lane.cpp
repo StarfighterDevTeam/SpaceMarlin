@@ -7,6 +7,7 @@
 static const ivec2 gSideNbVtx(100,100);
 static const float gGridSize = 10.f;
 static bool gbDebugDrawNormals = false;
+static bool gbDebugDrawCoordinateSystems = false;
 static bool gbDebugDrawDistToSurface = false;
 static bool gbDebugDrawWaterBuffers = false;
 static bool gbDebugMoveLane = false;
@@ -81,6 +82,13 @@ vec3 Lane::getNormalToSurface(const vec3& worldSpacePos) const
 	vec3 worldSpaceNormal = mat3(m_localToWorldMtx) * localSpaceNormal;
 	
 	return worldSpaceNormal;
+}
+
+void Lane::getCoordinateSystem(const vec3& worldSpacePos, vec3& worldSpaceRight, vec3& worldSpaceNormal, vec3& worldSpaceBack) const
+{
+	worldSpaceNormal = getNormalToSurface(worldSpacePos);
+	worldSpaceRight = vec3(worldSpaceNormal.y, -worldSpaceNormal.x, 0);
+	worldSpaceBack = vec3(0,0,1);	// could be something else later (affected by waves...)
 }
 
 float Lane::getDistToSurface(const vec3& worldSpacePos) const
@@ -312,7 +320,8 @@ void Lane::init(mat4 initialMtx)
 	TwAddVarRW(m_debugBar, "PosZ", TW_TYPE_FLOAT, &m_localToWorldMtx[3].z,"");
 	TwAddVarRW(m_debugBar, "Draw SDF", TW_TYPE_BOOLCPP, &gbDebugDrawDistToSurface,"");
 	TwAddVarRW(m_debugBar, "Draw normals", TW_TYPE_BOOLCPP, &gbDebugDrawNormals,"");
-	TwAddVarRW(m_debugBar, "Draw water buffers", TW_TYPE_BOOLCPP, &gbDebugDrawWaterBuffers,"");
+	TwAddVarRW(m_debugBar, "Draw coordsys", TW_TYPE_BOOLCPP, &gbDebugDrawCoordinateSystems,"");
+	TwAddVarRW(m_debugBar, "Draw water", TW_TYPE_BOOLCPP, &gbDebugDrawWaterBuffers,"");
 	TwAddVarRW(m_debugBar, "Move lane", TW_TYPE_BOOLCPP, &gbDebugMoveLane,"");
 #endif
 }
@@ -430,6 +439,23 @@ void Lane::debugDraw(const Camera& camera)
 				const vec3 worldSpaceNormal = getNormalToSurface(worldSpacePos);
 				static float gfDebugNormalSize = 0.1f;
 				gData.drawer->drawLine(camera, worldSpacePos, COLOR_RED, worldSpacePos + gfDebugNormalSize * worldSpaceNormal, COLOR_WHITE);
+			}
+		}
+	}
+
+	if(gbDebugDrawCoordinateSystems)
+	{
+		for(float y=-5.f ; y <= 5.f; y += 0.25f)
+		{
+			for(float x=-5.f ; x <= 5.f; x += 0.25f)
+			{
+				const vec3 worldSpacePos = vec3(x,y,0);
+				vec3 worldSpaceRight, worldSpaceNormal, worldSpaceBack;
+				getCoordinateSystem(worldSpacePos, worldSpaceRight, worldSpaceNormal, worldSpaceBack);
+				static float gfDebugVectorSize = 0.1f;
+				gData.drawer->drawLine(camera, worldSpacePos, COLOR_RED,	worldSpacePos + gfDebugVectorSize * worldSpaceRight,	COLOR_RED);
+				gData.drawer->drawLine(camera, worldSpacePos, COLOR_GREEN,	worldSpacePos + gfDebugVectorSize * worldSpaceNormal,	COLOR_GREEN);
+				gData.drawer->drawLine(camera, worldSpacePos, COLOR_BLUE,	worldSpacePos + gfDebugVectorSize * worldSpaceBack,		COLOR_BLUE);
 			}
 		}
 	}

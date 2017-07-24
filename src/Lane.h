@@ -18,6 +18,7 @@ public:
 
 	vec3		getPosition() const;
 	vec3		getNormalToSurface(const vec3& worldSpacePos) const;
+	void		getCoordinateSystem(const vec3& worldSpacePos, vec3& worldSpaceRight, vec3& worldSpaceNormal, vec3& worldSpaceBack) const;
 	float		getDistToSurface(const vec3& worldSpacePos) const;
 	vec3		getGravityVector(const vec3& worldSpacePos) const;
 
