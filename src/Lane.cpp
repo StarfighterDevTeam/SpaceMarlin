@@ -28,8 +28,7 @@ vec3 Lane::getNormalToSurface(const vec3& worldSpacePos) const
 {
 	// TODO: handle Z
 
-	const mat4 worldToLocalMtx = glm::inverse(m_localToWorldMtx);	// TODO: overkill + should be stored and updated once per frame
-	vec4 localSpacePos = worldToLocalMtx * vec4(worldSpacePos,1);
+	vec4 localSpacePos = m_worldToLocalMtx * vec4(worldSpacePos,1);
 	//localSpacePos.x /= localSpacePos.w;
 	//localSpacePos.y /= localSpacePos.w;
 	//localSpacePos.z /= localSpacePos.w;
@@ -88,8 +87,7 @@ float Lane::getDistToSurface(const vec3& worldSpacePos) const
 {
 	// TODO: handle Z
 
-	const mat4 worldToLocalMtx = glm::inverse(m_localToWorldMtx);	// TODO: overkill + should be stored and updated once per frame
-	vec4 localSpacePos = worldToLocalMtx * vec4(worldSpacePos,1);
+	vec4 localSpacePos = m_worldToLocalMtx * vec4(worldSpacePos,1);
 	//localSpacePos.x /= localSpacePos.w;
 	//localSpacePos.y /= localSpacePos.w;
 	//localSpacePos.z /= localSpacePos.w;
@@ -305,6 +303,7 @@ void Lane::init(mat4 initialMtx)
 	}
 
 	m_localToWorldMtx = initialMtx;
+	m_worldToLocalMtx = glm::inverse(m_localToWorldMtx);
 
 #ifdef _USE_ANTTWEAKBAR
 	m_debugBar = TwNewBar("Lane");
@@ -388,6 +387,7 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 	m_curKeyframe.r1 = 0.8f;
 	
 	m_localToWorldMtx = glm::translate(glm::yawPitchRoll(m_curKeyframe.yaw, m_curKeyframe.pitch, m_curKeyframe.roll), m_curKeyframe.pos);
+	m_worldToLocalMtx = glm::inverse(m_localToWorldMtx);
 
 	laneProgram->sendUniform("gKeyframeDist", m_curKeyframe.dist);
 	laneProgram->sendUniform("gKeyframeR0", m_curKeyframe.r0);
@@ -473,6 +473,7 @@ void Lane::update()
 		static vec3 gvDebugRotAxis = vec3(0,0,1);
 		mat4 laneRotMtx = glm::rotate(mat4(), gfDebugAngle, gvDebugRotAxis);
 		m_localToWorldMtx = laneRotMtx * m_localToWorldMtx;
+		m_worldToLocalMtx = glm::inverse(m_localToWorldMtx);
 	}
 }
 

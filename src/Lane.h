@@ -37,6 +37,7 @@ private:
 	float						m_lastAnimationTimeSecs;
 
 	mat4						m_localToWorldMtx;
+	mat4						m_worldToLocalMtx;
 
 	// GPU resources for drawing the lane
 	GLuint						m_vertexArrayId;
