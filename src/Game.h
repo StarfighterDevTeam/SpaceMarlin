@@ -25,6 +25,10 @@ public:
 	void run();
 	void shut();
 
+	sf::Clock			m_beatClock;
+	int					m_beatCount;
+	int					m_measureCount;
+
 private:
 	void update();
 	void draw();

@@ -20,23 +20,26 @@ class SoundManager
 	bool					m_bFadingOut;
 	float					m_fadeAmount;
 	bool					m_bMute;
+	float					m_bPM;
 
 public:
 	void		init();
 	void		shut();
 	void		update();
 	
-	void		setNextMusic(const MusicDesc& desc) {m_nextMusicDesc = desc;}
-	void		setNextMusic(const std::string& filename)
+	void		setNextMusic(const MusicDesc& desc, float bPM) { m_nextMusicDesc = desc; m_bPM = bPM; }
+	void		setNextMusic(const std::string& filename, float bPM)
 	{
 		MusicDesc desc;
 		desc.filename = filename;
-		setNextMusic(desc);
-	}
+		setNextMusic(desc, bPM);
+		m_bPM = bPM;
+	};
 
 	bool toggleMuteMusic();
 
-	sf::Music&	getCurMusic() {return m_curMusic;};
+	sf::Music&	getCurMusic() { return m_curMusic; };
+	float getBPM() const { return m_bPM; };
 };
 
 #endif // _SOUND_MANAGER_H
