@@ -19,6 +19,7 @@ class SoundManager
 	MusicDesc				m_nextMusicDesc;
 	bool					m_bFadingOut;
 	float					m_fadeAmount;
+	bool					m_bMute;
 
 public:
 	void		init();
@@ -32,6 +33,8 @@ public:
 		desc.filename = filename;
 		setNextMusic(desc);
 	}
+
+	bool toggleMuteMusic();
 
 	sf::Music&	getCurMusic() {return m_curMusic;};
 };
