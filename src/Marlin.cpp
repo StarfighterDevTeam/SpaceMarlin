@@ -75,8 +75,6 @@ void Marlin::getAltitudeAndAngleToLane(const Lane* lane, float &altitude, float 
 #define ALTITUDE_TO_JUMP_OR_DIVE				0.4f
 #define SPEED_TO_GET_STABILIZED_ON_SURFACE		5.f
 
-sf::Clock simulationStart;
-
 void Marlin::update()
 {
 	if (m_lastAnimationTimeSecs < 0.f)
@@ -91,14 +89,14 @@ void Marlin::update()
 		m_state = STATE_IDLE;
 
 		//Test
-		if (!m_lanes.empty() && simulationStart.getElapsedTime().asSeconds() > 6.f)
+		if (!m_lanes.empty())
 		{
 			//find the closest lane (size of the normal vector to lane)
 			int laneIndex = -1;
 			float minAltitude = ALTITUDE_TO_ENTER_GRAVITY;
 			float altitude;
 
-			int laneVectorSize = (int)m_lanes.size();
+			const int laneVectorSize = (int)m_lanes.size();
 			for (int i = 0; i < laneVectorSize; i++)
 			{	
 				//getAltitudeAndAngleToLane(m_lanes[i], altitude, angle);
