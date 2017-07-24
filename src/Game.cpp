@@ -150,6 +150,11 @@ void Game::run()
 				TwWindowSize(gData.winSizeX, gData.winSizeY);
 			#endif
 			}
+			else if(gData.inputMgr->eventIsDebugWireframeReleased(event))
+			{
+				m_wireframe = !m_wireframe;
+				logDebug("wireframe: ", m_wireframe ? "on" : "off");
+			}
 			else if(gData.inputMgr->eventIsDebugSlowModeReleased(event))
 			{
 				m_slowMode = !m_slowMode;
@@ -160,8 +165,7 @@ void Game::run()
 				bool bMute = gData.soundMgr->toggleMuteMusic();
 				logDebug("music: ", !bMute ? "on" : "off");
 			}
-			else if (gData.inputMgr)
-
+			
 			m_scenes[m_curScene]->onEvent(event);
 		#ifdef _USE_ANTTWEAKBAR
 			TwEventSFML(&event, SFML_VERSION_MAJOR, SFML_VERSION_MINOR);
