@@ -5,6 +5,8 @@ static const sf::Keyboard::Key keyboardDownKey			= sf::Keyboard::Down;
 static const sf::Keyboard::Key keyboardLeftKey			= sf::Keyboard::Left;
 static const sf::Keyboard::Key keyboardRightKey			= sf::Keyboard::Right;
 
+static const sf::Keyboard::Key keyboardMusicMuted		= sf::Keyboard::M;
+
 static const sf::Keyboard::Key keyboardDebugCamKey		= sf::Keyboard::F1;
 static const sf::Keyboard::Key keyboardDebugSlowModeKey	= sf::Keyboard::F2;
 static const sf::Keyboard::Key keyboardDebugWireframeKey= sf::Keyboard::F3;
@@ -60,6 +62,11 @@ bool InputManager::eventIsDebugSlowModeReleased(const sf::Event& evt)
 bool InputManager::eventIsDebugWireframeReleased(const sf::Event& evt)
 {
 	return	(evt.type == sf::Event::KeyReleased && evt.key.code == keyboardDebugWireframeKey);
+}
+
+bool InputManager::isMusicMuted(const sf::Event& evt)
+{
+	return	(evt.type == sf::Event::KeyReleased && evt.key.code == keyboardMusicMuted);
 }
 
 bool InputManager::isUpPressed()

@@ -42,7 +42,6 @@ public:
 	Marlin();
 
 	void update();
-	void getAltitudeAndAngleToLane(const Lane* lane, float &altitude, float &angle) const;
 	void addLane(const Lane* lane);
 };
 

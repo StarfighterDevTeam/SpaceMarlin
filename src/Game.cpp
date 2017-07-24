@@ -97,7 +97,41 @@ bool Game::init(sf::RenderWindow* window)
 
 	if(!m_scenes[m_curScene]->init())
 		return false;
+
+
+	//Music
+	SetMusicVolume(99.f);
+	ToggleMusic(false);
+	PlayMusic("./media/sounds/Andy_Hunter-Angelic.ogg");
+
 	return true;
+}
+
+void Game::ToggleMusic(bool activateMusic)
+{
+	m_musicActivated = activateMusic;
+
+	if (m_musicActivated)
+	{
+		m_curMusic.setVolume(m_musicVolume);
+	}
+	else
+	{
+		m_curMusic.setVolume(0.f);
+	}
+}
+
+void Game::SetMusicVolume(float musicVolume)
+{
+	m_musicVolume = musicVolume;
+}
+
+void Game::PlayMusic(std::string musicFilename)
+{
+	m_musicFileName = musicFilename;
+	m_curMusic.openFromFile(m_musicFileName);
+	m_curMusic.play();
+	m_curMusic.setLoop(true);
 }
 
 void Game::shut()
@@ -148,11 +182,13 @@ void Game::run()
 				m_slowMode = !m_slowMode;
 				logDebug("slow mode: ", m_slowMode ? "on" : "off");
 			}
-			else if(gData.inputMgr->eventIsDebugWireframeReleased(event))
+			else if(gData.inputMgr->isMusicMuted(event))
 			{
-				m_wireframe = !m_wireframe;
-				logDebug("wireframe: ", m_wireframe ? "on" : "off");
+				m_musicActivated = !m_musicActivated;
+				ToggleMusic(m_musicActivated);
+				logDebug("music: ", m_musicActivated ? "on" : "off");
 			}
+			else if (gData.inputMgr)
 
 			m_scenes[m_curScene]->onEvent(event);
 		#ifdef _USE_ANTTWEAKBAR

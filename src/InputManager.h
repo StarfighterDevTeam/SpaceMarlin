@@ -27,6 +27,8 @@ public:
 	bool	isLeftPressed();
 	bool	isRightPressed();
 
+	bool	isMusicMuted(const sf::Event& evt);
+
 	bool	isDebugCamFrontPressed();
 	bool	isDebugCamBackPressed();
 	bool	isDebugCamLeftPressed();
