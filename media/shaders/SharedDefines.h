@@ -4,31 +4,6 @@
 	#define _GLSL
 #endif
 
-#ifdef __INTELLISENSE__
-	//#pragma custom_preprocessor_on
-	#define out
-	#define in
-	#define uniform
-	#define layout(...)
-	//#define GLM_SWIZZLE 1
-	//#include <glm/glm.hpp>
-	//#include <glm/gtc/type_precision.hpp>
-	//#include <glm/gtc/matrix_transform.hpp>
-	struct vec2 {float x,y;};
-	struct vec3 {float x,y,z;};
-	struct vec4 {float x,y,z,w;};
-	typedef int samplerCube;
-	typedef int sampler2D;
-	vec4 texture(sampler2D s, vec2 uv);
-	vec4 textureLod(sampler2D s, vec2 uv, int lod);
-	vec4 texture(samplerCube s, vec2 uv);
-	vec4 textureLod(samplerCube s, vec2 uv, int lod);
-	using namespace glm;
-	vec4 gl_Position;
-	vec4 gl_FragCoord;
-	//#pragma custom_preprocessor_off
-#endif
-
 #ifdef _GLSL
 	#define U8VEC4 vec4
 
