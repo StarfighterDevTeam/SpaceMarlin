@@ -4,6 +4,26 @@
 	#define _GLSL
 #endif
 
+#ifdef __INTELLISENSE__
+	#define out
+	#define in
+	#define uniform
+	#define layout(...)
+	#define GLM_SWIZZLE 1
+	#include <glm/glm.hpp>
+	#include <glm/gtc/type_precision.hpp>
+	#include <glm/gtc/matrix_transform.hpp>
+	typedef int samplerCube;
+	typedef int sampler2D;
+	vec4 texture(sampler2D s, vec2 uv);
+	vec4 textureLod(sampler2D s, vec2 uv, int lod);
+	vec4 texture(samplerCube s, vec2 uv);
+	vec4 textureLod(samplerCube s, vec2 uv, int lod);
+	using namespace glm;
+	vec4 gl_Position;
+	vec4 gl_FragCoord;
+#endif
+
 #ifdef _GLSL
 	#define U8VEC4 vec4
 
