@@ -5,7 +5,6 @@
 #include "glutil/glutil.h"
 
 static const ivec2 gSideNbVtx(100,100);
-static const float gGridSize = 10.f;
 static bool gbDebugDrawNormals = false;
 static bool gbDebugDrawCoordinateSystems = false;
 static bool gbDebugDrawDistToSurface = false;
@@ -292,14 +291,29 @@ void Lane::init(mat4 initialMtx)
 			logError("FBO not complete");
 	}
 
-	m_localToWorldMtx = initialMtx;
-	m_worldToLocalMtx = glm::inverse(m_localToWorldMtx);
+	//m_localToWorldMtx = initialMtx;	TODO: initialMtx to be removed
+	//m_worldToLocalMtx = glm::inverse(m_localToWorldMtx);
+
+	// Test keyframe
+	m_curKeyframe.dist = 4.f;
+	m_curKeyframe.r0 = 2.f;
+	m_curKeyframe.r1 = 0.8f;
+	m_curKeyframe.updatePrecomputedData();
+	m_localToWorldMtx = m_curKeyframe.precomp.localToWorldMtx;
+	m_worldToLocalMtx = m_curKeyframe.precomp.worldToLocalMtx;
 
 #ifdef _USE_ANTTWEAKBAR
 	m_debugBar = TwNewBar("Lane");
-	TwAddVarRW(m_debugBar, "PosX", TW_TYPE_FLOAT, &m_localToWorldMtx[3].x,"");
-	TwAddVarRW(m_debugBar, "PosY", TW_TYPE_FLOAT, &m_localToWorldMtx[3].y,"");
-	TwAddVarRW(m_debugBar, "PosZ", TW_TYPE_FLOAT, &m_localToWorldMtx[3].z,"");
+	Keyframe& kf = m_curKeyframe;
+	TwAddVarRW(m_debugBar, "Dist",	TW_TYPE_FLOAT, &kf.dist, "");
+	TwAddVarRW(m_debugBar, "R0",	TW_TYPE_FLOAT, &kf.r0, "");
+	TwAddVarRW(m_debugBar, "R1",	TW_TYPE_FLOAT, &kf.r1, "");
+	TwAddVarRW(m_debugBar, "Yaw",	TW_TYPE_FLOAT, &kf.yaw, "");
+	TwAddVarRW(m_debugBar, "Pitch",	TW_TYPE_FLOAT, &kf.pitch, "");
+	TwAddVarRW(m_debugBar, "Roll",	TW_TYPE_FLOAT, &kf.roll, "");
+	TwAddVarRW(m_debugBar, "PosX",	TW_TYPE_FLOAT, &kf.pos.x,"");
+	TwAddVarRW(m_debugBar, "PosY",	TW_TYPE_FLOAT, &kf.pos.y,"");
+	TwAddVarRW(m_debugBar, "PosZ",	TW_TYPE_FLOAT, &kf.pos.z,"");
 	TwAddVarRW(m_debugBar, "Draw SDF", TW_TYPE_BOOLCPP, &gbDebugDrawDistToSurface,"");
 	TwAddVarRW(m_debugBar, "Draw normals", TW_TYPE_BOOLCPP, &gbDebugDrawNormals,"");
 	TwAddVarRW(m_debugBar, "Draw coordsys", TW_TYPE_BOOLCPP, &gbDebugDrawCoordinateSystems,"");
@@ -369,11 +383,12 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 	laneProgram->sendUniform("texHeights", textureSlot);
 	textureSlot++;
 
+	const Keyframe& kf = m_curKeyframe;
+
 	laneProgram->sendUniform("gTexelSize", vec2(1.f/gSideNbVtx.x, 1.f/gSideNbVtx.y));
-	laneProgram->sendUniform("gDistBetweenTexels", vec2(gGridSize / gSideNbVtx.x, gGridSize / gSideNbVtx.y));
+	laneProgram->sendUniform("gDistBetweenTexels", vec2(kf.precomp.capsulePerimeter / gSideNbVtx.x, kf.precomp.capsulePerimeter / gSideNbVtx.y));
 
 	// Send keyframe information
-	const Keyframe& kf = m_curKeyframe;
 	laneProgram->sendUniform("gKeyframeDist",					kf.dist);
 	laneProgram->sendUniform("gKeyframeR0",						kf.r0);
 	laneProgram->sendUniform("gKeyframeR1",						kf.r1);
@@ -470,13 +485,7 @@ void Lane::debugDraw(const Camera& camera)
 
 void Lane::update()
 {
-	// Test keyframe
-	m_curKeyframe.dist = 4.f;
-	m_curKeyframe.r0 = 2.f;
-	m_curKeyframe.r1 = 0.8f;
 	m_curKeyframe.updatePrecomputedData();
-	m_localToWorldMtx = m_curKeyframe.precomp.localToWorldMtx;
-	m_worldToLocalMtx = m_curKeyframe.precomp.worldToLocalMtx;
 
 	if(gbDebugMoveLane)
 	{
