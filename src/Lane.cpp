@@ -466,6 +466,11 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 	laneProgram->sendUniform("texHeights", textureSlot);
 	textureSlot++;
 
+	glActiveTexture(GL_TEXTURE0 + textureSlot);
+	glBindTexture(GL_TEXTURE_2D, m_waterNormalsTexId);
+	laneProgram->sendUniform("texNormals", textureSlot);
+	textureSlot++;
+
 	const Keyframe& kf = m_curKeyframe;
 
 	laneProgram->sendUniform("gTexelSize", vec2(1.f/gSideNbVtx.x, 1.f/gSideNbVtx.y));
