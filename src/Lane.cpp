@@ -692,12 +692,18 @@ void Lane::updateWaterOnGPU()
 	glBindVertexArray(0);
 }
 
-void Lane::Keyframe::PrecomputedData::update(float dist, float r0, float r1, float yaw, float pitch, float roll, const vec3& pos)
+void Lane::Keyframe::PrecomputedData::update(float& dist, float& r0, float& r1, float& yaw, float& pitch, float& roll, vec3& pos)
 {
-	constexpr float _2pi = 2*(float)M_PI;
-	halfDist	= dist*0.5f;
-	theta		= acos( (r0 - r1) / dist );
-	tanTheta	= tan(theta);
+	// Avoid stupid distances between C0 and C1
+	const float minDist			= std::max(abs(r0-r1), 0.0001f);
+	if(dist < minDist)
+		dist = minDist;
+
+	constexpr float _2pi		= 2*(float)M_PI;
+	halfDist					= dist*0.5f;
+	theta						= acos( (r0 - r1) / dist );
+	tanTheta					= tan(theta);
+	const float sinTheta		= sin(theta);
 
 	const float lengthOnC0		= ((float)M_PI - theta) * r0;
 	const float lengthOnC1		= theta * r1;
@@ -714,8 +720,8 @@ void Lane::Keyframe::PrecomputedData::update(float dist, float r0, float r1, flo
 	xOffsetOnC0 = (r0 - r1) * r0 / dist;
 	xOffsetOnC1 = (r0 - r1) * r1 / dist;
 
-	yOffsetOnC0 = xOffsetOnC0 * tanTheta;
-	yOffsetOnC1 = xOffsetOnC1 * tanTheta;
+	yOffsetOnC0 = sinTheta * r0;
+	yOffsetOnC1 = sinTheta * r1;
 
 	topLeftPos			= vec2(-halfDist + xOffsetOnC0, yOffsetOnC0);
 	topRightPos			= vec2(halfDist + xOffsetOnC1, yOffsetOnC1);

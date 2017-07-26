@@ -95,7 +95,7 @@ private:
 			mat4	worldToLocalMtx;
 
 		private:
-			void update(float dist, float r0, float r1, float yaw, float pitch, float roll, const vec3& pos);
+			void update(float& dist, float& r0, float& r1, float& yaw, float& pitch, float& roll, vec3& pos);
 			friend struct Keyframe;
 		};
 		PrecomputedData	precomp;
