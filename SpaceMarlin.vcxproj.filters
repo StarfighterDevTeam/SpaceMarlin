@@ -183,5 +183,11 @@
     <None Include="media\shaders\marlin.vert">
       <Filter>shaders</Filter>
     </None>
+    <None Include="media\shaders\water_normals.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="media\shaders\water_normals.vert">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

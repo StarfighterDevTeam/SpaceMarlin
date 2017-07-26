@@ -36,6 +36,12 @@ private:
 	GLuint						m_waterVertexArrayId;
 	GLuint						m_waterVertexBufferId;
 
+	// GPU resources for water normals computation
+	GLuint						m_waterNormalsTexId;
+	GLuint						m_waterNormalsFboId;
+	GLuint						m_waterNormalsVertexArrayId;
+	GLuint						m_waterNormalsVertexBufferId;
+
 	int							m_curBufferIdx;
 	float						m_lastAnimationTimeSecs;
 

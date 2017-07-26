@@ -15,8 +15,10 @@ Lane::Lane()
 {
 	for(GLuint& texId : m_heightsTexId)
 		texId = INVALID_GL_ID;
-	for(GLuint& texId : m_waterFboId)
-		texId = INVALID_GL_ID;
+	for(GLuint& fboId : m_waterFboId)
+		fboId = INVALID_GL_ID;
+	m_waterNormalsTexId = INVALID_GL_ID;
+	m_waterNormalsFboId = INVALID_GL_ID;
 }
 
 vec3 Lane::getPosition() const
@@ -151,8 +153,8 @@ void Lane::init(mat4 initialMtx)
 		// Set the filter
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 		// Create the texture
 		glTexImage2D(
@@ -162,6 +164,29 @@ void Lane::init(mat4 initialMtx)
 				gSideNbVtx.x, gSideNbVtx.y,
 				0,
 				GL_RED,
+				GL_FLOAT,
+				NULL);
+	}
+
+	// Create water normals texture
+	{
+		glGenTextures(1, &m_waterNormalsTexId);
+		glBindTexture(GL_TEXTURE_2D, m_waterNormalsTexId);
+
+		// Set the filter
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		// Create the texture
+		glTexImage2D(
+				GL_TEXTURE_2D,
+				0,
+				GL_RGBA32F,
+				gSideNbVtx.x, gSideNbVtx.y,
+				0,
+				GL_RGBA,
 				GL_FLOAT,
 				NULL);
 	}
@@ -240,7 +265,7 @@ void Lane::init(mat4 initialMtx)
 		glBindVertexArray(0);
 	}
 
-	// Init VBO/VAO
+	// Init VBO/VAO for water simulation (height computation)
 	{
 		glGenVertexArrays(1, &m_waterVertexArrayId);
 		glBindVertexArray(m_waterVertexArrayId);
@@ -261,7 +286,28 @@ void Lane::init(mat4 initialMtx)
 		glBindVertexArray(0);
 	}
 
-	// Init framebuffer objects
+	// Init VBO/VAO for water normals computation
+	{
+		glGenVertexArrays(1, &m_waterNormalsVertexArrayId);
+		glBindVertexArray(m_waterNormalsVertexArrayId);
+
+		VtxWaterNormals vertices[] = {
+			{vec3(-1,-1,0)},	{vec3(+1,-1,0)},	{vec3(+1,+1,0)},
+			{vec3(-1,-1,0)},	{vec3(+1,+1,0)},	{vec3(-1,+1,0)},
+		};
+
+		// Load into the VBO
+		glGenBuffers(1, &m_waterNormalsVertexBufferId);
+		glBindBuffer(GL_ARRAY_BUFFER, m_waterNormalsVertexBufferId);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices[0], GL_STATIC_DRAW);
+
+		// Setup vertex buffer layout
+		SETUP_PROGRAM_VERTEX_ATTRIB(PROG_WATER_NORMALS)
+
+		glBindVertexArray(0);
+	}
+
+	// Init framebuffer objects for water simulation (height computation)
 	for(int curIdx=0 ; curIdx < _countof(m_waterFboId) ; curIdx++)
 	{
 		GLuint& fboId			= m_waterFboId[curIdx];
@@ -272,6 +318,32 @@ void Lane::init(mat4 initialMtx)
 
 		// - attach the textures:
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, heightsTexId, 0);
+		
+		GL_CHECK();
+
+		// - specify the draw buffers:
+		static const GLenum drawBuffers[] = {
+			GL_COLOR_ATTACHMENT0
+		};
+
+		glDrawBuffers(sizeof(drawBuffers) / sizeof(GLenum), drawBuffers);
+
+		// - check the FBO:
+		GLenum fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+		if(fboStatus == GL_FRAMEBUFFER_COMPLETE)
+			logSuccess("FBO creation");
+		else
+			logError("FBO not complete");
+	}
+
+	// Init framebuffer object for water normals computation
+	{
+		glGenFramebuffers(1, &m_waterNormalsFboId);
+		glutil::BindFramebuffer fboBinding(m_waterNormalsFboId);
+
+		// - attach the textures:
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_waterNormalsTexId, 0);
 		
 		GL_CHECK();
 
@@ -327,6 +399,7 @@ void Lane::shut()
 	assert(m_indices.size() > 0);
 	m_indices.clear();
 
+	// GPU resources for height computation
 	assert(m_heightsTexId[0] != INVALID_GL_ID);
 
 	for(GLuint& fboId : m_waterFboId)
@@ -337,13 +410,23 @@ void Lane::shut()
 
 	for(GLuint& texId : m_heightsTexId)
 	{
-		glDeleteBuffers(1, &texId);
+		glDeleteTextures(1, &texId);
 		texId = INVALID_GL_ID;
 	}
 
+	glDeleteVertexArrays(1, &m_waterVertexArrayId);	m_waterVertexArrayId = INVALID_GL_ID;
+	glDeleteBuffers(1, &m_waterVertexBufferId);		m_waterVertexBufferId = INVALID_GL_ID;
+
+	// GPU resources for normals computation
+	glDeleteFramebuffers(1, &m_waterNormalsFboId);			m_waterNormalsFboId = INVALID_GL_ID;
+	glDeleteTextures(1, &m_waterNormalsTexId);				m_waterNormalsTexId = INVALID_GL_ID;
+	glDeleteVertexArrays(1, &m_waterNormalsVertexArrayId);	m_waterNormalsVertexArrayId = INVALID_GL_ID;
+	glDeleteBuffers(1, &m_waterNormalsVertexBufferId);
+
+	// GPU resources for the lane itself
+	glDeleteVertexArrays(1, &m_vertexArrayId); m_vertexArrayId = INVALID_GL_ID;
 	glDeleteBuffers(1, &m_vertexBufferId); m_vertexBufferId = INVALID_GL_ID;
 	glDeleteBuffers(1, &m_indexBufferId); m_indexBufferId = INVALID_GL_ID;
-	glDeleteVertexArrays(1, &m_vertexArrayId); m_vertexArrayId = INVALID_GL_ID;
 
 #ifdef _USE_ANTTWEAKBAR
 	TwDeleteBar(m_debugBar);
@@ -431,8 +514,14 @@ void Lane::debugDraw(const Camera& camera)
 {
 	if(gbDebugDrawWaterBuffers)
 	{
-		for(int i=0 ; i < _countof(m_heightsTexId) ; i++)
-			gData.drawer->draw2DTexturedQuad(m_heightsTexId[i], vec2(i*(10+gSideNbVtx.x),10), vec2(gSideNbVtx.x, gSideNbVtx.y));
+		const GLuint texIds[_countof(m_heightsTexId)+1] = {
+			m_heightsTexId[0],
+			m_heightsTexId[1],
+			m_heightsTexId[2],
+			m_waterNormalsTexId,
+		};
+		for(int i=0 ; i < _countof(texIds) ; i++)
+			gData.drawer->draw2DTexturedQuad(texIds[i], vec2(i*(10+gSideNbVtx.x),10), vec2(gSideNbVtx.x, gSideNbVtx.y));
 	}
 
 	if(gbDebugDrawNormals)
@@ -520,61 +609,85 @@ void Lane::updateWaterOnGPU()
 	glGetIntegerv(GL_VIEWPORT, savedVp);
 	glViewport(0, 0, gSideNbVtx.x, gSideNbVtx.y);
 
-	glBindVertexArray(m_waterVertexArrayId);
-
-	const GPUProgram* waterSimulationProgram = gData.gpuProgramMgr->getProgram(PROG_WATER_SIMULATION);
-	waterSimulationProgram->use();
-
-	if(m_lastAnimationTimeSecs < 0.f)
-		m_lastAnimationTimeSecs = gData.curFrameTime.asSeconds();
-
-	static float PARAM_C = 0.8f ; // ripple speed
-	static float PARAM_D = 0.4f ; // distance
-	static float PARAM_U = 0.05f ; // viscosity
-	static float PARAM_T = 0.13f ; // time
-
-	static float ANIMATIONS_PER_SECOND = 100.0f;
-
-	// do rendering to get ANIMATIONS_PER_SECOND
-	while(m_lastAnimationTimeSecs <= gData.curFrameTime.asSeconds())
+	// Compute heights (water simulation)
 	{
-		// switch buffer numbers
-		m_curBufferIdx = (m_curBufferIdx + 1) % 3 ;
+		glBindVertexArray(m_waterVertexArrayId);
 
-		glutil::BindFramebuffer fboBinding(m_waterFboId[m_curBufferIdx]);
-		GLuint idTexHeights1 = m_heightsTexId[(m_curBufferIdx+2)%3];
-		GLuint idTexHeights2 = m_heightsTexId[(m_curBufferIdx+1)%3];
+		const GPUProgram* waterSimulationProgram = gData.gpuProgramMgr->getProgram(PROG_WATER_SIMULATION);
+		waterSimulationProgram->use();
 
+		if(m_lastAnimationTimeSecs < 0.f)
+			m_lastAnimationTimeSecs = gData.curFrameTime.asSeconds();
+
+		static float PARAM_C = 0.8f ; // ripple speed
+		static float PARAM_D = 0.4f ; // distance
+		static float PARAM_U = 0.05f ; // viscosity
+		static float PARAM_T = 0.13f ; // time
+
+		static float ANIMATIONS_PER_SECOND = 100.0f;
+
+		// do rendering to get ANIMATIONS_PER_SECOND
+		while(m_lastAnimationTimeSecs <= gData.curFrameTime.asSeconds())
+		{
+			// switch buffer numbers
+			m_curBufferIdx = (m_curBufferIdx + 1) % 3 ;
+
+			glutil::BindFramebuffer fboBinding(m_waterFboId[m_curBufferIdx]);
+			GLuint idTexHeights1 = m_heightsTexId[(m_curBufferIdx+2)%3];
+			GLuint idTexHeights2 = m_heightsTexId[(m_curBufferIdx+1)%3];
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, idTexHeights1);
+			waterSimulationProgram->sendUniform("texHeights1", 0);
+
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, idTexHeights2);
+			waterSimulationProgram->sendUniform("texHeights2", 1);
+
+			waterSimulationProgram->sendUniform("gTexelSize", vec2(1.f/gSideNbVtx.x, 1.f/gSideNbVtx.y));
+			waterSimulationProgram->sendUniform("gTime", gData.curFrameTime.asSeconds());
+
+			// we use an algorithm from
+			// http://collective.valve-erc.com/index.php?go=water_simulation
+			// The params could be dynamically changed every frame of course
+
+			float C = PARAM_C; // ripple speed
+			float D = PARAM_D; // distance
+			float U = PARAM_U; // viscosity
+			float T = PARAM_T; // time
+			float TERM1 = ( 4.0f - 8.0f*C*C*T*T/(D*D) ) / (U*T+2) ;
+			float TERM2 = ( U*T-2.0f ) / (U*T+2.0f) ;
+			float TERM3 = ( 2.0f * C*C*T*T/(D*D) ) / (U*T+2) ;
+
+			waterSimulationProgram->sendUniform("gTerm1", TERM1);
+			waterSimulationProgram->sendUniform("gTerm2", TERM2);
+			waterSimulationProgram->sendUniform("gTerm3", TERM3);
+
+			glDrawArrays(GL_TRIANGLES, 0, 3*2);
+
+			m_lastAnimationTimeSecs += (1.0f / ANIMATIONS_PER_SECOND);
+		}
+	}
+
+	// Compute water normals
+	{
+		const Keyframe& kf = m_curKeyframe;
+
+		glBindVertexArray(m_waterNormalsVertexArrayId);
+
+		const GPUProgram* waterNormalsProgram = gData.gpuProgramMgr->getProgram(PROG_WATER_NORMALS);
+		waterNormalsProgram->use();
+
+		glutil::BindFramebuffer fboBinding(m_waterNormalsFboId);
+		
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, idTexHeights1);
-		waterSimulationProgram->sendUniform("texHeights1", 0);
+		glBindTexture(GL_TEXTURE_2D, m_heightsTexId[m_curBufferIdx]);
+		waterNormalsProgram->sendUniform("texHeights", 0);
 
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, idTexHeights2);
-		waterSimulationProgram->sendUniform("texHeights2", 1);
-
-		waterSimulationProgram->sendUniform("gTexelSize", vec2(1.f/gSideNbVtx.x, 1.f/gSideNbVtx.y));
-		waterSimulationProgram->sendUniform("gTime", gData.curFrameTime.asSeconds());
-
-		// we use an algorithm from
-		// http://collective.valve-erc.com/index.php?go=water_simulation
-		// The params could be dynamically changed every frame of course
-
-		float C = PARAM_C; // ripple speed
-		float D = PARAM_D; // distance
-		float U = PARAM_U; // viscosity
-		float T = PARAM_T; // time
-		float TERM1 = ( 4.0f - 8.0f*C*C*T*T/(D*D) ) / (U*T+2) ;
-		float TERM2 = ( U*T-2.0f ) / (U*T+2.0f) ;
-		float TERM3 = ( 2.0f * C*C*T*T/(D*D) ) / (U*T+2) ;
-
-		waterSimulationProgram->sendUniform("gTerm1", TERM1);
-		waterSimulationProgram->sendUniform("gTerm2", TERM2);
-		waterSimulationProgram->sendUniform("gTerm3", TERM3);
+		waterNormalsProgram->sendUniform("gTexelSize", vec2(1.f/gSideNbVtx.x, 1.f/gSideNbVtx.y));
+		waterNormalsProgram->sendUniform("gDistBetweenTexels", vec2(kf.precomp.capsulePerimeter / gSideNbVtx.x, kf.precomp.capsulePerimeter / gSideNbVtx.y));
 
 		glDrawArrays(GL_TRIANGLES, 0, 3*2);
-
-		m_lastAnimationTimeSecs += (1.0f / ANIMATIONS_PER_SECOND);
 	}
 
 	// Restore viewport

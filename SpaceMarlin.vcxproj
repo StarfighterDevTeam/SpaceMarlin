@@ -89,6 +89,8 @@
     <None Include="media\shaders\texture2d.vert" />
     <None Include="media\shaders\tonemapping.frag" />
     <None Include="media\shaders\tonemapping.vert" />
+    <None Include="media\shaders\water_normals.frag" />
+    <None Include="media\shaders\water_normals.vert" />
     <None Include="media\shaders\water_simulation.frag" />
     <None Include="media\shaders\water_simulation.vert" />
   </ItemGroup>
