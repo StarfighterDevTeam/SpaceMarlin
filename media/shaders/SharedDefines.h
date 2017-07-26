@@ -131,8 +131,6 @@
 	HANDLE_UNIFORM(sampler2D, texRefraction)								\
 	HANDLE_UNIFORM(sampler2D, texHeights)									\
 	HANDLE_UNIFORM(sampler2D, texNormals)									\
-	HANDLE_UNIFORM(vec2, gTexelSize)										\
-	HANDLE_UNIFORM(vec2, gDistBetweenTexels)								\
 	/* uniform keyframes */													\
 	HANDLE_UNIFORM(float, gKeyframeDist)									\
 	HANDLE_UNIFORM(float, gKeyframeR0)										\

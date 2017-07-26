@@ -377,20 +377,20 @@ void Lane::init(mat4 initialMtx)
 #ifdef _USE_ANTTWEAKBAR
 	m_debugBar = TwNewBar("Lane");
 	Keyframe& kf = m_curKeyframe;
-	TwAddVarRW(m_debugBar, "Dist",	TW_TYPE_FLOAT, &kf.dist, "");
-	TwAddVarRW(m_debugBar, "R0",	TW_TYPE_FLOAT, &kf.r0, "");
-	TwAddVarRW(m_debugBar, "R1",	TW_TYPE_FLOAT, &kf.r1, "");
-	TwAddVarRW(m_debugBar, "Yaw",	TW_TYPE_FLOAT, &kf.yaw, "");
-	TwAddVarRW(m_debugBar, "Pitch",	TW_TYPE_FLOAT, &kf.pitch, "");
-	TwAddVarRW(m_debugBar, "Roll",	TW_TYPE_FLOAT, &kf.roll, "");
-	TwAddVarRW(m_debugBar, "PosX",	TW_TYPE_FLOAT, &kf.pos.x,"");
-	TwAddVarRW(m_debugBar, "PosY",	TW_TYPE_FLOAT, &kf.pos.y,"");
-	TwAddVarRW(m_debugBar, "PosZ",	TW_TYPE_FLOAT, &kf.pos.z,"");
-	TwAddVarRW(m_debugBar, "Draw SDF", TW_TYPE_BOOLCPP, &gbDebugDrawDistToSurface,"");
-	TwAddVarRW(m_debugBar, "Draw normals", TW_TYPE_BOOLCPP, &gbDebugDrawNormals,"");
-	TwAddVarRW(m_debugBar, "Draw coordsys", TW_TYPE_BOOLCPP, &gbDebugDrawCoordinateSystems,"");
-	TwAddVarRW(m_debugBar, "Draw water", TW_TYPE_BOOLCPP, &gbDebugDrawWaterBuffers,"");
-	TwAddVarRW(m_debugBar, "Move lane", TW_TYPE_BOOLCPP, &gbDebugMoveLane,"");
+	TwAddVarRW(m_debugBar, "Dist",	TW_TYPE_FLOAT, &kf.dist,	" min=0.1 max=20 step=0.05 group=Keyframe ");
+	TwAddVarRW(m_debugBar, "R0",	TW_TYPE_FLOAT, &kf.r0,		" min=0.1 max=20 step=0.05 group=Keyframe ");
+	TwAddVarRW(m_debugBar, "R1",	TW_TYPE_FLOAT, &kf.r1,		" min=0.1 max=20 step=0.05 group=Keyframe ");
+	TwAddVarRW(m_debugBar, "Yaw",	TW_TYPE_FLOAT, &kf.yaw,		" min=-10 max=10 step=0.01 group=Keyframe ");
+	TwAddVarRW(m_debugBar, "Pitch",	TW_TYPE_FLOAT, &kf.pitch,	" min=-10 max=10 step=0.01 group=Keyframe ");
+	TwAddVarRW(m_debugBar, "Roll",	TW_TYPE_FLOAT, &kf.roll,	" min=-10 max=10 step=0.01 group=Keyframe ");
+	TwAddVarRW(m_debugBar, "PosX",	TW_TYPE_FLOAT, &kf.pos.x,	" min=-20 max=20 step=0.05 group=Keyframe ");
+	TwAddVarRW(m_debugBar, "PosY",	TW_TYPE_FLOAT, &kf.pos.y,	" min=-20 max=20 step=0.05 group=Keyframe ");
+	TwAddVarRW(m_debugBar, "PosZ",	TW_TYPE_FLOAT, &kf.pos.z,	" min=-20 max=20 step=0.05 group=Keyframe ");
+	TwAddVarRW(m_debugBar, "Draw SDF",		TW_TYPE_BOOLCPP, &gbDebugDrawDistToSurface,		"group=Debug");
+	TwAddVarRW(m_debugBar, "Draw normals",	TW_TYPE_BOOLCPP, &gbDebugDrawNormals,			"group=Debug");
+	TwAddVarRW(m_debugBar, "Draw coordsys", TW_TYPE_BOOLCPP, &gbDebugDrawCoordinateSystems,	"group=Debug");
+	TwAddVarRW(m_debugBar, "Draw water",	TW_TYPE_BOOLCPP, &gbDebugDrawWaterBuffers,		"group=Debug");
+	TwAddVarRW(m_debugBar, "Move lane",		TW_TYPE_BOOLCPP, &gbDebugMoveLane,				"group=Debug");
 #endif
 }
 
@@ -472,9 +472,6 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 	textureSlot++;
 
 	const Keyframe& kf = m_curKeyframe;
-
-	laneProgram->sendUniform("gTexelSize", vec2(1.f/gSideNbVtx.x, 1.f/gSideNbVtx.y));
-	laneProgram->sendUniform("gDistBetweenTexels", vec2(kf.precomp.capsulePerimeter / gSideNbVtx.x, kf.precomp.capsulePerimeter / gSideNbVtx.y));
 
 	// Send keyframe information
 	laneProgram->sendUniform("gKeyframeDist",					kf.dist);
@@ -579,12 +576,9 @@ void Lane::debugDraw(const Camera& camera)
 
 void Lane::update()
 {
-	m_curKeyframe.updatePrecomputedData();
-
 	if(gbDebugMoveLane)
 	{
 		static vec3 debugPos = vec3(0, 0, 0);
-		static vec3 debugScale = vec3(4, 0.3, 1);
 		static float gfDebugAngle = 0.f;
 		static bool gbDebugUseTime = true;
 		if(gbDebugUseTime)
@@ -592,17 +586,14 @@ void Lane::update()
 			static float gfSpeed = 0.001f;
 			gfDebugAngle += gfSpeed * gData.dTime.asMilliseconds();
 		}
-		m_localToWorldMtx = mat4(
-			vec4(debugScale.x, 0, 0, 0),
-			vec4(0, debugScale.y, 0, 0),
-			vec4(0, 0, debugScale.z, 0),
-			vec4(debugPos, 1));
-
-		static vec3 gvDebugRotAxis = vec3(0,0,1);
-		mat4 laneRotMtx = glm::rotate(mat4(), gfDebugAngle, gvDebugRotAxis);
-		m_localToWorldMtx = laneRotMtx * m_localToWorldMtx;
-		m_worldToLocalMtx = glm::inverse(m_localToWorldMtx);
+		
+		m_curKeyframe.roll = gfDebugAngle;
+		m_curKeyframe.pos = debugPos;
 	}
+
+	m_curKeyframe.updatePrecomputedData();
+	m_localToWorldMtx = m_curKeyframe.precomp.localToWorldMtx;
+	m_worldToLocalMtx = m_curKeyframe.precomp.worldToLocalMtx;
 }
 
 void Lane::updateWaterOnGPU()
