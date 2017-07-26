@@ -137,39 +137,44 @@ void Game::run()
 		sf::Event event;
 		while (gData.window->pollEvent(event))
 		{
-			if(event.type == sf::Event::Closed)
-			{
-				running = false;
-			}
-			else if(event.type == sf::Event::Resized)
-			{
-				gData.winSizeX = event.size.width;
-				gData.winSizeY = event.size.height;
-				glViewport(0, 0, event.size.width, event.size.height);
-			#ifdef _USE_ANTTWEAKBAR
-				TwWindowSize(gData.winSizeX, gData.winSizeY);
-			#endif
-			}
-			else if(gData.inputMgr->eventIsDebugWireframeReleased(event))
-			{
-				m_wireframe = !m_wireframe;
-				logDebug("wireframe: ", m_wireframe ? "on" : "off");
-			}
-			else if(gData.inputMgr->eventIsDebugSlowModeReleased(event))
-			{
-				m_slowMode = !m_slowMode;
-				logDebug("slow mode: ", m_slowMode ? "on" : "off");
-			}
-			else if(gData.inputMgr->isMusicMuted(event))
-			{
-				bool bMute = gData.soundMgr->toggleMuteMusic();
-				logDebug("music: ", !bMute ? "on" : "off");
-			}
-			
-			m_scenes[m_curScene]->onEvent(event);
+			int handled = 0;
 		#ifdef _USE_ANTTWEAKBAR
-			TwEventSFML(&event, SFML_VERSION_MAJOR, SFML_VERSION_MINOR);
+			handled = TwEventSFML(&event, SFML_VERSION_MAJOR, SFML_VERSION_MINOR);
 		#endif
+
+			if(!handled)
+			{
+				if(event.type == sf::Event::Closed)
+				{
+					running = false;
+				}
+				else if(event.type == sf::Event::Resized)
+				{
+					gData.winSizeX = event.size.width;
+					gData.winSizeY = event.size.height;
+					glViewport(0, 0, event.size.width, event.size.height);
+				#ifdef _USE_ANTTWEAKBAR
+					TwWindowSize(gData.winSizeX, gData.winSizeY);
+				#endif
+				}
+				else if(gData.inputMgr->eventIsDebugWireframeReleased(event))
+				{
+					m_wireframe = !m_wireframe;
+					logDebug("wireframe: ", m_wireframe ? "on" : "off");
+				}
+				else if(gData.inputMgr->eventIsDebugSlowModeReleased(event))
+				{
+					m_slowMode = !m_slowMode;
+					logDebug("slow mode: ", m_slowMode ? "on" : "off");
+				}
+				else if(gData.inputMgr->isMusicMuted(event))
+				{
+					bool bMute = gData.soundMgr->toggleMuteMusic();
+					logDebug("music: ", !bMute ? "on" : "off");
+				}
+			
+				m_scenes[m_curScene]->onEvent(event);
+			}
 		}
 
 		update();
