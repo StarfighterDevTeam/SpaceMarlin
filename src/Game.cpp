@@ -100,7 +100,7 @@ bool Game::init(sf::RenderWindow* window)
 
 
 	//Music
-	gData.soundMgr->setNextMusic("./media/sounds/Andy_Hunter-Angelic.ogg", 135.38);
+	gData.soundMgr->setNextMusic("./media/sounds/Andy_Hunter-Angelic.ogg", 135.38f);
 	m_beatCount = 0;
 	m_measureCount = 0;
 

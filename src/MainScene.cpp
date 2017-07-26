@@ -53,20 +53,20 @@ bool MainScene::init()
 
 	// Lanes
 	m_lanes.push_back(Lane());
-	//m_lanes.push_back(Lane());
+	m_lanes.push_back(Lane());
 	size_t lanesVectorSize = m_lanes.size();
 	for (size_t i = 0; i < lanesVectorSize; i++)
 	{
-		vec3 debugPos = vec3(10.f*i, 0, 0);
-		vec3 debugScale = vec3(1, 1, 1);
+		const vec3 debugPos = vec3(10.f*i, 0, 0);
+		
+		Lane::Keyframe kf;
+		kf.dist = 4.f;
+		kf.r0 = 2.f;
+		kf.r1 = 0.8f;
+		kf.pos = debugPos;
+		kf.updatePrecomputedData();
 
-		mat4 initialMtx = mat4(
-			vec4(debugScale.x, 0, 0, 0),
-			vec4(0, debugScale.y, 0, 0),
-			vec4(0, 0, debugScale.z, 0),
-			vec4(debugPos, 1));
-
-		m_lanes[i].init(initialMtx);
+		m_lanes[i].init(kf);
 		m_bob.addLane(&m_lanes[i]);
 	}
 	

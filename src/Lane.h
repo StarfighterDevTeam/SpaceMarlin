@@ -10,8 +10,10 @@ class Camera;
 class Lane
 {
 public:
+	struct Keyframe;
+
 	Lane();
-	void		init(mat4 initialMtx);
+	void		init(const Keyframe& initKeyframe);
 	void		shut();
 	void		draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexId);
 	void		update();
@@ -53,6 +55,7 @@ private:
 	GLuint						m_indexBufferId;
 	GLuint						m_vertexBufferId;
 
+public:
 	//Lane transformation
 	struct Keyframe
 	{
@@ -112,6 +115,7 @@ private:
 		void updatePrecomputedData() {precomp.update(dist, r0, r1, yaw, pitch, roll, pos);}
 	};
 
+private:
 	Keyframe					m_curKeyframe;
 
 #ifdef _USE_ANTTWEAKBAR

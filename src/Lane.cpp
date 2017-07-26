@@ -135,7 +135,7 @@ vec3 Lane::getGravityVector(const vec3& worldSpacePos) const
 	return getNormalToSurface(worldSpacePos);
 }
 
-void Lane::init(mat4 initialMtx)
+void Lane::init(const Keyframe& initKeyframe)
 {
 	assert(m_heightsTexId[0] == INVALID_GL_ID);
 
@@ -363,14 +363,8 @@ void Lane::init(mat4 initialMtx)
 			logError("FBO not complete");
 	}
 
-	//m_localToWorldMtx = initialMtx;	TODO: initialMtx to be removed
-	//m_worldToLocalMtx = glm::inverse(m_localToWorldMtx);
-
 	// Test keyframe
-	m_curKeyframe.dist = 4.f;
-	m_curKeyframe.r0 = 2.f;
-	m_curKeyframe.r1 = 0.8f;
-	m_curKeyframe.updatePrecomputedData();
+	m_curKeyframe = initKeyframe;
 	m_localToWorldMtx = m_curKeyframe.precomp.localToWorldMtx;
 	m_worldToLocalMtx = m_curKeyframe.precomp.worldToLocalMtx;
 
