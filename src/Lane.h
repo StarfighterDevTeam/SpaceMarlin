@@ -13,7 +13,7 @@ public:
 	struct Keyframe;
 
 	Lane();
-	void		init(const Keyframe& initKeyframe);
+	void		init(const std::vector<Keyframe>& initKeyframes);
 	void		shut();
 	void		draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexId);
 	void		update();
@@ -24,6 +24,8 @@ public:
 	void		getCoordinateSystem(const vec3& worldSpacePos, vec3& worldSpaceRight, vec3& worldSpaceNormal, vec3& worldSpaceBack) const;
 	float		getDistToSurface(const vec3& worldSpacePos) const;
 	vec3        getGravityVector(const vec3& worldSpacePos) const;
+
+	void		setCurTime(const sf::Time& t)	{m_curKeyframe.t = t;}
 
 private:
 	void		getLocalSpaceCoordinateSystem(const vec3& localSpacePos, vec3& localSpaceRight, vec3& localSpaceNormal, vec3& localSpaceBack) const;
@@ -47,9 +49,6 @@ private:
 	int							m_curBufferIdx;
 	float						m_lastAnimationTimeSecs;
 
-	mat4						m_localToWorldMtx;
-	mat4						m_worldToLocalMtx;
-
 	// GPU resources for drawing the lane
 	GLuint						m_vertexArrayId;
 	GLuint						m_indexBufferId;
@@ -59,11 +58,12 @@ public:
 	//Lane transformation
 	struct Keyframe
 	{
-		float	dist;	// distance between both circles of the capsule
-		float	r0;		// radius of the left circle of the capsule
-		float	r1;		// radius of the right circle of the capsule
-		float	yaw,pitch,roll;	// rotation of the lane
-		vec3	pos;	// position of the center of the capsule
+		sf::Time	t;		// time at which the keyframe becomes the current one
+		float		dist;	// distance between both circles of the capsule
+		float		r0;		// radius of the left circle of the capsule
+		float		r1;		// radius of the right circle of the capsule
+		float		yaw,pitch,roll;	// rotation of the lane
+		vec3		pos;	// position of the center of the capsule
 
 		// Precomputed values
 		struct PrecomputedData
@@ -118,8 +118,11 @@ public:
 private:
 	Keyframe					m_curKeyframe;
 
+	std::vector<Keyframe>		m_keyframes;
+
 #ifdef _USE_ANTTWEAKBAR
-	TwBar*						m_debugBar;
+	bool						m_debugTweaking;
+	int							m_debugLaneId;
 #endif
 };
 

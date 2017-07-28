@@ -10,6 +10,17 @@ static bool gbDebugDrawCoordinateSystems = false;
 static bool gbDebugDrawDistToSurface = false;
 static bool gbDebugDrawWaterBuffers = false;
 static bool gbDebugMoveLane = false;
+#ifdef _USE_ANTTWEAKBAR
+static TwBar*	gDebugBar = NULL;
+static int		gDebugNbLaneInstances = 0;
+Lane::Keyframe	gDebugKeyframe;
+static const char* getLaneNameForDebugBar(int laneId)
+{
+	static char str[256];
+	sprintf_s(str, "Lane #%d", laneId);
+	return str;
+}
+#endif
 
 Lane::Lane()
 {
@@ -21,121 +32,7 @@ Lane::Lane()
 	m_waterNormalsFboId = INVALID_GL_ID;
 }
 
-vec3 Lane::getPosition() const
-{
-	return vec3(m_localToWorldMtx[3].x, m_localToWorldMtx[3].y, m_localToWorldMtx[3].z);
-}
-
-vec3 Lane::getNormalToSurface(const vec3& worldSpacePos) const
-{
-	vec3 worldSpaceRight;
-	vec3 worldSpaceNormal;
-	vec3 worldSpaceBack;
-	getCoordinateSystem(worldSpacePos, worldSpaceRight, worldSpaceNormal, worldSpaceBack);
-	return worldSpaceNormal;
-}
-
-void Lane::getCoordinateSystem(const vec3& worldSpacePos, vec3& worldSpaceRight, vec3& worldSpaceNormal, vec3& worldSpaceBack) const
-{
-	// TODO: handle Z
-
-	vec4 localSpacePos = m_worldToLocalMtx * vec4(worldSpacePos,1);
-	localSpacePos.x /= localSpacePos.w;
-	localSpacePos.y /= localSpacePos.w;
-	localSpacePos.z /= localSpacePos.w;
-	//localSpacePos.w = 1;
-	
-	vec3 localSpaceRight, localSpaceNormal, localSpaceBack;
-	getLocalSpaceCoordinateSystem(vec3(localSpacePos), localSpaceRight, localSpaceNormal, localSpaceBack);
-
-	const mat3 localToWorldRotMtx = mat3(m_localToWorldMtx);
-	worldSpaceRight		= localToWorldRotMtx * localSpaceRight;
-	worldSpaceNormal	= localToWorldRotMtx * localSpaceNormal;
-	worldSpaceBack		= localToWorldRotMtx * localSpaceBack;
-}
-
-void Lane::getLocalSpaceCoordinateSystem(const vec3& localSpacePos, vec3& localSpaceRight, vec3& localSpaceNormal, vec3& localSpaceBack) const
-{
-	// TODO: handle Z
-
-	vec2 p = vec2(localSpacePos);
-
-	const Keyframe& kf = m_curKeyframe;
-	
-	vec2 backupNormal = vec2(0,1);
-	vec2 backupTangent = vec2(-1,0);
-
-	if(p.x > kf.precomp.halfDist + kf.precomp.xOffsetOnC1)
-	{
-		// Compute normal relative to C1
-		localSpaceNormal = vec3(
-			safeNormalize(p - vec2(kf.precomp.halfDist, 0.f), backupNormal),
-			0);
-	}
-	else if(p.x < -kf.precomp.halfDist + kf.precomp.xOffsetOnC0)
-	{
-		// Compute normal relative to C2
-		localSpaceNormal = vec3(
-			safeNormalize(p - vec2(-kf.precomp.halfDist, 0.f), backupNormal),
-			0);
-	}
-	else if(p.y > 0.f)
-	{
-		localSpaceNormal = vec3(kf.precomp.topTangentVector.y, -kf.precomp.topTangentVector.x, 0);
-	}
-	else //if(p.y <= 0.f)
-	{
-		localSpaceNormal = vec3(kf.precomp.bottomTangentVector.y, -kf.precomp.bottomTangentVector.x, 0);
-	}
-
-	localSpaceRight = vec3(localSpaceNormal.y, -localSpaceNormal.x, 0);
-	localSpaceBack = vec3(0,0,1);	// could be something else later (affected by waves...)
-}
-
-float Lane::getDistToSurface(const vec3& worldSpacePos) const
-{
-	// TODO: handle Z
-
-	vec4 localSpacePos = m_worldToLocalMtx * vec4(worldSpacePos,1);
-	//localSpacePos.x /= localSpacePos.w;
-	//localSpacePos.y /= localSpacePos.w;
-	//localSpacePos.z /= localSpacePos.w;
-	//localSpacePos.w = 1;
-	vec2 p = vec2(localSpacePos.x / localSpacePos.w, localSpacePos.y / localSpacePos.w);
-
-	const Keyframe& kf = m_curKeyframe;
-	
-	const vec2& segStart	= p.y >= 0 ? kf.precomp.topLeftPos : kf.precomp.bottomLeftPos;
-	const vec2& segEnd		= p.y >= 0 ? kf.precomp.topRightPos : kf.precomp.bottomRightPos;
-	const vec2 segment		= segEnd - segStart;
-	const float u			= glm::dot(p - segStart, segment) / glm::dot(segment, segment);
-	if(u < 0)
-	{
-		const vec2 c0Center = vec2(-kf.precomp.halfDist, 0);
-		return glm::length(p - c0Center) - kf.r0;	// signed distance to C0
-	}
-	else if(u > 1)
-	{
-		const vec2 c1Center = vec2(kf.precomp.halfDist, 0);
-		return glm::length(p - c1Center) - kf.r1;	// signed distance to C1
-	}
-	else
-	{
-		// signed distance to the segment
-		const vec2	h		= segStart + u * segment;
-		const float s		=	-safeSign(p.y) *
-								safeSign(glm::determinant(mat2(p - segStart, segment)));
-		return s * glm::length(p - h);
-	}
-}
-
-vec3 Lane::getGravityVector(const vec3& worldSpacePos) const
-{
-	// TODO: have a different gravity vector when the distance between the cylinders is > threshold
-	return getNormalToSurface(worldSpacePos);
-}
-
-void Lane::init(const Keyframe& initKeyframe)
+void Lane::init(const std::vector<Keyframe>& initKeyframes)
 {
 	assert(m_heightsTexId[0] == INVALID_GL_ID);
 
@@ -363,28 +260,33 @@ void Lane::init(const Keyframe& initKeyframe)
 			logError("FBO not complete");
 	}
 
-	// Test keyframe
-	m_curKeyframe = initKeyframe;
-	m_localToWorldMtx = m_curKeyframe.precomp.localToWorldMtx;
-	m_worldToLocalMtx = m_curKeyframe.precomp.worldToLocalMtx;
-
+	m_curKeyframe = initKeyframes[0];
+	m_keyframes = initKeyframes;
+	
 #ifdef _USE_ANTTWEAKBAR
-	m_debugBar = TwNewBar("Lane");
-	Keyframe& kf = m_curKeyframe;
-	TwAddVarRW(m_debugBar, "Dist",	TW_TYPE_FLOAT, &kf.dist,	" min=0.1 max=20 step=0.05 group=Keyframe ");
-	TwAddVarRW(m_debugBar, "R0",	TW_TYPE_FLOAT, &kf.r0,		" min=0.1 max=20 step=0.05 group=Keyframe ");
-	TwAddVarRW(m_debugBar, "R1",	TW_TYPE_FLOAT, &kf.r1,		" min=0.1 max=20 step=0.05 group=Keyframe ");
-	TwAddVarRW(m_debugBar, "Yaw",	TW_TYPE_FLOAT, &kf.yaw,		" min=-10 max=10 step=0.01 group=Keyframe ");
-	TwAddVarRW(m_debugBar, "Pitch",	TW_TYPE_FLOAT, &kf.pitch,	" min=-10 max=10 step=0.01 group=Keyframe ");
-	TwAddVarRW(m_debugBar, "Roll",	TW_TYPE_FLOAT, &kf.roll,	" min=-10 max=10 step=0.01 group=Keyframe ");
-	TwAddVarRW(m_debugBar, "PosX",	TW_TYPE_FLOAT, &kf.pos.x,	" min=-20 max=20 step=0.05 group=Keyframe ");
-	TwAddVarRW(m_debugBar, "PosY",	TW_TYPE_FLOAT, &kf.pos.y,	" min=-20 max=20 step=0.05 group=Keyframe ");
-	TwAddVarRW(m_debugBar, "PosZ",	TW_TYPE_FLOAT, &kf.pos.z,	" min=-20 max=20 step=0.05 group=Keyframe ");
-	TwAddVarRW(m_debugBar, "Draw SDF",		TW_TYPE_BOOLCPP, &gbDebugDrawDistToSurface,		"group=Debug");
-	TwAddVarRW(m_debugBar, "Draw normals",	TW_TYPE_BOOLCPP, &gbDebugDrawNormals,			"group=Debug");
-	TwAddVarRW(m_debugBar, "Draw coordsys", TW_TYPE_BOOLCPP, &gbDebugDrawCoordinateSystems,	"group=Debug");
-	TwAddVarRW(m_debugBar, "Draw water",	TW_TYPE_BOOLCPP, &gbDebugDrawWaterBuffers,		"group=Debug");
-	TwAddVarRW(m_debugBar, "Move lane",		TW_TYPE_BOOLCPP, &gbDebugMoveLane,				"group=Debug");
+	m_debugLaneId = gDebugNbLaneInstances;
+	gDebugNbLaneInstances++;
+	if(!gDebugBar)
+	{
+		gDebugBar = TwNewBar("Lane");
+		Keyframe& kf = m_keyframes[0];
+		TwAddVarRW(gDebugBar, "Dist",			TW_TYPE_FLOAT,		&gDebugKeyframe.dist,	"min=0.1 max=20 step=0.05 group=Keyframe");
+		TwAddVarRW(gDebugBar, "R0",				TW_TYPE_FLOAT,		&gDebugKeyframe.r0,		"min=0.1 max=20 step=0.05 group=Keyframe");
+		TwAddVarRW(gDebugBar, "R1",				TW_TYPE_FLOAT,		&gDebugKeyframe.r1,		"min=0.1 max=20 step=0.05 group=Keyframe");
+		TwAddVarRW(gDebugBar, "Yaw",			TW_TYPE_FLOAT,		&gDebugKeyframe.yaw,	"min=-10 max=10 step=0.01 group=Keyframe");
+		TwAddVarRW(gDebugBar, "Pitch",			TW_TYPE_FLOAT,		&gDebugKeyframe.pitch,	"min=-10 max=10 step=0.01 group=Keyframe");
+		TwAddVarRW(gDebugBar, "Roll",			TW_TYPE_FLOAT,		&gDebugKeyframe.roll,	"min=-10 max=10 step=0.01 group=Keyframe");
+		TwAddVarRW(gDebugBar, "PosX",			TW_TYPE_FLOAT,		&gDebugKeyframe.pos.x,	"min=-20 max=20 step=0.05 group=Keyframe");
+		TwAddVarRW(gDebugBar, "PosY",			TW_TYPE_FLOAT,		&gDebugKeyframe.pos.y,	"min=-20 max=20 step=0.05 group=Keyframe");
+		TwAddVarRW(gDebugBar, "PosZ",			TW_TYPE_FLOAT,		&gDebugKeyframe.pos.z,	"min=-20 max=20 step=0.05 group=Keyframe");
+		TwAddVarRW(gDebugBar, "Draw SDF",		TW_TYPE_BOOLCPP,	&gbDebugDrawDistToSurface,		"group=Debug");
+		TwAddVarRW(gDebugBar, "Draw normals",	TW_TYPE_BOOLCPP,	&gbDebugDrawNormals,			"group=Debug");
+		TwAddVarRW(gDebugBar, "Draw coordsys",	TW_TYPE_BOOLCPP,	&gbDebugDrawCoordinateSystems,	"group=Debug");
+		TwAddVarRW(gDebugBar, "Draw water",		TW_TYPE_BOOLCPP,	&gbDebugDrawWaterBuffers,		"group=Debug");
+		TwAddVarRW(gDebugBar, "Move lane",		TW_TYPE_BOOLCPP,	&gbDebugMoveLane,				"group=Debug");
+	}
+	m_debugTweaking = false;
+	TwAddVarRW(gDebugBar, getLaneNameForDebugBar(m_debugLaneId), TW_TYPE_BOOLCPP, &m_debugTweaking, "group=Tweaking");
 #endif
 }
 
@@ -423,8 +325,15 @@ void Lane::shut()
 	glDeleteBuffers(1, &m_indexBufferId); m_indexBufferId = INVALID_GL_ID;
 
 #ifdef _USE_ANTTWEAKBAR
-	TwDeleteBar(m_debugBar);
-	m_debugBar = NULL;
+	assert(gDebugBar);
+	TwRemoveVar(gDebugBar, getLaneNameForDebugBar(m_debugLaneId));
+	gDebugNbLaneInstances--;
+	if(gDebugNbLaneInstances == 0)
+	{
+		TwDeleteBar(gDebugBar);
+		gDebugBar = NULL;
+	}
+	m_debugLaneId = -1;
 #endif
 }
 
@@ -440,7 +349,7 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 	gData.gpuProgramMgr->sendCommonUniforms(
 		laneProgram,
 		camera,
-		m_localToWorldMtx);
+		m_curKeyframe.precomp.localToWorldMtx);
 
 	GLint textureSlot = 0;
 
@@ -570,6 +479,15 @@ void Lane::debugDraw(const Camera& camera)
 
 void Lane::update()
 {
+#ifdef _USE_ANTTWEAKBAR
+	if(m_debugTweaking)
+		m_curKeyframe = gDebugKeyframe;
+	else
+#endif
+	{
+		// TODO: interpolation using m_curKeyframe.t
+	}
+
 	if(gbDebugMoveLane)
 	{
 		static vec3 debugPos = vec3(0, 0, 0);
@@ -586,8 +504,6 @@ void Lane::update()
 	}
 
 	m_curKeyframe.updatePrecomputedData();
-	m_localToWorldMtx = m_curKeyframe.precomp.localToWorldMtx;
-	m_worldToLocalMtx = m_curKeyframe.precomp.worldToLocalMtx;
 }
 
 void Lane::updateWaterOnGPU()
@@ -684,6 +600,121 @@ void Lane::updateWaterOnGPU()
 	glViewport(savedVp[0], savedVp[1], savedVp[2], savedVp[3]);
 
 	glBindVertexArray(0);
+}
+
+vec3 Lane::getPosition() const
+{
+	const mat4 localToWorldMtx = m_curKeyframe.precomp.localToWorldMtx;
+	return vec3( localToWorldMtx[3].x, localToWorldMtx[3].y, localToWorldMtx[3].z);
+}
+
+vec3 Lane::getNormalToSurface(const vec3& worldSpacePos) const
+{
+	vec3 worldSpaceRight;
+	vec3 worldSpaceNormal;
+	vec3 worldSpaceBack;
+	getCoordinateSystem(worldSpacePos, worldSpaceRight, worldSpaceNormal, worldSpaceBack);
+	return worldSpaceNormal;
+}
+
+void Lane::getCoordinateSystem(const vec3& worldSpacePos, vec3& worldSpaceRight, vec3& worldSpaceNormal, vec3& worldSpaceBack) const
+{
+	// TODO: handle Z
+
+	vec4 localSpacePos = m_curKeyframe.precomp.worldToLocalMtx * vec4(worldSpacePos,1);
+	localSpacePos.x /= localSpacePos.w;
+	localSpacePos.y /= localSpacePos.w;
+	localSpacePos.z /= localSpacePos.w;
+	//localSpacePos.w = 1;
+	
+	vec3 localSpaceRight, localSpaceNormal, localSpaceBack;
+	getLocalSpaceCoordinateSystem(vec3(localSpacePos), localSpaceRight, localSpaceNormal, localSpaceBack);
+
+	const mat3 localToWorldRotMtx = mat3(m_curKeyframe.precomp.localToWorldMtx);
+	worldSpaceRight		= localToWorldRotMtx * localSpaceRight;
+	worldSpaceNormal	= localToWorldRotMtx * localSpaceNormal;
+	worldSpaceBack		= localToWorldRotMtx * localSpaceBack;
+}
+
+void Lane::getLocalSpaceCoordinateSystem(const vec3& localSpacePos, vec3& localSpaceRight, vec3& localSpaceNormal, vec3& localSpaceBack) const
+{
+	// TODO: handle Z
+
+	vec2 p = vec2(localSpacePos);
+
+	const Keyframe& kf = m_curKeyframe;
+	
+	vec2 backupNormal = vec2(0,1);
+	vec2 backupTangent = vec2(-1,0);
+
+	if(p.x > kf.precomp.halfDist + kf.precomp.xOffsetOnC1)
+	{
+		// Compute normal relative to C1
+		localSpaceNormal = vec3(
+			safeNormalize(p - vec2(kf.precomp.halfDist, 0.f), backupNormal),
+			0);
+	}
+	else if(p.x < -kf.precomp.halfDist + kf.precomp.xOffsetOnC0)
+	{
+		// Compute normal relative to C2
+		localSpaceNormal = vec3(
+			safeNormalize(p - vec2(-kf.precomp.halfDist, 0.f), backupNormal),
+			0);
+	}
+	else if(p.y > 0.f)
+	{
+		localSpaceNormal = vec3(kf.precomp.topTangentVector.y, -kf.precomp.topTangentVector.x, 0);
+	}
+	else //if(p.y <= 0.f)
+	{
+		localSpaceNormal = vec3(kf.precomp.bottomTangentVector.y, -kf.precomp.bottomTangentVector.x, 0);
+	}
+
+	localSpaceRight = vec3(localSpaceNormal.y, -localSpaceNormal.x, 0);
+	localSpaceBack = vec3(0,0,1);	// could be something else later (affected by waves...)
+}
+
+float Lane::getDistToSurface(const vec3& worldSpacePos) const
+{
+	// TODO: handle Z
+
+	vec4 localSpacePos = m_curKeyframe.precomp.worldToLocalMtx * vec4(worldSpacePos,1);
+	//localSpacePos.x /= localSpacePos.w;
+	//localSpacePos.y /= localSpacePos.w;
+	//localSpacePos.z /= localSpacePos.w;
+	//localSpacePos.w = 1;
+	vec2 p = vec2(localSpacePos.x / localSpacePos.w, localSpacePos.y / localSpacePos.w);
+
+	const Keyframe& kf = m_curKeyframe;
+	
+	const vec2& segStart	= p.y >= 0 ? kf.precomp.topLeftPos : kf.precomp.bottomLeftPos;
+	const vec2& segEnd		= p.y >= 0 ? kf.precomp.topRightPos : kf.precomp.bottomRightPos;
+	const vec2 segment		= segEnd - segStart;
+	const float u			= glm::dot(p - segStart, segment) / glm::dot(segment, segment);
+	if(u < 0)
+	{
+		const vec2 c0Center = vec2(-kf.precomp.halfDist, 0);
+		return glm::length(p - c0Center) - kf.r0;	// signed distance to C0
+	}
+	else if(u > 1)
+	{
+		const vec2 c1Center = vec2(kf.precomp.halfDist, 0);
+		return glm::length(p - c1Center) - kf.r1;	// signed distance to C1
+	}
+	else
+	{
+		// signed distance to the segment
+		const vec2	h		= segStart + u * segment;
+		const float s		=	-safeSign(p.y) *
+								safeSign(glm::determinant(mat2(p - segStart, segment)));
+		return s * glm::length(p - h);
+	}
+}
+
+vec3 Lane::getGravityVector(const vec3& worldSpacePos) const
+{
+	// TODO: have a different gravity vector when the distance between the cylinders is > threshold
+	return getNormalToSurface(worldSpacePos);
 }
 
 void Lane::Keyframe::PrecomputedData::update(float& dist, float& r0, float& r1, float& yaw, float& pitch, float& roll, vec3& pos)

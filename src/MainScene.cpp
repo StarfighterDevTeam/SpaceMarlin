@@ -59,14 +59,26 @@ bool MainScene::init()
 	{
 		const vec3 debugPos = vec3(10.f*i, 0, 0);
 		
-		Lane::Keyframe kf;
+		std::vector<Lane::Keyframe> keyframes;
+		Lane::Keyframe	kf;
+
+		kf.t = sf::seconds(0.f);
 		kf.dist = 4.f;
 		kf.r0 = 2.f;
 		kf.r1 = 0.8f;
 		kf.pos = debugPos;
+		keyframes.push_back(kf);
+
+		kf.t = sf::seconds(1.f);
+		kf.dist = 2.f;
+		kf.r0 = 0.8f;
+		kf.r1 = 2.f;
+		kf.pos = debugPos + vec3(0.f, 1.f, 0.f);
+		keyframes.push_back(kf);
+		
 		kf.updatePrecomputedData();
 
-		m_lanes[i].init(kf);
+		m_lanes[i].init(keyframes);
 		m_bob.addLane(&m_lanes[i]);
 	}
 	
@@ -109,6 +121,11 @@ void MainScene::update()
 	size_t lanesVectorSize = m_lanes.size();
 	for (size_t i = 0; i < lanesVectorSize; i++)
 	{
+		// Test, repeating in the [0 sec, 1 sec] interval
+		float intpart;
+		const float subSecs = modf(gData.curFrameTime.asSeconds(), &intpart);
+		m_lanes[i].setCurTime(sf::seconds(subSecs));
+
 		m_lanes[i].update();
 	}
 
