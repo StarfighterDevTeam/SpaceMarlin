@@ -502,7 +502,13 @@ void Lane::update()
 		m_curKeyframe.dist	= glm::lerp(	kf0.dist,	kf1.dist,	u);
 		m_curKeyframe.r0	= glm::lerp(	kf0.r0,		kf1.r0,		u);
 		m_curKeyframe.r1	= glm::lerp(	kf0.r1,		kf1.r1,		u);
-		// TODO: yaw, pitch, roll to be interpolated with slerp and quaternions
+		const mat4 rotMtx0 = glm::yawPitchRoll(kf0.yaw, kf0.pitch, kf0.roll);	// yaw=Y, pitch=X, roll=Z
+		const mat4 rotMtx1 = glm::yawPitchRoll(kf1.yaw, kf1.pitch, kf1.roll);
+		const quat qRot0(rotMtx0);
+		const quat qRot1(rotMtx1);
+		const quat qRot = glm::slerp(qRot0, qRot1, u);
+		const mat4 rotMtx = glm::mat4_cast(qRot);
+		glm::extractEulerAngleXYZ(rotMtx, m_curKeyframe.pitch, m_curKeyframe.yaw, m_curKeyframe.roll);
 		m_curKeyframe.yaw	= glm::lerp(	kf0.yaw,	kf1.yaw,	u);
 		m_curKeyframe.pitch	= glm::lerp(	kf0.pitch,	kf1.pitch,	u);
 		m_curKeyframe.roll	= glm::lerp(	kf0.roll,	kf1.roll,	u);
@@ -777,6 +783,9 @@ void Lane::Keyframe::PrecomputedData::update(float& dist, float& r0, float& r1, 
 	bottomRightPos		= vec2(halfDist + xOffsetOnC1, -yOffsetOnC1);
 	bottomTangentVector	= glm::normalize(bottomRightPos - bottomLeftPos);
 
-	localToWorldMtx = glm::translate(glm::yawPitchRoll(yaw, pitch, roll), pos);
+	localToWorldMtx = glm::yawPitchRoll(yaw, pitch, roll);
+	localToWorldMtx[3].x = pos.x;
+	localToWorldMtx[3].y = pos.y;
+	localToWorldMtx[3].z = pos.z;
 	worldToLocalMtx = glm::inverse(localToWorldMtx);	// TODO: overkill...
 }
