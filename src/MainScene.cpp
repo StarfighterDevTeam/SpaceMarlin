@@ -60,23 +60,24 @@ bool MainScene::init()
 		const vec3 debugPos = vec3(10.f*i, 0, 0);
 		
 		std::vector<Lane::Keyframe> keyframes;
-		Lane::Keyframe	kf;
+		Lane::Keyframe	kf0, kf1;
 
-		kf.t = sf::seconds(0.f);
-		kf.dist = 4.f;
-		kf.r0 = 2.f;
-		kf.r1 = 0.8f;
-		kf.pos = debugPos;
-		keyframes.push_back(kf);
+		kf0.t = sf::seconds(0.f);
+		kf0.dist = 4.f;
+		kf0.r0 = 2.f;
+		kf0.r1 = 0.8f;
+		kf0.pos = debugPos;
+		keyframes.push_back(kf0);
 
-		kf.t = sf::seconds(1.f);
-		kf.dist = 2.f;
-		kf.r0 = 0.8f;
-		kf.r1 = 2.f;
-		kf.pos = debugPos + vec3(0.f, 1.f, 0.f);
-		keyframes.push_back(kf);
-		
-		kf.updatePrecomputedData();
+		kf1.t = sf::seconds(0.5f);
+		kf1.dist = 2.f;
+		kf1.r0 = 0.8f;
+		kf1.r1 = 2.f;
+		kf1.pos = debugPos + vec3(0.f, 1.f, 0.f);
+		keyframes.push_back(kf1);
+
+		kf0.t = sf::seconds(1.f);
+		keyframes.push_back(kf0);
 
 		m_lanes[i].init(keyframes);
 		m_bob.addLane(&m_lanes[i]);

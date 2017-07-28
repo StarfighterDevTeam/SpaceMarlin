@@ -486,6 +486,27 @@ void Lane::update()
 #endif
 	{
 		// TODO: interpolation using m_curKeyframe.t
+		// Find previous and next keyframes
+		int idxFirst = 0;
+		int idxSecond = 0;
+		while(m_keyframes[idxSecond].t < m_curKeyframe.t)
+			idxSecond++;
+		idxFirst = std::max(0, idxSecond-1);
+
+		const Keyframe& kf0 = m_keyframes[idxFirst];
+		const Keyframe& kf1 = m_keyframes[idxSecond];
+		const float timeDelta = kf1.t.asSeconds() - kf0.t.asSeconds();
+		assert(timeDelta > 0.0001f);
+		const float u = (m_curKeyframe.t.asSeconds() - kf0.t.asSeconds()) / timeDelta;
+
+		m_curKeyframe.dist	= glm::lerp(	kf0.dist,	kf1.dist,	u);
+		m_curKeyframe.r0	= glm::lerp(	kf0.r0,		kf1.r0,		u);
+		m_curKeyframe.r1	= glm::lerp(	kf0.r1,		kf1.r1,		u);
+		// TODO: yaw, pitch, roll to be interpolated with slerp and quaternions
+		m_curKeyframe.yaw	= glm::lerp(	kf0.yaw,	kf1.yaw,	u);
+		m_curKeyframe.pitch	= glm::lerp(	kf0.pitch,	kf1.pitch,	u);
+		m_curKeyframe.roll	= glm::lerp(	kf0.roll,	kf1.roll,	u);
+		m_curKeyframe.pos	= glm::lerp(	kf0.pos,	kf1.pos,	u);
 	}
 
 	if(gbDebugMoveLane)
