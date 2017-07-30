@@ -3,6 +3,7 @@
 #include "GPUProgramManager.h"
 #include "Camera.h"
 #include "glutil/glutil.h"
+#include "Atom.h"
 
 static const ivec2 gSideNbVtx(100,100);
 static bool gbDebugDrawNormals = false;
@@ -22,7 +23,7 @@ static const char* getLaneNameForDebugBar(int laneId)
 }
 #endif
 
-Lane::Lane()
+Lane::Lane(Atom* atomBlueprint)
 {
 	for(GLuint& texId : m_heightsTexId)
 		texId = INVALID_GL_ID;
@@ -30,6 +31,8 @@ Lane::Lane()
 		fboId = INVALID_GL_ID;
 	m_waterNormalsTexId = INVALID_GL_ID;
 	m_waterNormalsFboId = INVALID_GL_ID;
+
+	m_atomBlueprint = atomBlueprint;
 }
 
 void Lane::init(const std::vector<Keyframe>& initKeyframes)
@@ -788,4 +791,15 @@ void Lane::Keyframe::PrecomputedData::update(float& dist, float& r0, float& r1, 
 	localToWorldMtx[3].y = pos.y;
 	localToWorldMtx[3].z = pos.z;
 	worldToLocalMtx = glm::inverse(localToWorldMtx);	// TODO: overkill...
+}
+
+Atom* Lane::createAtom()
+{
+	Atom* newAtom = m_atomBlueprint->Clone();
+
+	vec3 position = vec3(getPosition().x, getPosition().y, 2.f);
+
+	newAtom->setPosition(position);
+
+	return newAtom;
 }

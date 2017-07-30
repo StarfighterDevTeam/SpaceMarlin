@@ -10,6 +10,7 @@
 #include "Lane.h"
 #include "Skybox.h"
 #include "Marlin.h"
+#include "Atom.h"
 
 class FollowCamera;
 
@@ -20,6 +21,8 @@ private:
 	Marlin				m_bob;
 	std::vector<Lane>	m_lanes;
 	FollowCamera*		m_camera;
+	Atom*				m_atomBlueprint;
+	std::vector<Atom*>	m_atoms;
 
 	GLuint				m_sceneRefractionTexId;
 	GLuint				m_sceneFboId;
@@ -38,10 +41,12 @@ public:
 	virtual Camera*	createCamera() const override;
 
 private:
-	void			drawScene();
 	void			initSceneFBO();
 	void			shutSceneFBO();
-	void			updateBob();
+
+	sf::Clock			m_beatClock;
+	int					m_beatCount;
+	int					m_measureCount;
 };
 
 #endif // _MAIN_SCENE_H

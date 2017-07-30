@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Atom.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\Drawer.cpp" />
     <ClCompile Include="src\FollowCamera.cpp" />
@@ -41,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="media\shaders\SharedDefines.h" />
+    <ClInclude Include="src\Atom.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Drawer.h" />
     <ClInclude Include="src\FollowCamera.h" />

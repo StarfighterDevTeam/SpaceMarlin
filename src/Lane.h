@@ -5,6 +5,8 @@
 #include "Globals.h"
 #include "GPUProgramManager.h"
 
+class Atom;
+
 class Camera;
 
 class Lane
@@ -12,7 +14,8 @@ class Lane
 public:
 	struct Keyframe;
 
-	Lane();
+	Lane(Atom* atomBlueprint);
+
 	void		init(const std::vector<Keyframe>& initKeyframes);
 	void		shut();
 	void		draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexId);
@@ -26,6 +29,9 @@ public:
 	vec3        getGravityVector(const vec3& worldSpacePos) const;
 
 	void		setCurTime(const sf::Time& t)	{m_curKeyframe.t = t;}
+
+	Atom*		createAtom();
+	Atom*		m_atomBlueprint;
 
 private:
 	void		getLocalSpaceCoordinateSystem(const vec3& localSpacePos, vec3& localSpaceRight, vec3& localSpaceNormal, vec3& localSpaceBack) const;
