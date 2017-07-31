@@ -6,17 +6,17 @@
 #include "GPUProgramManager.h"
 
 class Atom;
-
 class Camera;
+class ModelResource;
 
 class Lane
 {
 public:
 	struct Keyframe;
 
-	Lane(Atom* atomBlueprint);
+	Lane();
 
-	void		init(const std::vector<Keyframe>& initKeyframes);
+	void		init(const std::vector<Keyframe>& initKeyframes, ModelResource* atomBlueprint);
 	void		shut();
 	void		draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexId);
 	void		update();
@@ -30,8 +30,7 @@ public:
 
 	void		setCurTime(const sf::Time& t)	{m_curKeyframe.t = t;}
 
-	Atom*		createAtom();
-	Atom*		m_atomBlueprint;
+	void		setupAtom(Atom* pAtom);
 
 private:
 	void		getLocalSpaceCoordinateSystem(const vec3& localSpacePos, vec3& localSpaceRight, vec3& localSpaceNormal, vec3& localSpaceBack) const;
@@ -39,6 +38,8 @@ private:
 	void		updateWaterOnGPU();
 
 	std::vector<unsigned short>	m_indices;
+
+	ModelResource*				m_atomBlueprint;
 
 	// GPU resources for simulating water
 	GLuint						m_heightsTexId[3];

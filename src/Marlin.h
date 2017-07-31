@@ -13,7 +13,7 @@ enum MarlinState
 
 class Lane;
 
-class Marlin : public Model
+class Marlin : public ModelInstance
 {
 protected:
 	virtual const GPUProgram*	getProgram() const override;
@@ -41,6 +41,8 @@ protected:
 public:
 	Marlin();
 
+	bool init();
+	void shut();
 	void update();
 	void addLane(const Lane* lane);
 };

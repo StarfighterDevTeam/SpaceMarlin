@@ -75,6 +75,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
+    <None Include="media\shaders\atom.frag" />
+    <None Include="media\shaders\atom.vert" />
     <None Include="media\shaders\fsquad.frag" />
     <None Include="media\shaders\fsquad.vert" />
     <None Include="media\shaders\lane.frag" />

@@ -21,8 +21,8 @@ private:
 	Marlin				m_bob;
 	std::vector<Lane>	m_lanes;
 	FollowCamera*		m_camera;
-	Atom*				m_atomBlueprint;
-	std::vector<Atom*>	m_atoms;
+	ModelResource		m_atomBlueprint;
+	std::vector<Atom>	m_atoms;
 
 	GLuint				m_sceneRefractionTexId;
 	GLuint				m_sceneFboId;

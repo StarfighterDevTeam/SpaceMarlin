@@ -191,5 +191,11 @@
     <None Include="media\shaders\water_normals.vert">
       <Filter>shaders</Filter>
     </None>
+    <None Include="media\shaders\atom.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="media\shaders\atom.vert">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

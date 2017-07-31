@@ -4,7 +4,7 @@
 
 #include "Model.h"
 
-class Atom : public Model
+class Atom : public ModelInstance
 {
 protected:
 	virtual const GPUProgram*	getProgram() const override;
@@ -15,9 +15,7 @@ protected:
 public:
 	Atom();
 
-	Atom* Clone();
-
-	void update();
+	void			update();
 
 	float			m_speed;
 };

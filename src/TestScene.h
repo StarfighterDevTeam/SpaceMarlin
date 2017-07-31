@@ -11,7 +11,7 @@ class TestScene : public Scene
 {
 private:
 	glutil::Quad*		m_quad;
-	Model				m_model;
+	//Model				m_model;
 
 	int					m_nbVertices;
 	GLuint				m_idVertexBuffer;

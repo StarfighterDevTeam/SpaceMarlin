@@ -23,7 +23,7 @@ static const char* getLaneNameForDebugBar(int laneId)
 }
 #endif
 
-Lane::Lane(Atom* atomBlueprint)
+Lane::Lane()
 {
 	for(GLuint& texId : m_heightsTexId)
 		texId = INVALID_GL_ID;
@@ -32,15 +32,17 @@ Lane::Lane(Atom* atomBlueprint)
 	m_waterNormalsTexId = INVALID_GL_ID;
 	m_waterNormalsFboId = INVALID_GL_ID;
 
-	m_atomBlueprint = atomBlueprint;
+	m_atomBlueprint = NULL;
 }
 
-void Lane::init(const std::vector<Keyframe>& initKeyframes)
+void Lane::init(const std::vector<Keyframe>& initKeyframes, ModelResource* atomBlueprint)
 {
 	assert(m_heightsTexId[0] == INVALID_GL_ID);
 
 	m_curBufferIdx = 0;
 	m_lastAnimationTimeSecs = -1.f;
+
+	m_atomBlueprint = atomBlueprint;
 
 	std::vector<VtxLane> vertices;
 
@@ -793,13 +795,10 @@ void Lane::Keyframe::PrecomputedData::update(float& dist, float& r0, float& r1, 
 	worldToLocalMtx = glm::inverse(localToWorldMtx);	// TODO: overkill...
 }
 
-Atom* Lane::createAtom()
+void Lane::setupAtom(Atom* pAtom)
 {
-	Atom* newAtom = m_atomBlueprint->Clone();
-
+	pAtom->setModelResourcePtr(m_atomBlueprint);
+	
 	vec3 position = vec3(getPosition().x, getPosition().y, 2.f);
-
-	newAtom->setPosition(position);
-
-	return newAtom;
+	pAtom->setPosition(position);
 }

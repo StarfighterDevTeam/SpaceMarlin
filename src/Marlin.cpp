@@ -28,6 +28,24 @@ Marlin::Marlin()
 										0.f));
 }
 
+bool Marlin::init()
+{
+	ModelResource* modelResource = new ModelResource();
+	if(!modelResource->loadFromFile((gData.assetsPath + "/models/marlin/marlin.fbx").c_str()))
+	{
+		SAFE_DELETE(modelResource);
+		return false;
+	}
+
+	m_modelResourcePtr = modelResource;
+	return true;
+}
+
+void Marlin::shut()
+{
+	SAFE_DELETE(m_modelResourcePtr);
+}
+
 const GPUProgram* Marlin::getProgram() const
 {
 	return gData.gpuProgramMgr->getProgram(PROG_MARLIN);
@@ -35,7 +53,7 @@ const GPUProgram* Marlin::getProgram() const
 
 void Marlin::sendUniforms(const GPUProgram* program, const Camera& camera) const
 {
-	Model::sendUniforms(program, camera);
+	ModelInstance::sendUniforms(program, camera);
 
 	program->sendUniform("gSpeed", vec3(m_speedMoveLateral.x, 0.f, m_speedMoveLateral.y));
 	//program->sendUniform("texAlbedo", 0);

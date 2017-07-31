@@ -8,7 +8,7 @@
 
 #include "glutil/glutil.h"
 
-bool Model::loadFromFile(const char * path)
+bool ModelResource::loadFromFile(const char * path)
 {
 	assert(!m_bLoaded);
 
@@ -35,7 +35,7 @@ bool Model::loadFromFile(const char * path)
 	return loadFromAssImpMesh(mesh, scene, materialsDir);
 }
 
-bool Model::loadFromAssImpMesh(const aiMesh* mesh, const aiScene* scene, const char* materialsDir)
+bool ModelResource::loadFromAssImpMesh(const aiMesh* mesh, const aiScene* scene, const char* materialsDir)
 {
 	assert(!m_bLoaded);
 
@@ -158,7 +158,7 @@ bool Model::loadFromAssImpMesh(const aiMesh* mesh, const aiScene* scene, const c
 	return m_bLoaded;
 }
 
-void Model::unload()
+void ModelResource::unload()
 {
 	if(!m_bLoaded)
 		return;
@@ -179,36 +179,38 @@ void Model::unload()
 	m_bLoaded = false;
 }
 
-void Model::draw(const Camera& camera)
+void ModelInstance::draw(const Camera& camera)
 {
+	assert(m_modelResourcePtr);
+
 	const GPUProgram* program = getProgram();
 	program->use();
 
 	sendUniforms(program, camera);
 
-	if(m_albedoTexId != INVALID_GL_ID)
+	if(m_modelResourcePtr->getAlbedoTexId() != INVALID_GL_ID)
 	{
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, m_albedoTexId);
+		glBindTexture(GL_TEXTURE_2D, m_modelResourcePtr->getAlbedoTexId());
 	}
 
-	glBindVertexArray(m_vertexArrayId);
+	glBindVertexArray(m_modelResourcePtr->getVertexArrayId());
 
 	// Draw the triangles !
 	glDrawElements(
-		GL_TRIANGLES,				 // mode
-		(GLsizei)m_indices.size(),    // count
-		GL_UNSIGNED_SHORT,			  // type
-		(void*)0					// element array buffer offset
+		GL_TRIANGLES,									// mode
+		(GLsizei)m_modelResourcePtr->getIndicesCount(),    // count
+		GL_UNSIGNED_SHORT,								// type
+		(void*)0										// element array buffer offset
 	);
 }
 
-const GPUProgram* Model::getProgram() const
+const GPUProgram* ModelInstance::getProgram() const
 {
 	return gData.gpuProgramMgr->getProgram(PROG_MODEL);
 }
 
-void Model::sendUniforms(const GPUProgram* program, const Camera& camera) const
+void ModelInstance::sendUniforms(const GPUProgram* program, const Camera& camera) const
 {
 	// OpenGL
 	// X: right

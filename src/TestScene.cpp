@@ -29,10 +29,6 @@ bool TestScene::init()
 	m_quad->setPixels(pixels);
 	delete [] pixels;
 
-	// ------ Model ------
-	if(!m_model.loadFromFile("media/models/suzanne_gltuto/suzanne.obj"))
-		return false;
-
 	// ------ VBO/VAO --------
 	createVBOAndVAO();
 
@@ -54,6 +50,8 @@ void TestScene::update()
 void TestScene::draw()
 {
 	Scene::draw();
+
+#if 0
 
 	glClearColor(0.5f, 0.5f, 0.5f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -109,6 +107,7 @@ void TestScene::draw()
 	// Draw the VAO:
 	glBindVertexArray(m_idVAO);
 	glDrawArrays(GL_TRIANGLES, 0, m_nbVertices);
+#endif
 }
 
 void TestScene::createVBOAndVAO()

@@ -49,17 +49,16 @@ bool MainScene::init()
 		return false;
 
 	// Bob
-	if(!m_bob.loadFromFile((gData.assetsPath + "/models/marlin/marlin.fbx").c_str()))
+	if(!m_bob.init())
 		return false;
 
 	// Atoms
-	m_atomBlueprint = new Atom();
-	if (!m_atomBlueprint->loadFromFile((gData.assetsPath + "/models/atom/atom.fbx").c_str()))
+	if (!m_atomBlueprint.loadFromFile((gData.assetsPath + "/models/atom/atom.fbx").c_str()))
 		return false;
 
 	// Lanes
-	m_lanes.push_back(Lane(m_atomBlueprint));
-	//m_lanes.push_back(Lane(m_atomBlueprint));
+	m_lanes.push_back(Lane());
+	//m_lanes.push_back(Lane());
 	size_t lanesVectorSize = m_lanes.size();
 	for (size_t i = 0; i < lanesVectorSize; i++)
 	{
@@ -87,7 +86,7 @@ bool MainScene::init()
 		kf0.t = sf::seconds(1.f);
 		keyframes.push_back(kf0);
 
-		m_lanes[i].init(keyframes);
+		m_lanes[i].init(keyframes, &m_atomBlueprint);
 		m_bob.addLane(&m_lanes[i]);
 	}
 	
@@ -116,15 +115,12 @@ void MainScene::shut()
 	Scene::shut();
 
 	m_skybox.unload();
-	m_bob.unload();
-	size_t lanesVectorSize = m_lanes.size();
-	for (size_t i = 0; i < lanesVectorSize; i++)
-	{
-		m_lanes[i].shut();
-	}
+	m_bob.shut();
+	for(Lane& lane : m_lanes)
+		lane.shut();
 
 	m_atoms.clear();
-	m_atomBlueprint->unload();
+	m_atomBlueprint.unload();
 
 	shutSceneFBO();
 	m_postProcessTriangle.shut();
@@ -150,11 +146,8 @@ void MainScene::update()
 	//gfCurAngle += gfSpeed * gData.dTime.asMilliseconds();
 	//m_bob.setLocalToWorldMtx(glm::rotate(glm::mat4(), gfCurAngle, glm::vec3(0.f, 1.f, 0.f)));
 
-	size_t atomsVectorSize = m_atoms.size();
-	for (size_t i = 0; i < atomsVectorSize; i++)
-	{
-		m_atoms[i]->update();
-	}
+	for(Atom& atom : m_atoms)
+		atom.update();
 
 	m_bob.update();
 
@@ -168,10 +161,10 @@ void MainScene::update()
 		//test
 		if (m_measureCount == 6)//could be every beat
 		{
-			Atom* atom = m_lanes[0].createAtom();
-			atom->m_speed = -0.1f;
-			m_atoms.push_back(atom);
 			//printf("CREATION ATOM\n");
+			m_atoms.push_back(Atom());
+			m_lanes[0].setupAtom(&m_atoms.back());
+			m_atoms.back().m_speed = -0.1f;
 		}
 	}
 }
@@ -181,47 +174,45 @@ void MainScene::draw()
 	Scene::draw();
 
 	// Draw scene to FBO
-	glutil::BindFramebuffer bindSceneFbo(m_sceneFboId);
+	{
+		glutil::BindFramebuffer bindSceneFbo(m_sceneFboId);
 
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_TRUE);
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
 
-	// Accept fragment if it closer to the camera than the former one
-	glDepthFunc(GL_LESS);
+		// Accept fragment if it closer to the camera than the former one
+		glDepthFunc(GL_LESS);
 
-	// Cull triangles which normal is not towards the camera
-	glEnable(GL_CULL_FACE);
+		// Cull triangles which normal is not towards the camera
+		glEnable(GL_CULL_FACE);
 		
-	m_skybox.draw(*m_camera);
+		m_skybox.draw(*m_camera);
 	
-	m_bob.draw(*m_camera);
+		m_bob.draw(*m_camera);
 
-	// Debug model gizmo
-	gData.drawer->drawLine(*m_camera, vec3(0,0,0), COLOR_RED,	vec3(3,0,0), COLOR_RED		);
-	gData.drawer->drawLine(*m_camera, vec3(0,0,0), COLOR_GREEN,	vec3(0,3,0), COLOR_GREEN	);
-	gData.drawer->drawLine(*m_camera, vec3(0,0,0), COLOR_BLUE,	vec3(0,0,3), COLOR_BLUE		);
+		// Debug model gizmo
+		gData.drawer->drawLine(*m_camera, vec3(0,0,0), COLOR_RED,	vec3(3,0,0), COLOR_RED		);
+		gData.drawer->drawLine(*m_camera, vec3(0,0,0), COLOR_GREEN,	vec3(0,3,0), COLOR_GREEN	);
+		gData.drawer->drawLine(*m_camera, vec3(0,0,0), COLOR_BLUE,	vec3(0,0,3), COLOR_BLUE		);
 
-	// Copy scene image for refraction effect
-	glReadBuffer(GL_COLOR_ATTACHMENT0);
-	glBindTexture(GL_TEXTURE_2D, m_sceneRefractionTexId);
-	glCopyTexImage2D(GL_TEXTURE_2D, 0, RT_FORMAT, 0, 0, gData.winSizeX, gData.winSizeY, 0);
+		// Copy scene image for refraction effect
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+		glBindTexture(GL_TEXTURE_2D, m_sceneRefractionTexId);
+		glCopyTexImage2D(GL_TEXTURE_2D, 0, RT_FORMAT, 0, 0, gData.winSizeX, gData.winSizeY, 0);
 
-	// Draw lane
-	size_t lanesVectorSize = m_lanes.size();
-	for (size_t i = 0; i < lanesVectorSize; i++)
-	{
-		m_lanes[i].draw(*m_camera, m_skybox.getSkyTexId(), m_sceneRefractionTexId);
+		// Draw lane
+		size_t lanesVectorSize = m_lanes.size();
+		for (size_t i = 0; i < lanesVectorSize; i++)
+		{
+			m_lanes[i].draw(*m_camera, m_skybox.getSkyTexId(), m_sceneRefractionTexId);
+		}
+
+		// Draw atoms
+		for(Atom& atom : m_atoms)
+			atom.draw(*m_camera);
 	}
-
-	// Draw atoms
-	size_t atomsVectorSize = m_atoms.size();
-	for (size_t i = 0; i < atomsVectorSize; i++)
-	{
-		m_atoms[i]->draw(*m_camera);
-	}
-	
 }
 
 void MainScene::drawAfter()
