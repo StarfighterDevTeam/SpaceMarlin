@@ -81,6 +81,8 @@ void Marlin::update()
 	// do rendering to get ANIMATIONS_PER_SECOND
 	while (m_lastAnimationTimeSecs <= gData.curFrameTime.asSeconds())
 	{
+		//printf("position Marlin: %f, %f, %f\n", getPosition().x, getPosition().y, getPosition().z);
+
 		m_speedMoveLateral = vec3(0, 0, 0);
 		m_state = STATE_IDLE;
 
