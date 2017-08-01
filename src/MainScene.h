@@ -11,6 +11,7 @@
 #include "Skybox.h"
 #include "Marlin.h"
 #include "Atom.h"
+#include "Score.h"
 
 class FollowCamera;
 
@@ -19,6 +20,7 @@ class MainScene : public Scene
 private:
 	Skybox				m_skybox;
 	Marlin				m_bob;
+	Score				m_score;
 	std::vector<Lane>	m_lanes;
 	FollowCamera*		m_camera;
 	ModelResource		m_atomBlueprint;

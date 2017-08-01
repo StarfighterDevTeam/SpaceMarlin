@@ -8,15 +8,73 @@
 class Atom;
 class Camera;
 class ModelResource;
+struct LaneTrack;
+
+struct LaneKeyframe
+{
+	sf::Time	t;		// time at which the keyframe becomes the current one
+	float		dist;	// distance between both circles of the capsule
+	float		r0;		// radius of the left circle of the capsule
+	float		r1;		// radius of the right circle of the capsule
+	float		yaw,pitch,roll;	// rotation of the lane
+	vec3		pos;	// position of the center of the capsule
+
+	// Precomputed values
+	struct PrecomputedData
+	{
+		float	halfDist;
+		float	theta;
+		float	tanTheta;
+		float	capsulePerimeter;
+
+		float	threshold0;
+		float	threshold1;
+		float	threshold2;
+		float	threshold3;
+		float	threshold0to1;
+		float	threshold2to3;
+
+		float	xOffsetOnC0;
+		float	xOffsetOnC1;
+
+		float	yOffsetOnC0;
+		float	yOffsetOnC1;
+
+		vec2	topLeftPos;
+		vec2	topRightPos;
+		vec2	topTangentVector;
+
+		vec2	bottomLeftPos;
+		vec2	bottomRightPos;
+		vec2	bottomTangentVector;
+
+		mat4	localToWorldMtx;
+		mat4	worldToLocalMtx;
+
+	private:
+		void update(float& dist, float& r0, float& r1, float& yaw, float& pitch, float& roll, vec3& pos);
+		friend struct LaneKeyframe;
+	};
+	PrecomputedData	precomp;
+
+	LaneKeyframe() :
+		dist(1.f),
+		r0(1.f), r1(1.f),
+		yaw(0.f), pitch(0.f), roll(0.f),
+		pos(0.f,0.f,0.f)
+	{
+		updatePrecomputedData();
+	}
+
+	void updatePrecomputedData() {precomp.update(dist, r0, r1, yaw, pitch, roll, pos);}
+};
 
 class Lane
 {
 public:
-	struct Keyframe;
-
 	Lane();
 
-	void		init(const std::vector<Keyframe>& initKeyframes, ModelResource* atomBlueprint);
+	void		init(const LaneTrack* track, int id, ModelResource* atomBlueprint);
 	void		shut();
 	void		draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexId);
 	void		update();
@@ -40,6 +98,8 @@ private:
 	std::vector<unsigned short>	m_indices;
 
 	ModelResource*				m_atomBlueprint;
+	const LaneTrack*			m_track;
+	int							m_id;
 
 	// GPU resources for simulating water
 	GLuint						m_heightsTexId[3];
@@ -61,75 +121,11 @@ private:
 	GLuint						m_indexBufferId;
 	GLuint						m_vertexBufferId;
 
-public:
-	//Lane transformation
-	struct Keyframe
-	{
-		sf::Time	t;		// time at which the keyframe becomes the current one
-		float		dist;	// distance between both circles of the capsule
-		float		r0;		// radius of the left circle of the capsule
-		float		r1;		// radius of the right circle of the capsule
-		float		yaw,pitch,roll;	// rotation of the lane
-		vec3		pos;	// position of the center of the capsule
-
-		// Precomputed values
-		struct PrecomputedData
-		{
-			float	halfDist;
-			float	theta;
-			float	tanTheta;
-			float	capsulePerimeter;
-
-			float	threshold0;
-			float	threshold1;
-			float	threshold2;
-			float	threshold3;
-			float	threshold0to1;
-			float	threshold2to3;
-
-			float	xOffsetOnC0;
-			float	xOffsetOnC1;
-
-			float	yOffsetOnC0;
-			float	yOffsetOnC1;
-
-			vec2	topLeftPos;
-			vec2	topRightPos;
-			vec2	topTangentVector;
-
-			vec2	bottomLeftPos;
-			vec2	bottomRightPos;
-			vec2	bottomTangentVector;
-
-			mat4	localToWorldMtx;
-			mat4	worldToLocalMtx;
-
-		private:
-			void update(float& dist, float& r0, float& r1, float& yaw, float& pitch, float& roll, vec3& pos);
-			friend struct Keyframe;
-		};
-		PrecomputedData	precomp;
-
-		Keyframe() :
-			dist(1.f),
-			r0(1.f), r1(1.f),
-			yaw(0.f), pitch(0.f), roll(0.f),
-			pos(0.f,0.f,0.f)
-		{
-			updatePrecomputedData();
-		}
-
-		void updatePrecomputedData() {precomp.update(dist, r0, r1, yaw, pitch, roll, pos);}
-	};
-
 private:
-	Keyframe					m_curKeyframe;
-
-	std::vector<Keyframe>		m_keyframes;
+	LaneKeyframe				m_curKeyframe;
 
 #ifdef _USE_ANTTWEAKBAR
 	bool						m_debugTweaking;
-	int							m_debugLaneId;
 #endif
 };
 

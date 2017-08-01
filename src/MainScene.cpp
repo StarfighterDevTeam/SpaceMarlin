@@ -52,41 +52,20 @@ bool MainScene::init()
 	if(!m_bob.init())
 		return false;
 
-	// Atoms
+	// Atom resource
 	if (!m_atomBlueprint.loadFromFile((gData.assetsPath + "/models/atom/atom.fbx").c_str()))
 		return false;
 
+	// Load score
+	// TODO: manually created test score for now
+	if(!m_score.load((gData.assetsPath + "/scores/score01.txt").c_str()))
+		return false;
+	
 	// Lanes
-	m_lanes.push_back(Lane());
-	//m_lanes.push_back(Lane());
-	size_t lanesVectorSize = m_lanes.size();
-	for (size_t i = 0; i < lanesVectorSize; i++)
+	m_lanes.resize(m_score.getLaneTrackCount());
+	for (int i = 0; i < (int)m_score.getLaneTrackCount() ; i++)
 	{
-		const vec3 debugPos = vec3(10.f*i, 0, 0);
-		
-		std::vector<Lane::Keyframe> keyframes;
-		Lane::Keyframe	kf0, kf1;
-
-		kf0.t = sf::seconds(0.f);
-		kf0.dist = 4.f;
-		kf0.r0 = 2.f;
-		kf0.r1 = 0.8f;
-		kf0.pos = debugPos;
-		keyframes.push_back(kf0);
-
-		kf1 = kf0;
-		kf1.t = sf::seconds(0.5f);
-		//kf1.dist = 2.f;
-		//kf1.r0 = 0.8f;
-		//kf1.r1 = 2.f;
-		//kf1.pos = debugPos + vec3(0.f, 1.f, 0.f);
-		//kf1.roll = M_PI/2.f;
-		keyframes.push_back(kf1);
-
-		kf0.t = sf::seconds(1.f);
-		keyframes.push_back(kf0);
-
-		m_lanes[i].init(keyframes, &m_atomBlueprint);
+		m_lanes[i].init(&m_score.getLaneTrack(i), i, &m_atomBlueprint);
 		m_bob.addLane(&m_lanes[i]);
 	}
 	
@@ -122,6 +101,8 @@ void MainScene::shut()
 	m_atoms.clear();
 	m_atomBlueprint.unload();
 
+	m_score.unload();
+	
 	shutSceneFBO();
 	m_postProcessTriangle.shut();
 }

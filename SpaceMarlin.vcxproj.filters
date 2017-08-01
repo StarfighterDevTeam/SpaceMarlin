@@ -53,6 +53,7 @@
     <ClCompile Include="src\Marlin.cpp" />
     <ClCompile Include="src\FollowCamera.cpp" />
     <ClCompile Include="src\Atom.cpp" />
+    <ClCompile Include="src\Score.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Game.h" />
@@ -114,6 +115,7 @@
     <ClInclude Include="src\SceneObject.h" />
     <ClInclude Include="src\FollowCamera.h" />
     <ClInclude Include="src\Atom.h" />
+    <ClInclude Include="src\Score.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="log">

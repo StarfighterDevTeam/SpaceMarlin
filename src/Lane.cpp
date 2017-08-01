@@ -4,6 +4,7 @@
 #include "Camera.h"
 #include "glutil/glutil.h"
 #include "Atom.h"
+#include "Score.h"
 
 static const ivec2 gSideNbVtx(100,100);
 static bool gbDebugDrawNormals = false;
@@ -14,7 +15,7 @@ static bool gbDebugMoveLane = false;
 #ifdef _USE_ANTTWEAKBAR
 static TwBar*	gDebugBar = NULL;
 static int		gDebugNbLaneInstances = 0;
-Lane::Keyframe	gDebugKeyframe;
+LaneKeyframe	gDebugKeyframe;
 static const char* getLaneNameForDebugBar(int laneId)
 {
 	static char str[256];
@@ -22,6 +23,52 @@ static const char* getLaneNameForDebugBar(int laneId)
 	return str;
 }
 #endif
+
+void LaneKeyframe::PrecomputedData::update(float& dist, float& r0, float& r1, float& yaw, float& pitch, float& roll, vec3& pos)
+{
+	// Avoid stupid distances between C0 and C1
+	const float minDist			= std::max(abs(r0-r1), 0.0001f);
+	if(dist < minDist)
+		dist = minDist;
+
+	constexpr float _2pi		= 2*(float)M_PI;
+	halfDist					= dist*0.5f;
+	theta						= acos( (r0 - r1) / dist );
+	tanTheta					= tan(theta);
+	const float sinTheta		= sin(theta);
+
+	const float lengthOnC0		= ((float)M_PI - theta) * r0;
+	const float lengthOnC1		= theta * r1;
+	const float lengthTangent	= tanTheta * (r0 - r1);
+	capsulePerimeter			= 2 * (lengthOnC1 + lengthTangent + lengthOnC0);
+
+	threshold0		= lengthOnC1;
+	threshold1		= threshold0 + lengthTangent;
+	threshold2		= threshold1 + 2*lengthOnC0;
+	threshold3		= threshold2 + lengthTangent;
+	threshold0to1	= threshold1 - threshold0;
+	threshold2to3	= threshold3 - threshold2;
+
+	xOffsetOnC0 = (r0 - r1) * r0 / dist;
+	xOffsetOnC1 = (r0 - r1) * r1 / dist;
+
+	yOffsetOnC0 = sinTheta * r0;
+	yOffsetOnC1 = sinTheta * r1;
+
+	topLeftPos			= vec2(-halfDist + xOffsetOnC0, yOffsetOnC0);
+	topRightPos			= vec2(halfDist + xOffsetOnC1, yOffsetOnC1);
+	topTangentVector	= glm::normalize(topLeftPos - topRightPos);
+
+	bottomLeftPos		= vec2(-halfDist + xOffsetOnC0, -yOffsetOnC0);
+	bottomRightPos		= vec2(halfDist + xOffsetOnC1, -yOffsetOnC1);
+	bottomTangentVector	= glm::normalize(bottomRightPos - bottomLeftPos);
+
+	localToWorldMtx = glm::yawPitchRoll(yaw, pitch, roll);
+	localToWorldMtx[3].x = pos.x;
+	localToWorldMtx[3].y = pos.y;
+	localToWorldMtx[3].z = pos.z;
+	worldToLocalMtx = glm::inverse(localToWorldMtx);	// TODO: overkill...
+}
 
 Lane::Lane()
 {
@@ -33,16 +80,19 @@ Lane::Lane()
 	m_waterNormalsFboId = INVALID_GL_ID;
 
 	m_atomBlueprint = NULL;
+	m_id = -1;
 }
 
-void Lane::init(const std::vector<Keyframe>& initKeyframes, ModelResource* atomBlueprint)
+void Lane::init(const LaneTrack* track, int id, ModelResource* atomBlueprint)
 {
 	assert(m_heightsTexId[0] == INVALID_GL_ID);
 
+	m_track = track;
+	m_id = id;
+	m_atomBlueprint = atomBlueprint;
+
 	m_curBufferIdx = 0;
 	m_lastAnimationTimeSecs = -1.f;
-
-	m_atomBlueprint = atomBlueprint;
 
 	std::vector<VtxLane> vertices;
 
@@ -265,16 +315,13 @@ void Lane::init(const std::vector<Keyframe>& initKeyframes, ModelResource* atomB
 			logError("FBO not complete");
 	}
 
-	m_curKeyframe = initKeyframes[0];
-	m_keyframes = initKeyframes;
+	m_curKeyframe = m_track->keyframes[0];
 	
 #ifdef _USE_ANTTWEAKBAR
-	m_debugLaneId = gDebugNbLaneInstances;
 	gDebugNbLaneInstances++;
 	if(!gDebugBar)
 	{
 		gDebugBar = TwNewBar("Lane");
-		Keyframe& kf = m_keyframes[0];
 		TwAddVarRW(gDebugBar, "Dist",			TW_TYPE_FLOAT,		&gDebugKeyframe.dist,	"min=0.1 max=20 step=0.05 group=Keyframe");
 		TwAddVarRW(gDebugBar, "R0",				TW_TYPE_FLOAT,		&gDebugKeyframe.r0,		"min=0.1 max=20 step=0.05 group=Keyframe");
 		TwAddVarRW(gDebugBar, "R1",				TW_TYPE_FLOAT,		&gDebugKeyframe.r1,		"min=0.1 max=20 step=0.05 group=Keyframe");
@@ -291,7 +338,7 @@ void Lane::init(const std::vector<Keyframe>& initKeyframes, ModelResource* atomB
 		TwAddVarRW(gDebugBar, "Move lane",		TW_TYPE_BOOLCPP,	&gbDebugMoveLane,				"group=Debug");
 	}
 	m_debugTweaking = false;
-	TwAddVarRW(gDebugBar, getLaneNameForDebugBar(m_debugLaneId), TW_TYPE_BOOLCPP, &m_debugTweaking, "group=Tweaking");
+	TwAddVarRW(gDebugBar, getLaneNameForDebugBar(m_id), TW_TYPE_BOOLCPP, &m_debugTweaking, "group=Tweaking");
 #endif
 }
 
@@ -331,15 +378,16 @@ void Lane::shut()
 
 #ifdef _USE_ANTTWEAKBAR
 	assert(gDebugBar);
-	TwRemoveVar(gDebugBar, getLaneNameForDebugBar(m_debugLaneId));
+	TwRemoveVar(gDebugBar, getLaneNameForDebugBar(m_id));
 	gDebugNbLaneInstances--;
 	if(gDebugNbLaneInstances == 0)
 	{
 		TwDeleteBar(gDebugBar);
 		gDebugBar = NULL;
 	}
-	m_debugLaneId = -1;
 #endif
+
+	m_id = -1;
 }
 
 void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexId)
@@ -379,7 +427,7 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 	laneProgram->sendUniform("texNormals", textureSlot);
 	textureSlot++;
 
-	const Keyframe& kf = m_curKeyframe;
+	const LaneKeyframe& kf = m_curKeyframe;
 
 	// Send keyframe information
 	laneProgram->sendUniform("gKeyframeDist",					kf.dist);
@@ -494,12 +542,12 @@ void Lane::update()
 		// Find previous and next keyframes
 		int idxFirst = 0;
 		int idxSecond = 0;
-		while(m_keyframes[idxSecond].t < m_curKeyframe.t)
+		while(m_track->keyframes[idxSecond].t < m_curKeyframe.t)
 			idxSecond++;
 		idxFirst = std::max(0, idxSecond-1);
 
-		const Keyframe& kf0 = m_keyframes[idxFirst];
-		const Keyframe& kf1 = m_keyframes[idxSecond];
+		const LaneKeyframe& kf0 = m_track->keyframes[idxFirst];
+		const LaneKeyframe& kf1 = m_track->keyframes[idxSecond];
 		const float timeDelta = kf1.t.asSeconds() - kf0.t.asSeconds();
 		assert(timeDelta > 0.0001f);
 		const float u = (m_curKeyframe.t.asSeconds() - kf0.t.asSeconds()) / timeDelta;
@@ -609,7 +657,7 @@ void Lane::updateWaterOnGPU()
 
 	// Compute water normals
 	{
-		const Keyframe& kf = m_curKeyframe;
+		const LaneKeyframe& kf = m_curKeyframe;
 
 		glBindVertexArray(m_waterNormalsVertexArrayId);
 
@@ -674,7 +722,7 @@ void Lane::getLocalSpaceCoordinateSystem(const vec3& localSpacePos, vec3& localS
 
 	vec2 p = vec2(localSpacePos);
 
-	const Keyframe& kf = m_curKeyframe;
+	const LaneKeyframe& kf = m_curKeyframe;
 	
 	vec2 backupNormal = vec2(0,1);
 	vec2 backupTangent = vec2(-1,0);
@@ -717,7 +765,7 @@ float Lane::getDistToSurface(const vec3& worldSpacePos) const
 	//localSpacePos.w = 1;
 	vec2 p = vec2(localSpacePos.x / localSpacePos.w, localSpacePos.y / localSpacePos.w);
 
-	const Keyframe& kf = m_curKeyframe;
+	const LaneKeyframe& kf = m_curKeyframe;
 	
 	const vec2& segStart	= p.y >= 0 ? kf.precomp.topLeftPos : kf.precomp.bottomLeftPos;
 	const vec2& segEnd		= p.y >= 0 ? kf.precomp.topRightPos : kf.precomp.bottomRightPos;
@@ -747,52 +795,6 @@ vec3 Lane::getGravityVector(const vec3& worldSpacePos) const
 {
 	// TODO: have a different gravity vector when the distance between the cylinders is > threshold
 	return getNormalToSurface(worldSpacePos);
-}
-
-void Lane::Keyframe::PrecomputedData::update(float& dist, float& r0, float& r1, float& yaw, float& pitch, float& roll, vec3& pos)
-{
-	// Avoid stupid distances between C0 and C1
-	const float minDist			= std::max(abs(r0-r1), 0.0001f);
-	if(dist < minDist)
-		dist = minDist;
-
-	constexpr float _2pi		= 2*(float)M_PI;
-	halfDist					= dist*0.5f;
-	theta						= acos( (r0 - r1) / dist );
-	tanTheta					= tan(theta);
-	const float sinTheta		= sin(theta);
-
-	const float lengthOnC0		= ((float)M_PI - theta) * r0;
-	const float lengthOnC1		= theta * r1;
-	const float lengthTangent	= tanTheta * (r0 - r1);
-	capsulePerimeter			= 2 * (lengthOnC1 + lengthTangent + lengthOnC0);
-
-	threshold0		= lengthOnC1;
-	threshold1		= threshold0 + lengthTangent;
-	threshold2		= threshold1 + 2*lengthOnC0;
-	threshold3		= threshold2 + lengthTangent;
-	threshold0to1	= threshold1 - threshold0;
-	threshold2to3	= threshold3 - threshold2;
-
-	xOffsetOnC0 = (r0 - r1) * r0 / dist;
-	xOffsetOnC1 = (r0 - r1) * r1 / dist;
-
-	yOffsetOnC0 = sinTheta * r0;
-	yOffsetOnC1 = sinTheta * r1;
-
-	topLeftPos			= vec2(-halfDist + xOffsetOnC0, yOffsetOnC0);
-	topRightPos			= vec2(halfDist + xOffsetOnC1, yOffsetOnC1);
-	topTangentVector	= glm::normalize(topLeftPos - topRightPos);
-
-	bottomLeftPos		= vec2(-halfDist + xOffsetOnC0, -yOffsetOnC0);
-	bottomRightPos		= vec2(halfDist + xOffsetOnC1, -yOffsetOnC1);
-	bottomTangentVector	= glm::normalize(bottomRightPos - bottomLeftPos);
-
-	localToWorldMtx = glm::yawPitchRoll(yaw, pitch, roll);
-	localToWorldMtx[3].x = pos.x;
-	localToWorldMtx[3].y = pos.y;
-	localToWorldMtx[3].z = pos.z;
-	worldToLocalMtx = glm::inverse(localToWorldMtx);	// TODO: overkill...
 }
 
 void Lane::setupAtom(Atom* pAtom)

@@ -36,6 +36,7 @@
     <ClCompile Include="src\preprocessor\ExpressionEvaluator.cpp" />
     <ClCompile Include="src\preprocessor\Preprocessor.cpp" />
     <ClCompile Include="src\Scene.cpp" />
+    <ClCompile Include="src\Score.cpp" />
     <ClCompile Include="src\Skybox.cpp" />
     <ClCompile Include="src\SoundManager.cpp" />
     <ClCompile Include="src\TestScene.cpp" />
@@ -69,6 +70,7 @@
     <ClInclude Include="src\preprocessor\PreprocHelpers.h" />
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\SceneObject.h" />
+    <ClInclude Include="src\Score.h" />
     <ClInclude Include="src\Skybox.h" />
     <ClInclude Include="src\SoundManager.h" />
     <ClInclude Include="src\TestScene.h" />
