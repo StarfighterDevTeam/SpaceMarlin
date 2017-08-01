@@ -44,7 +44,6 @@ private:
 	void			initSceneFBO();
 	void			shutSceneFBO();
 
-	sf::Clock			m_beatClock;
 	int					m_beatCount;
 	int					m_measureCount;
 };

@@ -152,20 +152,21 @@ void MainScene::update()
 	m_bob.update();
 
 	//Music
-	m_beatCount = (int)(m_beatClock.getElapsedTime().asSeconds() * gData.soundMgr->getBPM() / 60.f) - (m_measureCount * 4);
+	m_beatCount = (int)(gData.soundMgr->getCurMusic().getPlayingOffset().asSeconds() * gData.soundMgr->getBPM() / 60.f) - (m_measureCount * 4);
 	while (m_beatCount > 4)
 	{
 		m_beatCount -= 4;
 		m_measureCount++;
 
 		//test
-		if (m_measureCount == 6)//could be every beat
-		{
+		//if (m_measureCount == 6)//could be every beat
+		//{
 			//printf("CREATION ATOM\n");
 			m_atoms.push_back(Atom());
 			m_lanes[0].setupAtom(&m_atoms.back());
-			m_atoms.back().m_speed = -0.1f;
-		}
+			m_atoms.back().m_speed = 5.f;
+			m_atoms.back().move(vec3(0.f, 8.f, -20.f));
+		//}
 	}
 }
 
