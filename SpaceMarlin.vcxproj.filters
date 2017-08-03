@@ -116,6 +116,9 @@
     <ClInclude Include="src\FollowCamera.h" />
     <ClInclude Include="src\Atom.h" />
     <ClInclude Include="src\Score.h" />
+    <ClInclude Include="media\shaders\GLSLCommon.h">
+      <Filter>shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="log">

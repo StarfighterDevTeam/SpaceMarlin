@@ -10,6 +10,8 @@ class Camera;
 class ModelResource;
 struct LaneTrack;
 
+struct GPULaneKeyframe;
+
 struct LaneKeyframe
 {
 	sf::Time	t;		// time at which the keyframe becomes the current one
@@ -51,8 +53,12 @@ struct LaneKeyframe
 		mat4	localToWorldMtx;
 		mat4	worldToLocalMtx;
 
+		quat	qLocalToWorld;
+		quat	qWorldToLocal;
+
 	private:
 		void update(float& dist, float& r0, float& r1, float& yaw, float& pitch, float& roll, vec3& pos);
+	public:
 		friend struct LaneKeyframe;
 	};
 	PrecomputedData	precomp;
@@ -67,6 +73,7 @@ struct LaneKeyframe
 	}
 
 	void updatePrecomputedData() {precomp.update(dist, r0, r1, yaw, pitch, roll, pos);}
+	void toGPULaneKeyframe(GPULaneKeyframe& gpuKeyframe) const;
 };
 
 class Lane
@@ -112,6 +119,9 @@ private:
 	GLuint						m_waterNormalsFboId;
 	GLuint						m_waterNormalsVertexArrayId;
 	GLuint						m_waterNormalsVertexBufferId;
+
+	// GPU resources for keyframing
+	GLuint						m_keyframesBufferId;
 
 	int							m_curBufferIdx;
 	float						m_lastAnimationTimeSecs;

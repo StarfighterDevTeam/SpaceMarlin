@@ -70,6 +70,51 @@ void LaneKeyframe::PrecomputedData::update(float& dist, float& r0, float& r1, fl
 	worldToLocalMtx = glm::inverse(localToWorldMtx);	// TODO: overkill...
 }
 
+struct GPULaneKeyframe
+{
+#define HANDLE_UNIFORM_DECLARE_LANE_KEYFRAME_MEMBER(type, varName)	\
+		type varName;
+
+	FOREACH_LANE_KEYFRAME_MEMBER(HANDLE_UNIFORM_DECLARE_LANE_KEYFRAME_MEMBER)
+
+	void sendUniforms(const GPUProgram* program)
+	{
+	#define HANDLE_UNIFORM_SEND_UNIFORM(type, varName)	\
+		program->sendUniform(#varName, varName, Hash::AT_RUNTIME);
+
+	FOREACH_LANE_KEYFRAME_MEMBER(HANDLE_UNIFORM_SEND_UNIFORM)
+	}
+};
+
+void LaneKeyframe::toGPULaneKeyframe(GPULaneKeyframe& gpuKeyframe) const
+{
+	gpuKeyframe.gKeyframeR0						= r0;
+	gpuKeyframe.gKeyframeR1						= r1;
+	gpuKeyframe.gKeyframeHalfDist				= precomp.halfDist;
+	gpuKeyframe.gKeyframeTheta					= precomp.theta;
+	gpuKeyframe.gKeyframeCapsulePerimeter		= precomp.capsulePerimeter;
+	gpuKeyframe.gKeyframeThreshold0				= precomp.threshold0;
+	gpuKeyframe.gKeyframeThreshold1				= precomp.threshold1;
+	gpuKeyframe.gKeyframeThreshold2				= precomp.threshold2;
+	gpuKeyframe.gKeyframeThreshold3				= precomp.threshold3;
+	gpuKeyframe.gKeyframeThreshold0to1			= precomp.threshold0to1;
+	gpuKeyframe.gKeyframeThreshold2to3			= precomp.threshold2to3;
+
+	gpuKeyframe.gKeyframeTopRightPos			= precomp.topRightPos;
+	gpuKeyframe.gKeyframeTopLeftPos				= precomp.topLeftPos;
+	gpuKeyframe.gKeyframeBottomLeftPos			= precomp.bottomLeftPos;
+	gpuKeyframe.gKeyframeBottomRightPos			= precomp.bottomRightPos;
+	gpuKeyframe.gKeyframeTopTangentVector		= precomp.topTangentVector;
+	gpuKeyframe.gKeyframeBottomTangentVector	= precomp.bottomTangentVector;
+
+	quat qRot(precomp.localToWorldMtx);
+	gpuKeyframe.gKeyframeRot.x					= qRot.x;
+	gpuKeyframe.gKeyframeRot.y					= qRot.y;
+	gpuKeyframe.gKeyframeRot.z					= qRot.z;
+	gpuKeyframe.gKeyframeRot.w					= qRot.w;
+	gpuKeyframe.gKeyframeTrans					= vec3(precomp.localToWorldMtx[3]);
+}
+
 Lane::Lane()
 {
 	for(GLuint& texId : m_heightsTexId)
@@ -78,6 +123,7 @@ Lane::Lane()
 		fboId = INVALID_GL_ID;
 	m_waterNormalsTexId = INVALID_GL_ID;
 	m_waterNormalsFboId = INVALID_GL_ID;
+	m_keyframesBufferId = INVALID_GL_ID;
 
 	m_atomBlueprint = NULL;
 	m_id = -1;
@@ -315,6 +361,14 @@ void Lane::init(const LaneTrack* track, int id, ModelResource* atomBlueprint)
 			logError("FBO not complete");
 	}
 
+	// Init GPU resources for keyframing
+	{
+		glGenBuffers(1, &m_keyframesBufferId);
+		glBindBuffer(GL_TEXTURE_BUFFER, m_keyframesBufferId);
+		
+		//glBufferData(GL_TEXTURE_BUFFER, sizeof(tbo_data), tbo_data, GL_STATIC_DRAW);
+	}
+
 	m_curKeyframe = m_track->keyframes[0];
 	
 #ifdef _USE_ANTTWEAKBAR
@@ -430,25 +484,9 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 	const LaneKeyframe& kf = m_curKeyframe;
 
 	// Send keyframe information
-	laneProgram->sendUniform("gKeyframeDist",					kf.dist);
-	laneProgram->sendUniform("gKeyframeR0",						kf.r0);
-	laneProgram->sendUniform("gKeyframeR1",						kf.r1);
-	laneProgram->sendUniform("gKeyframeHalfDist",				kf.precomp.halfDist);
-	laneProgram->sendUniform("gKeyframeTheta",					kf.precomp.theta);
-	laneProgram->sendUniform("gKeyframeCapsulePerimeter",		kf.precomp.capsulePerimeter,			Hash::AT_RUNTIME);
-	laneProgram->sendUniform("gKeyframeThreshold0",				kf.precomp.threshold0);
-	laneProgram->sendUniform("gKeyframeThreshold1",				kf.precomp.threshold1);
-	laneProgram->sendUniform("gKeyframeThreshold2",				kf.precomp.threshold2);
-	laneProgram->sendUniform("gKeyframeThreshold3",				kf.precomp.threshold3);
-	laneProgram->sendUniform("gKeyframeThreshold0to1",			kf.precomp.threshold0to1,				Hash::AT_RUNTIME);
-	laneProgram->sendUniform("gKeyframeThreshold2to3",			kf.precomp.threshold2to3,				Hash::AT_RUNTIME);
-	laneProgram->sendUniform("gKeyframeTopRightPos",			kf.precomp.topRightPos);
-	laneProgram->sendUniform("gKeyframeTopLeftPos",				kf.precomp.topLeftPos);
-	laneProgram->sendUniform("gKeyframeBottomLeftPos",			kf.precomp.bottomLeftPos,				Hash::AT_RUNTIME);
-	laneProgram->sendUniform("gKeyframeBottomRightPos",			kf.precomp.bottomRightPos,				Hash::AT_RUNTIME);
-	laneProgram->sendUniform("gKeyframeTopTangentVector",		kf.precomp.topTangentVector,			Hash::AT_RUNTIME);
-	laneProgram->sendUniform("gKeyframeBottomTangentVector",	kf.precomp.bottomTangentVector,			Hash::AT_RUNTIME);
-	laneProgram->sendUniform("gKeyframeLocalToWorldMtx",		kf.precomp.localToWorldMtx,		false,	Hash::AT_RUNTIME);
+	GPULaneKeyframe gpuKf;
+	kf.toGPULaneKeyframe(gpuKf);
+	gpuKf.sendUniforms(laneProgram);
 
 	glBindVertexArray(m_vertexArrayId);
 
@@ -546,26 +584,31 @@ void Lane::update()
 			idxSecond++;
 		idxFirst = std::max(0, idxSecond-1);
 
-		const LaneKeyframe& kf0 = m_track->keyframes[idxFirst];
-		const LaneKeyframe& kf1 = m_track->keyframes[idxSecond];
-		const float timeDelta = kf1.t.asSeconds() - kf0.t.asSeconds();
-		assert(timeDelta > 0.0001f);
-		const float u = (m_curKeyframe.t.asSeconds() - kf0.t.asSeconds()) / timeDelta;
+		if(idxFirst == idxSecond)
+			m_curKeyframe = m_track->keyframes[idxFirst];
+		else
+		{
+			const LaneKeyframe& kf0 = m_track->keyframes[idxFirst];
+			const LaneKeyframe& kf1 = m_track->keyframes[idxSecond];
+			const float timeDelta = kf1.t.asSeconds() - kf0.t.asSeconds();
+			assert(timeDelta > 0.0001f);
+			const float u = (m_curKeyframe.t.asSeconds() - kf0.t.asSeconds()) / timeDelta;
 
-		m_curKeyframe.dist	= glm::lerp(	kf0.dist,	kf1.dist,	u);
-		m_curKeyframe.r0	= glm::lerp(	kf0.r0,		kf1.r0,		u);
-		m_curKeyframe.r1	= glm::lerp(	kf0.r1,		kf1.r1,		u);
-		const mat4 rotMtx0 = glm::yawPitchRoll(kf0.yaw, kf0.pitch, kf0.roll);	// yaw=Y, pitch=X, roll=Z
-		const mat4 rotMtx1 = glm::yawPitchRoll(kf1.yaw, kf1.pitch, kf1.roll);
-		const quat qRot0(rotMtx0);
-		const quat qRot1(rotMtx1);
-		const quat qRot = glm::slerp(qRot0, qRot1, u);
-		const mat4 rotMtx = glm::mat4_cast(qRot);
-		glm::extractEulerAngleXYZ(rotMtx, m_curKeyframe.pitch, m_curKeyframe.yaw, m_curKeyframe.roll);
-		m_curKeyframe.yaw	= glm::lerp(	kf0.yaw,	kf1.yaw,	u);
-		m_curKeyframe.pitch	= glm::lerp(	kf0.pitch,	kf1.pitch,	u);
-		m_curKeyframe.roll	= glm::lerp(	kf0.roll,	kf1.roll,	u);
-		m_curKeyframe.pos	= glm::lerp(	kf0.pos,	kf1.pos,	u);
+			m_curKeyframe.dist	= glm::lerp(	kf0.dist,	kf1.dist,	u);
+			m_curKeyframe.r0	= glm::lerp(	kf0.r0,		kf1.r0,		u);
+			m_curKeyframe.r1	= glm::lerp(	kf0.r1,		kf1.r1,		u);
+			const mat4 rotMtx0 = glm::yawPitchRoll(kf0.yaw, kf0.pitch, kf0.roll);	// yaw=Y, pitch=X, roll=Z
+			const mat4 rotMtx1 = glm::yawPitchRoll(kf1.yaw, kf1.pitch, kf1.roll);
+			const quat qRot0(rotMtx0);
+			const quat qRot1(rotMtx1);
+			const quat qRot = glm::slerp(qRot0, qRot1, u);
+			const mat4 rotMtx = glm::mat4_cast(qRot);
+			glm::extractEulerAngleXYZ(rotMtx, m_curKeyframe.pitch, m_curKeyframe.yaw, m_curKeyframe.roll);
+			m_curKeyframe.yaw	= glm::lerp(	kf0.yaw,	kf1.yaw,	u);
+			m_curKeyframe.pitch	= glm::lerp(	kf0.pitch,	kf1.pitch,	u);
+			m_curKeyframe.roll	= glm::lerp(	kf0.roll,	kf1.roll,	u);
+			m_curKeyframe.pos	= glm::lerp(	kf0.pos,	kf1.pos,	u);
+		}
 	}
 
 	if(gbDebugMoveLane)

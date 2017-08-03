@@ -125,7 +125,7 @@ void GPUProgramManager::sendCommonUniforms(const GPUProgram* program, const Came
 	program->sendUniform("gLocalToProjMtx", localToProjMtx);
 	program->sendUniform("gLocalToViewMtx", localToViewMtx);
 	program->sendUniform("gLocalToWorldMtx", localToWorldMtx);
-	program->sendUniform("gLocalToWorldNormalMtx", localToWorldNormalMtx, false, Hash::AT_RUNTIME);
+	program->sendUniform("gLocalToWorldNormalMtx", localToWorldNormalMtx, Hash::AT_RUNTIME);
 	program->sendUniform("gWorldToViewMtx", worldToViewMtx);
 	program->sendUniform("gWorldToProjMtx", worldToProjMtx);
 	program->sendUniform("gProjToWorldRotMtx", projToWorldRotMtx);

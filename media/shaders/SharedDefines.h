@@ -136,16 +136,7 @@
 	/* done */
 
 // -------- Lane --------
-#define HANDLE_PROG_LANE(BEGIN_PROGRAM, HANDLE_UNIFORM, HANDLE_ATTRIBUTE)	\
-	BEGIN_PROGRAM(VtxLane, "lane.vert", "lane.frag")						\
-	HANDLE_PROG_COMMON(BEGIN_PROGRAM, HANDLE_UNIFORM, HANDLE_ATTRIBUTE)		\
-	/* uniforms */															\
-	HANDLE_UNIFORM(samplerCube, texCubemap)									\
-	HANDLE_UNIFORM(sampler2D, texRefraction)								\
-	HANDLE_UNIFORM(sampler2D, texHeights)									\
-	HANDLE_UNIFORM(sampler2D, texNormals)									\
-	/* uniform keyframes */													\
-	HANDLE_UNIFORM(float, gKeyframeDist)									\
+#define FOREACH_LANE_KEYFRAME_MEMBER(HANDLE_UNIFORM)						\
 	HANDLE_UNIFORM(float, gKeyframeR0)										\
 	HANDLE_UNIFORM(float, gKeyframeR1)										\
 	HANDLE_UNIFORM(float, gKeyframeHalfDist)								\
@@ -160,10 +151,23 @@
 	HANDLE_UNIFORM(vec2, gKeyframeTopRightPos)								\
 	HANDLE_UNIFORM(vec2, gKeyframeTopLeftPos)								\
 	HANDLE_UNIFORM(vec2, gKeyframeBottomLeftPos)							\
-	HANDLE_UNIFORM(vec2, gKeyframeBottomRightPos)								\
+	HANDLE_UNIFORM(vec2, gKeyframeBottomRightPos)							\
 	HANDLE_UNIFORM(vec2, gKeyframeTopTangentVector)							\
 	HANDLE_UNIFORM(vec2, gKeyframeBottomTangentVector)						\
-	HANDLE_UNIFORM(mat4, gKeyframeLocalToWorldMtx)							\
+	HANDLE_UNIFORM(vec4, gKeyframeRot)										\
+	HANDLE_UNIFORM(vec3, gKeyframeTrans)									\
+	/* done */
+
+#define HANDLE_PROG_LANE(BEGIN_PROGRAM, HANDLE_UNIFORM, HANDLE_ATTRIBUTE)	\
+	BEGIN_PROGRAM(VtxLane, "lane.vert", "lane.frag")						\
+	HANDLE_PROG_COMMON(BEGIN_PROGRAM, HANDLE_UNIFORM, HANDLE_ATTRIBUTE)		\
+	/* uniforms */															\
+	HANDLE_UNIFORM(samplerCube, texCubemap)									\
+	HANDLE_UNIFORM(sampler2D, texRefraction)								\
+	HANDLE_UNIFORM(sampler2D, texHeights)									\
+	HANDLE_UNIFORM(sampler2D, texNormals)									\
+	/* uniform keyframes */													\
+	FOREACH_LANE_KEYFRAME_MEMBER(HANDLE_UNIFORM)							\
 	/* attributes */														\
 	HANDLE_ATTRIBUTE(VtxLane, vec3, float, GL_FLOAT, GL_FALSE, pos,		0)	\
 	HANDLE_ATTRIBUTE(VtxLane, vec3, float, GL_FLOAT, GL_FALSE, normal,	1)	\

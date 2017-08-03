@@ -2,6 +2,8 @@
 #include "SharedDefines.h"
 PROG_VERTEX_SHADER(PROG_LANE)
 
+#include "GLSLCommon.h"
+
 out vec3 varViewSpaceNormal;
 out vec3 varViewSpacePos;
 out vec3 varWorldSpaceNormal;
@@ -70,10 +72,12 @@ void main()
 	varDebug = lNewNormal;
 	lNormal = lNewNormal;
 	
-	vec4 worldSpacePos = gKeyframeLocalToWorldMtx * vec4(lPos, 1);
+	mat4 localToWorldMtx = quatPosToMat4(gKeyframeRot, gKeyframeTrans);
+
+	vec4 worldSpacePos = localToWorldMtx * vec4(lPos, 1);
 	worldSpacePos.xyz /= worldSpacePos.w;
 
-	vec3 worldSpaceNormal = mat3(gKeyframeLocalToWorldMtx) * lNormal;	// assuming no scaling
+	vec3 worldSpaceNormal = mat3(localToWorldMtx) * lNormal;	// assuming no scaling
 	worldSpacePos.xyz += waterHeight * worldSpaceNormal;
 
 	varWorldSpaceViewVec = worldSpacePos.xyz - gWorldSpaceCamPos;

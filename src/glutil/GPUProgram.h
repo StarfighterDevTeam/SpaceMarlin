@@ -131,13 +131,13 @@ public:
 	void sendUniform(Hash h, const glm::mat4& m, bool transpose=false) const;
 
 	// If needed at runtime: sendUniform(uniform_name, value, Hash::AT_RUNTIME)
-	void sendUniform(const char* uniform_name, GLint i,						       Hash::Marker marker) const;
-	void sendUniform(const char* uniform_name, GLfloat f,					       Hash::Marker marker) const;
-	void sendUniform(const char* uniform_name, const glm::vec2& v,                 Hash::Marker marker) const;
-	void sendUniform(const char* uniform_name, const glm::vec3& v,                 Hash::Marker marker) const;
-	void sendUniform(const char* uniform_name, const glm::vec4& v,                 Hash::Marker marker) const;
-	void sendUniform(const char* uniform_name, const glm::mat3& m, bool transpose, Hash::Marker marker) const;
-	void sendUniform(const char* uniform_name, const glm::mat4& m, bool transpose, Hash::Marker marker) const;
+	void sendUniform(const char* uniform_name, GLint i,				Hash::Marker marker) const;
+	void sendUniform(const char* uniform_name, GLfloat f,			Hash::Marker marker) const;
+	void sendUniform(const char* uniform_name, const glm::vec2& v,	Hash::Marker marker) const;
+	void sendUniform(const char* uniform_name, const glm::vec3& v,	Hash::Marker marker) const;
+	void sendUniform(const char* uniform_name, const glm::vec4& v,	Hash::Marker marker) const;
+	void sendUniform(const char* uniform_name, const glm::mat3& m,	Hash::Marker marker, bool transpose=false) const;
+	void sendUniform(const char* uniform_name, const glm::mat4& m,	Hash::Marker marker, bool transpose=false) const;
 
 private:
 	// -------  Helper functions: ----------

@@ -494,49 +494,49 @@ void GPUProgram::sendUniform(Hash h, const mat4& m, bool transpose) const
 #endif
 
 
-void GPUProgram::sendUniform(const char* uniform_name, GLint i,                       Hash::Marker marker) const
+void GPUProgram::sendUniform(const char* uniform_name, GLint i,			Hash::Marker marker) const
 {
 	GLint location = getUniformLocation(Hash(uniform_name, Hash::AT_RUNTIME));
 	CHECK_LOCATION(uniform_name, location);
 	glUniform1i(location, i);
 }
 
-void GPUProgram::sendUniform(const char* uniform_name, GLfloat f,                     Hash::Marker marker) const
+void GPUProgram::sendUniform(const char* uniform_name, GLfloat f,		Hash::Marker marker) const
 {
 	GLint location = getUniformLocation(Hash(uniform_name, Hash::AT_RUNTIME));
 	CHECK_LOCATION(uniform_name, location);
 	glUniform1f(location, f);
 }
 
-void GPUProgram::sendUniform(const char* uniform_name, const vec2& v,                 Hash::Marker marker) const
+void GPUProgram::sendUniform(const char* uniform_name, const vec2& v,	Hash::Marker marker) const
 {
 	GLint location = getUniformLocation(Hash(uniform_name, Hash::AT_RUNTIME));
 	CHECK_LOCATION(uniform_name, location);
 	glUniform2fv(location, 1, &v[0]);
 }
 
-void GPUProgram::sendUniform(const char* uniform_name, const vec3& v,                 Hash::Marker marker) const
+void GPUProgram::sendUniform(const char* uniform_name, const vec3& v,	Hash::Marker marker) const
 {
 	GLint location = getUniformLocation(Hash(uniform_name, Hash::AT_RUNTIME));
 	CHECK_LOCATION(uniform_name, location);
 	glUniform3fv(location, 1, &v[0]);
 }
 
-void GPUProgram::sendUniform(const char* uniform_name, const vec4& v,                 Hash::Marker marker) const
+void GPUProgram::sendUniform(const char* uniform_name, const vec4& v,	Hash::Marker marker) const
 {
 	GLint location = getUniformLocation(Hash(uniform_name, Hash::AT_RUNTIME));
 	CHECK_LOCATION(uniform_name, location);
 	glUniform4fv(location, 1, &v[0]);
 }
 
-void GPUProgram::sendUniform(const char* uniform_name, const mat3& m, bool transpose, Hash::Marker marker) const
+void GPUProgram::sendUniform(const char* uniform_name, const mat3& m,	Hash::Marker marker, bool transpose) const
 {
 	GLint location = getUniformLocation(Hash(uniform_name, Hash::AT_RUNTIME));
 	CHECK_LOCATION(uniform_name, location);
 	glUniformMatrix3fv(location, 1, transpose, &m[0][0]);
 }
 
-void GPUProgram::sendUniform(const char* uniform_name, const mat4& m, bool transpose, Hash::Marker marker) const
+void GPUProgram::sendUniform(const char* uniform_name, const mat4& m,	Hash::Marker marker, bool transpose) const
 {
 	GLint location = getUniformLocation(Hash(uniform_name, Hash::AT_RUNTIME));
 	CHECK_LOCATION(uniform_name, location);
