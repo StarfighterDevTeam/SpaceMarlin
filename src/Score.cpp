@@ -4,6 +4,7 @@ bool Score::load(const char* fileName)
 {
 	// TODO: for now, use a hardcoded score for the lanes
 	m_duration = sf::seconds(5.f);
+	m_timeBetweenKeyframes = sf::seconds(0.25f);
 
 	//const int nbLanes = 1;
 	const int nbLanes = 2;
@@ -56,6 +57,19 @@ void Score::createNormalizedKeyframes()
 	// Lane track
 	for(LaneTrack& track : m_laneTracks)
 	{
-		// TODO
+		for(sf::Time t=sf::microseconds(0ll) ; t < m_duration ; t+=m_timeBetweenKeyframes)
+		{
+			int idxPrev = 0;
+			int idxNext = 0;
+			while(track.keyframes[idxNext].t < t && idxNext < (int)track.keyframes.size()-1)
+				idxNext++;
+			idxPrev = std::max(0, idxNext-1);
+
+			LaneKeyframe kf;
+			kf.setFromKeyframes(track.keyframes[idxPrev], track.keyframes[idxNext], t);
+			track.normalizedKeyframes.push_back(kf);
+		}
 	}
+
+	// TODO: other tracks come here
 }

@@ -72,8 +72,9 @@ struct LaneKeyframe
 		updatePrecomputedData();
 	}
 
-	void updatePrecomputedData() {precomp.update(dist, r0, r1, yaw, pitch, roll, pos);}
-	void toGPULaneKeyframe(GPULaneKeyframe& gpuKeyframe) const;
+	void	setFromKeyframes(const LaneKeyframe& kf0, const LaneKeyframe& kf1, const sf::Time& newTime);
+	void	updatePrecomputedData() {precomp.update(dist, r0, r1, yaw, pitch, roll, pos);}
+	void	toGPULaneKeyframe(GPULaneKeyframe& gpuKeyframe) const;
 };
 
 class Lane
@@ -93,7 +94,7 @@ public:
 	float		getDistToSurface(const vec3& worldSpacePos) const;
 	vec3        getGravityVector(const vec3& worldSpacePos) const;
 
-	void		setCurTime(const sf::Time& t)	{m_curKeyframe.t = t;}
+	void		setCurTime(const sf::Time& t);
 
 	void		setupAtom(Atom* pAtom);
 

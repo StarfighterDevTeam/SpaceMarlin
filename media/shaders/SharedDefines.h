@@ -239,6 +239,26 @@
 
 FOREACH_GPUPROGRAM(HANDLE_PROG, BEGIN_PROGRAM_DECLARE_STRUCT, HANDLE_UNIFORM_NO_ACTION, HANDLE_ATTRIBUTE_DECLARE_STRUCT, END_PROGRAM_DECLARE_STRUCT)
 
+// ----------------------------
+// GPULaneKeyframe
+struct GPULaneKeyframe
+{
+#define HANDLE_UNIFORM_DECLARE_LANE_KEYFRAME_MEMBER(type, varName)	\
+		type varName;
+
+	FOREACH_LANE_KEYFRAME_MEMBER(HANDLE_UNIFORM_DECLARE_LANE_KEYFRAME_MEMBER)
+
+#ifdef __cplusplus
+	void sendUniforms(const GPUProgram* program)
+	{
+	#define HANDLE_UNIFORM_SEND_UNIFORM(type, varName)	\
+		program->sendUniform(#varName, varName, Hash::AT_RUNTIME);
+
+	FOREACH_LANE_KEYFRAME_MEMBER(HANDLE_UNIFORM_SEND_UNIFORM)
+	}
+#endif
+};
+
 #endif	// _SHARED_DEFINES_H
 
 #pragma custom_preprocessor_on

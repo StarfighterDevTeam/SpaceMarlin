@@ -11,6 +11,33 @@ out vec3 varWorldSpaceViewVec;
 
 out vec3 varDebug;
 
+GPULaneKeyframe setFromKeyframes(GPULaneKeyframe kf0, GPULaneKeyframe kf1, float u)
+{
+	GPULaneKeyframe kf;
+	// TODO
+	//kf.gKeyframeR0					=
+	//kf.gKeyframeR1					=
+	//kf.gKeyframeHalfDist			=
+	//kf.gKeyframeTheta				=
+	//kf.gKeyframeCapsulePerimeter	=
+	//kf.gKeyframeThreshold0			=
+	//kf.gKeyframeThreshold1			=
+	//kf.gKeyframeThreshold2			=
+	//kf.gKeyframeThreshold3			=
+	//kf.gKeyframeThreshold0to1		=
+	//kf.gKeyframeThreshold2to3		=
+	//kf.gKeyframeTopRightPos			=
+	//kf.gKeyframeTopLeftPos			=
+	//kf.gKeyframeBottomLeftPos		=
+	//kf.gKeyframeBottomRightPos		=
+	//kf.gKeyframeTopTangentVector	=
+	//kf.gKeyframeBottomTangentVector	=
+	//kf.gKeyframeRot					=
+	//kf.gKeyframeTrans				=
+	
+	return kf;
+}
+
 void main()
 {
 	varDebug = vec3(1,0,0);
@@ -19,6 +46,8 @@ void main()
 
 	float waterHeight	= textureLod(texHeights, uv, 0).r;
 	vec3 waterNormal = textureLod(texNormals, uv, 0).rgb;
+
+	GPULaneKeyframe kf;
 
 	const float _2pi = 2*M_PI;
 	float posOnCapsule = uv.x*gKeyframeCapsulePerimeter;

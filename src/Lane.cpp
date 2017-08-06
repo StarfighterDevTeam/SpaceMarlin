@@ -70,21 +70,39 @@ void LaneKeyframe::PrecomputedData::update(float& dist, float& r0, float& r1, fl
 	worldToLocalMtx = glm::inverse(localToWorldMtx);	// TODO: overkill...
 }
 
-struct GPULaneKeyframe
+void LaneKeyframe::setFromKeyframes(const LaneKeyframe& kf0, const LaneKeyframe& kf1, const sf::Time& newTime)
 {
-#define HANDLE_UNIFORM_DECLARE_LANE_KEYFRAME_MEMBER(type, varName)	\
-		type varName;
+	assert(kf0.t <= newTime);
+	assert(kf1.t >= newTime);
 
-	FOREACH_LANE_KEYFRAME_MEMBER(HANDLE_UNIFORM_DECLARE_LANE_KEYFRAME_MEMBER)
-
-	void sendUniforms(const GPUProgram* program)
+	if(kf0.t == kf1.t)
 	{
-	#define HANDLE_UNIFORM_SEND_UNIFORM(type, varName)	\
-		program->sendUniform(#varName, varName, Hash::AT_RUNTIME);
-
-	FOREACH_LANE_KEYFRAME_MEMBER(HANDLE_UNIFORM_SEND_UNIFORM)
+		*this = kf0;
+		return;
 	}
-};
+
+	const float timeDelta = kf1.t.asSeconds() - kf0.t.asSeconds();
+	assert(timeDelta > 0.0001f);
+	const float u = (newTime.asSeconds() - kf0.t.asSeconds()) / timeDelta;
+
+	t		= newTime;
+	dist	= glm::lerp(	kf0.dist,	kf1.dist,	u);
+	r0		= glm::lerp(	kf0.r0,		kf1.r0,		u);
+	r1		= glm::lerp(	kf0.r1,		kf1.r1,		u);
+	const mat4 rotMtx0 = glm::yawPitchRoll(kf0.yaw, kf0.pitch, kf0.roll);	// yaw=Y, pitch=X, roll=Z
+	const mat4 rotMtx1 = glm::yawPitchRoll(kf1.yaw, kf1.pitch, kf1.roll);
+	const quat qRot0(rotMtx0);
+	const quat qRot1(rotMtx1);
+	const quat qRot = glm::slerp(qRot0, qRot1, u);
+	const mat4 rotMtx = glm::mat4_cast(qRot);
+	glm::extractEulerAngleXYZ(rotMtx, pitch, yaw, roll);
+	yaw		= glm::lerp(	kf0.yaw,	kf1.yaw,	u);
+	pitch	= glm::lerp(	kf0.pitch,	kf1.pitch,	u);
+	roll	= glm::lerp(	kf0.roll,	kf1.roll,	u);
+	pos		= glm::lerp(	kf0.pos,	kf1.pos,	u);
+
+	updatePrecomputedData();
+}
 
 void LaneKeyframe::toGPULaneKeyframe(GPULaneKeyframe& gpuKeyframe) const
 {
@@ -367,12 +385,12 @@ void Lane::init(const LaneTrack* track, int id, ModelResource* atomBlueprint)
 		glGenBuffers(1, &m_keyframesBufferId);
 		glBindBuffer(GL_TEXTURE_BUFFER, m_keyframesBufferId);
 		
-		float tboData[] = {
-			1,0,0,
-			0,1,0,
-			0,0,1
-		};
-		glBufferData(GL_TEXTURE_BUFFER, sizeof(tboData), tboData, GL_STATIC_DRAW);
+		std::vector<GPULaneKeyframe> gpuKeyframes;
+		gpuKeyframes.resize(track->normalizedKeyframes.size());
+		for(int i=0 ; i < (int)gpuKeyframes.size() ; i++)
+			track->normalizedKeyframes[i].toGPULaneKeyframe(gpuKeyframes[i]);
+
+		glBufferData(GL_TEXTURE_BUFFER, gpuKeyframes.size() * sizeof(gpuKeyframes[0]), (float*)(&gpuKeyframes[0]), GL_STATIC_DRAW);
 
 		// Create the associated texture and link to the buffer
 		glGenTextures(1, &m_keyframesTexId);
@@ -598,39 +616,14 @@ void Lane::update()
 	else
 #endif
 	{
-		// TODO: interpolation using m_curKeyframe.t
 		// Find previous and next keyframes
-		int idxFirst = 0;
-		int idxSecond = 0;
-		while(m_track->keyframes[idxSecond].t < m_curKeyframe.t && idxSecond < (int)m_track->keyframes.size()-1)
-			idxSecond++;
-		idxFirst = std::max(0, idxSecond-1);
+		int idxPrev = 0;
+		int idxNext = 0;
+		while(m_track->keyframes[idxNext].t < m_curKeyframe.t && idxNext < (int)m_track->keyframes.size()-1)
+			idxNext++;
+		idxPrev = std::max(0, idxNext-1);
 
-		if(idxFirst == idxSecond)
-			m_curKeyframe = m_track->keyframes[idxFirst];
-		else
-		{
-			const LaneKeyframe& kf0 = m_track->keyframes[idxFirst];
-			const LaneKeyframe& kf1 = m_track->keyframes[idxSecond];
-			const float timeDelta = kf1.t.asSeconds() - kf0.t.asSeconds();
-			assert(timeDelta > 0.0001f);
-			const float u = (m_curKeyframe.t.asSeconds() - kf0.t.asSeconds()) / timeDelta;
-
-			m_curKeyframe.dist	= glm::lerp(	kf0.dist,	kf1.dist,	u);
-			m_curKeyframe.r0	= glm::lerp(	kf0.r0,		kf1.r0,		u);
-			m_curKeyframe.r1	= glm::lerp(	kf0.r1,		kf1.r1,		u);
-			const mat4 rotMtx0 = glm::yawPitchRoll(kf0.yaw, kf0.pitch, kf0.roll);	// yaw=Y, pitch=X, roll=Z
-			const mat4 rotMtx1 = glm::yawPitchRoll(kf1.yaw, kf1.pitch, kf1.roll);
-			const quat qRot0(rotMtx0);
-			const quat qRot1(rotMtx1);
-			const quat qRot = glm::slerp(qRot0, qRot1, u);
-			const mat4 rotMtx = glm::mat4_cast(qRot);
-			glm::extractEulerAngleXYZ(rotMtx, m_curKeyframe.pitch, m_curKeyframe.yaw, m_curKeyframe.roll);
-			m_curKeyframe.yaw	= glm::lerp(	kf0.yaw,	kf1.yaw,	u);
-			m_curKeyframe.pitch	= glm::lerp(	kf0.pitch,	kf1.pitch,	u);
-			m_curKeyframe.roll	= glm::lerp(	kf0.roll,	kf1.roll,	u);
-			m_curKeyframe.pos	= glm::lerp(	kf0.pos,	kf1.pos,	u);
-		}
+		m_curKeyframe.setFromKeyframes(m_track->keyframes[idxPrev], m_track->keyframes[idxNext], m_curKeyframe.t);
 	}
 
 	if(gbDebugMoveLane)
@@ -860,6 +853,12 @@ vec3 Lane::getGravityVector(const vec3& worldSpacePos) const
 {
 	// TODO: have a different gravity vector when the distance between the cylinders is > threshold
 	return getNormalToSurface(worldSpacePos);
+}
+
+void Lane::setCurTime(const sf::Time& t)
+{
+	assert(m_track);
+	m_curKeyframe.t = clamp(t, m_track->keyframes.front().t, m_track->keyframes.back().t);
 }
 
 void Lane::setupAtom(Atom* pAtom)
