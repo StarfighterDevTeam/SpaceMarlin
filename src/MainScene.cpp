@@ -83,6 +83,7 @@ bool MainScene::init()
 	m_postProcessTriangle.init();
 
 	//Music
+	m_curScoreTime = sf::seconds(0.f);
 	m_beatCount = 0;
 	m_measureCount = 0;
 
@@ -111,14 +112,15 @@ void MainScene::update()
 {
 	Scene::update();
 
+	// For now we keep repeating the score
+	m_curScoreTime += gData.dTime;
+	if(m_curScoreTime > m_score.getDuration())
+		m_curScoreTime -= m_score.getDuration();
+
 	size_t lanesVectorSize = m_lanes.size();
 	for (size_t i = 0; i < lanesVectorSize; i++)
 	{
-		// Test, repeating in the [0 sec, 1 sec] interval
-		float intpart;
-		const float subSecs = modf(gData.curFrameTime.asSeconds(), &intpart);
-		m_lanes[i].setCurTime(sf::seconds(subSecs));
-
+		m_lanes[i].setCurTime(m_curScoreTime);
 		m_lanes[i].update();
 	}
 

@@ -21,6 +21,7 @@ private:
 	Skybox				m_skybox;
 	Marlin				m_bob;
 	Score				m_score;
+	sf::Time			m_curScoreTime;
 	std::vector<Lane>	m_lanes;
 	FollowCamera*		m_camera;
 	ModelResource		m_atomBlueprint;

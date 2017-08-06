@@ -1,5 +1,8 @@
 #pragma custom_preprocessor_off
 
+#ifndef _SHARED_DEFINES_H
+#define _SHARED_DEFINES_H
+
 #if !defined(__cplusplus) || defined(__INTELLISENSE__)
 	#define _GLSL
 #endif
@@ -235,5 +238,7 @@
 	};
 
 FOREACH_GPUPROGRAM(HANDLE_PROG, BEGIN_PROGRAM_DECLARE_STRUCT, HANDLE_UNIFORM_NO_ACTION, HANDLE_ATTRIBUTE_DECLARE_STRUCT, END_PROGRAM_DECLARE_STRUCT)
+
+#endif	// _SHARED_DEFINES_H
 
 #pragma custom_preprocessor_on

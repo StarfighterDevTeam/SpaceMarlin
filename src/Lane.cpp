@@ -602,7 +602,7 @@ void Lane::update()
 		// Find previous and next keyframes
 		int idxFirst = 0;
 		int idxSecond = 0;
-		while(m_track->keyframes[idxSecond].t < m_curKeyframe.t)
+		while(m_track->keyframes[idxSecond].t < m_curKeyframe.t && idxSecond < (int)m_track->keyframes.size()-1)
 			idxSecond++;
 		idxFirst = std::max(0, idxSecond-1);
 
