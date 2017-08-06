@@ -69,7 +69,7 @@ void main()
 	vec3 lNewNormal;
 
 	lNewNormal = waterNormal.x * (-lRight) + waterNormal.y * lNormal + waterNormal.z * lBack;
-	varDebug = lNewNormal;
+	//varDebug = lNewNormal;
 	lNormal = lNewNormal;
 	
 	mat4 localToWorldMtx = quatPosToMat4(gKeyframeRot, gKeyframeTrans);
@@ -86,4 +86,10 @@ void main()
 	varViewSpacePos = vec3(gWorldToViewMtx * worldSpacePos);
 	
 	gl_Position = gWorldToProjMtx * worldSpacePos;
+
+	varDebug = vec3(
+		texelFetch(texKeyframes, 3*2 + 0).r,
+		texelFetch(texKeyframes, 3*2 + 1).r,
+		texelFetch(texKeyframes, 3*2 + 2).r
+		);
 }

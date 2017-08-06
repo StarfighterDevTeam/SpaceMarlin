@@ -363,10 +363,23 @@ void Lane::init(const LaneTrack* track, int id, ModelResource* atomBlueprint)
 
 	// Init GPU resources for keyframing
 	{
+		// Create the buffer
 		glGenBuffers(1, &m_keyframesBufferId);
 		glBindBuffer(GL_TEXTURE_BUFFER, m_keyframesBufferId);
 		
-		//glBufferData(GL_TEXTURE_BUFFER, sizeof(tbo_data), tbo_data, GL_STATIC_DRAW);
+		float tboData[] = {
+			1,0,0,
+			0,1,0,
+			0,0,1
+		};
+		glBufferData(GL_TEXTURE_BUFFER, sizeof(tboData), tboData, GL_STATIC_DRAW);
+
+		// Create the associated texture and link to the buffer
+		glGenTextures(1, &m_keyframesTexId);
+		glBindTexture(GL_TEXTURE_BUFFER, m_keyframesTexId);
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_R32F, m_keyframesBufferId);
+
+		//glBindBuffer(GL_TEXTURE_BUFFER, 0);	// unbind the buffer
 	}
 
 	m_curKeyframe = m_track->keyframes[0];
@@ -430,6 +443,10 @@ void Lane::shut()
 	glDeleteBuffers(1, &m_vertexBufferId); m_vertexBufferId = INVALID_GL_ID;
 	glDeleteBuffers(1, &m_indexBufferId); m_indexBufferId = INVALID_GL_ID;
 
+	// GPU resources for keyframing
+	glDeleteBuffers(1, &m_keyframesBufferId);
+	glDeleteTextures(1, &m_keyframesTexId);
+	
 #ifdef _USE_ANTTWEAKBAR
 	assert(gDebugBar);
 	TwRemoveVar(gDebugBar, getLaneNameForDebugBar(m_id));
@@ -479,6 +496,11 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 	glActiveTexture(GL_TEXTURE0 + textureSlot);
 	glBindTexture(GL_TEXTURE_2D, m_waterNormalsTexId);
 	laneProgram->sendUniform("texNormals", textureSlot);
+	textureSlot++;
+
+	glActiveTexture(GL_TEXTURE0 + textureSlot);
+	glBindTexture(GL_TEXTURE_BUFFER, m_keyframesTexId);
+	laneProgram->sendUniform("texKeyframes", textureSlot);
 	textureSlot++;
 
 	const LaneKeyframe& kf = m_curKeyframe;

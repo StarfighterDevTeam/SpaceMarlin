@@ -162,6 +162,7 @@
 	BEGIN_PROGRAM(VtxLane, "lane.vert", "lane.frag")						\
 	HANDLE_PROG_COMMON(BEGIN_PROGRAM, HANDLE_UNIFORM, HANDLE_ATTRIBUTE)		\
 	/* uniforms */															\
+	HANDLE_UNIFORM(samplerBuffer, texKeyframes)								\
 	HANDLE_UNIFORM(samplerCube, texCubemap)									\
 	HANDLE_UNIFORM(sampler2D, texRefraction)								\
 	HANDLE_UNIFORM(sampler2D, texHeights)									\

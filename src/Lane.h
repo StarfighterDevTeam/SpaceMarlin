@@ -122,6 +122,7 @@ private:
 
 	// GPU resources for keyframing
 	GLuint						m_keyframesBufferId;
+	GLuint						m_keyframesTexId;
 
 	int							m_curBufferIdx;
 	float						m_lastAnimationTimeSecs;
