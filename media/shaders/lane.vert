@@ -10,7 +10,7 @@ out vec3 varWorldSpaceNormal;
 out vec3 varWorldSpaceViewVec;
 
 out vec3 varDebug;
-
+/*
 GPULaneKeyframe setFromKeyframes(GPULaneKeyframe kf0, GPULaneKeyframe kf1, float u)
 {
 	GPULaneKeyframe kf;
@@ -37,7 +37,7 @@ GPULaneKeyframe setFromKeyframes(GPULaneKeyframe kf0, GPULaneKeyframe kf1, float
 	
 	return kf;
 }
-
+*/
 void main()
 {
 	varDebug = vec3(1,0,0);
@@ -47,12 +47,13 @@ void main()
 	float waterHeight	= textureLod(texHeights, uv, 0).r;
 	vec3 waterNormal = textureLod(texNormals, uv, 0).rgb;
 
-	GPULaneKeyframe kf;
+	//GPULaneKeyframe kf;
 
 	const float _2pi = 2*M_PI;
 	float posOnCapsule = uv.x*gKeyframeCapsulePerimeter;
 	
-	lPos.z = pos.z * gKeyframeCapsulePerimeter;
+	//lPos.z = pos.z * gKeyframeCapsulePerimeter;
+	lPos.z = -uv.y * gLaneLength;
 
 	if(posOnCapsule < gKeyframeThreshold0)
 	{
@@ -91,6 +92,8 @@ void main()
 		lPos.y = sin(curAngleOnC1) * gKeyframeR1;
 		lNormal = vec3(cos(curAngleOnC1), sin(curAngleOnC1), 0);
 	}
+
+	//lPos.y += uv.y*uv.y*10;
 
 	// Rotate waterNormal according to lNormal
 	vec3 lRight = vec3(lNormal.y, -lNormal.x, 0);

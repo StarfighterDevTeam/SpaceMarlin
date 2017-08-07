@@ -170,6 +170,7 @@
 	HANDLE_UNIFORM(sampler2D, texRefraction)								\
 	HANDLE_UNIFORM(sampler2D, texHeights)									\
 	HANDLE_UNIFORM(sampler2D, texNormals)									\
+	HANDLE_UNIFORM(float, gLaneLength)										\
 	/* uniform keyframes */													\
 	FOREACH_LANE_KEYFRAME_MEMBER(HANDLE_UNIFORM)							\
 	/* attributes */														\
@@ -189,7 +190,7 @@
 	HANDLE_UNIFORM(vec2, gTexelSize)													\
 	HANDLE_UNIFORM(float, gTerm1)														\
 	HANDLE_UNIFORM(float, gTerm2)														\
-	HANDLE_UNIFORM(float, gTerm3)														\
+	HANDLE_UNIFORM(vec2, gTerm3)														\
 	/* attributes */																	\
 	HANDLE_ATTRIBUTE(VtxWaterSimulation, vec2, float, GL_FLOAT, GL_FALSE, pos,		0)	\
 	/* done */

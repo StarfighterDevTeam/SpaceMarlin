@@ -6,16 +6,19 @@
 #include "Atom.h"
 #include "Score.h"
 
-static const ivec2 gSideNbVtx(100,100);
-static bool gbDebugDrawNormals = false;
-static bool gbDebugDrawCoordinateSystems = false;
-static bool gbDebugDrawDistToSurface = false;
-static bool gbDebugDrawWaterBuffers = false;
-static bool gbDebugMoveLane = false;
+static const int	gNbVerticesPerRing = 100;
+static const int	gNbRings = 100;
+static const float	gLaneLength = 100.f;	// in meters
+static bool			gbDebugDrawNormals = false;
+static bool			gbDebugDrawCoordinateSystems = false;
+static bool			gbDebugDrawDistToSurface = false;
+static bool			gbDebugDrawWaterBuffers = false;
+static bool			gbDebugMoveLane = false;
 #ifdef _USE_ANTTWEAKBAR
-static TwBar*	gDebugBar = NULL;
-static int		gDebugNbLaneInstances = 0;
-LaneKeyframe	gDebugKeyframe;
+static TwBar*		gDebugBar = NULL;
+static int			gDebugNbLaneInstances = 0;
+LaneKeyframe		gDebugKeyframe;
+
 static const char* getLaneNameForDebugBar(int laneId)
 {
 	static char str[256];
@@ -142,6 +145,7 @@ Lane::Lane()
 	m_waterNormalsTexId = INVALID_GL_ID;
 	m_waterNormalsFboId = INVALID_GL_ID;
 	m_keyframesBufferId = INVALID_GL_ID;
+	m_keyframesTexId = INVALID_GL_ID;
 
 	m_atomBlueprint = NULL;
 	m_id = -1;
@@ -177,7 +181,7 @@ void Lane::init(const LaneTrack* track, int id, ModelResource* atomBlueprint)
 				GL_TEXTURE_2D,
 				0,
 				GL_R32F,
-				gSideNbVtx.x, gSideNbVtx.y,
+				gNbVerticesPerRing, gNbRings,
 				0,
 				GL_RED,
 				GL_FLOAT,
@@ -200,7 +204,7 @@ void Lane::init(const LaneTrack* track, int id, ModelResource* atomBlueprint)
 				GL_TEXTURE_2D,
 				0,
 				GL_RGBA32F,
-				gSideNbVtx.x, gSideNbVtx.y,
+				gNbVerticesPerRing, gNbRings,
 				0,
 				GL_RGBA,
 				GL_FLOAT,
@@ -208,23 +212,20 @@ void Lane::init(const LaneTrack* track, int id, ModelResource* atomBlueprint)
 	}
 
 	// Init vertices positions
-	vertices.resize(gSideNbVtx.x*gSideNbVtx.y);
+	vertices.resize(gNbVerticesPerRing * gNbRings);
 
-	const int nbVerticesPerRing = gSideNbVtx.x;
-	const int nbRings = gSideNbVtx.y;
+	assert(gNbRings > 1);
+	assert(gNbVerticesPerRing > 1);
+	const double distBetweenRings			= 1. / gNbRings;
+	const double angleBetweenRingVertices	= (2. * M_PI) / gNbVerticesPerRing;
 
-	assert(nbRings > 1);
-	assert(nbVerticesPerRing > 1);
-	const double distBetweenRings			= 1. / nbRings;
-	const double angleBetweenRingVertices	= (2. * M_PI) / nbVerticesPerRing;
-
-	const vec2 toUV = vec2(1.f/(nbRings-1), 1.f/(nbVerticesPerRing-1));
-	for(int y=0 ; y < nbRings ; y++)
+	const vec2 toUV = vec2(1.f/(gNbRings-1), 1.f/(gNbVerticesPerRing-1));
+	for(int y=0 ; y < gNbRings ; y++)
 	{
 		const float posZ = (float)(-y * distBetweenRings);
-		for(int x=0 ; x < nbVerticesPerRing ; x++)
+		for(int x=0 ; x < gNbVerticesPerRing ; x++)
 		{
-			VtxLane& vtx = vertices[x + y*nbVerticesPerRing];
+			VtxLane& vtx = vertices[x + y*gNbVerticesPerRing];
 			const double angle = x * angleBetweenRingVertices;
 			vtx.pos.x = (float)cos(angle);
 			vtx.pos.y = (float)sin(angle);
@@ -234,28 +235,28 @@ void Lane::init(const LaneTrack* track, int id, ModelResource* atomBlueprint)
 		}
 	}
 
-	for(int y = 0 ; y < nbRings-1 ; y++)
+	for(int y = 0 ; y < gNbRings-1 ; y++)
 	{
 		int x=0;
-		for( ; x < nbVerticesPerRing-1 ; x++)
+		for( ; x < gNbVerticesPerRing-1 ; x++)
 		{
-			m_indices.push_back((x+0) + (y+0)*nbVerticesPerRing);
-			m_indices.push_back((x+0) + (y+1)*nbVerticesPerRing);
-			m_indices.push_back((x+1) + (y+1)*nbVerticesPerRing);
+			m_indices.push_back((x+0) + (y+0)*gNbVerticesPerRing);
+			m_indices.push_back((x+0) + (y+1)*gNbVerticesPerRing);
+			m_indices.push_back((x+1) + (y+1)*gNbVerticesPerRing);
 
-			m_indices.push_back((x+0) + (y+0)*nbVerticesPerRing);
-			m_indices.push_back((x+1) + (y+1)*nbVerticesPerRing);
-			m_indices.push_back((x+1) + (y+0)*nbVerticesPerRing);
+			m_indices.push_back((x+0) + (y+0)*gNbVerticesPerRing);
+			m_indices.push_back((x+1) + (y+1)*gNbVerticesPerRing);
+			m_indices.push_back((x+1) + (y+0)*gNbVerticesPerRing);
 		}
 
-		int n = 1 - nbVerticesPerRing;
-		m_indices.push_back((x+0) + (y+0)*nbVerticesPerRing);
-		m_indices.push_back((x+0) + (y+1)*nbVerticesPerRing);
-		m_indices.push_back((x+n) + (y+1)*nbVerticesPerRing);
+		int n = 1 - gNbVerticesPerRing;
+		m_indices.push_back((x+0) + (y+0)*gNbVerticesPerRing);
+		m_indices.push_back((x+0) + (y+1)*gNbVerticesPerRing);
+		m_indices.push_back((x+n) + (y+1)*gNbVerticesPerRing);
 
-		m_indices.push_back((x+0) + (y+0)*nbVerticesPerRing);
-		m_indices.push_back((x+n) + (y+1)*nbVerticesPerRing);
-		m_indices.push_back((x+n) + (y+0)*nbVerticesPerRing);
+		m_indices.push_back((x+0) + (y+0)*gNbVerticesPerRing);
+		m_indices.push_back((x+n) + (y+1)*gNbVerticesPerRing);
+		m_indices.push_back((x+n) + (y+0)*gNbVerticesPerRing);
 	}
 	
 	// Send to GPU
@@ -397,7 +398,7 @@ void Lane::init(const LaneTrack* track, int id, ModelResource* atomBlueprint)
 		glBindTexture(GL_TEXTURE_BUFFER, m_keyframesTexId);
 		glTexBuffer(GL_TEXTURE_BUFFER, GL_R32F, m_keyframesBufferId);
 
-		//glBindBuffer(GL_TEXTURE_BUFFER, 0);	// unbind the buffer
+		glBindBuffer(GL_TEXTURE_BUFFER, 0);	// unbind the buffer
 	}
 
 	m_curKeyframe = m_track->keyframes[0];
@@ -521,6 +522,8 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 	laneProgram->sendUniform("texKeyframes", textureSlot);
 	textureSlot++;
 
+	laneProgram->sendUniform("gLaneLength", gLaneLength);
+
 	const LaneKeyframe& kf = m_curKeyframe;
 
 	// Send keyframe information
@@ -557,7 +560,7 @@ void Lane::debugDraw(const Camera& camera)
 			m_waterNormalsTexId,
 		};
 		for(int i=0 ; i < _countof(texIds) ; i++)
-			gData.drawer->draw2DTexturedQuad(texIds[i], vec2(i*(10+gSideNbVtx.x),10), vec2(gSideNbVtx.x, gSideNbVtx.y));
+			gData.drawer->draw2DTexturedQuad(texIds[i], vec2(i*(10+gNbVerticesPerRing),10), vec2(gNbVerticesPerRing, gNbRings));
 	}
 
 	if(gbDebugDrawNormals)
@@ -651,7 +654,7 @@ void Lane::updateWaterOnGPU()
 
 	GLint savedVp[4];
 	glGetIntegerv(GL_VIEWPORT, savedVp);
-	glViewport(0, 0, gSideNbVtx.x, gSideNbVtx.y);
+	glViewport(0, 0, gNbVerticesPerRing, gNbRings);
 
 	// Compute heights (water simulation)
 	{
@@ -688,24 +691,28 @@ void Lane::updateWaterOnGPU()
 			glBindTexture(GL_TEXTURE_2D, idTexHeights2);
 			waterSimulationProgram->sendUniform("texHeights2", 1);
 
-			waterSimulationProgram->sendUniform("gTexelSize", vec2(1.f/gSideNbVtx.x, 1.f/gSideNbVtx.y));
+			waterSimulationProgram->sendUniform("gTexelSize", vec2(1.f/gNbVerticesPerRing, 1.f/gNbRings));
 			waterSimulationProgram->sendUniform("gTime", gData.curFrameTime.asSeconds());
 
 			// we use an algorithm from
 			// http://collective.valve-erc.com/index.php?go=water_simulation
 			// The params could be dynamically changed every frame of course
 
-			float C = PARAM_C; // ripple speed
-			float D = PARAM_D; // distance
-			float U = PARAM_U; // viscosity
-			float T = PARAM_T; // time
-			float TERM1 = ( 4.0f - 8.0f*C*C*T*T/(D*D) ) / (U*T+2) ;
-			float TERM2 = ( U*T-2.0f ) / (U*T+2.0f) ;
-			float TERM3 = ( 2.0f * C*C*T*T/(D*D) ) / (U*T+2) ;
+			const float C = PARAM_C; // ripple speed
+			const float D = PARAM_D; // distance
+			const float U = PARAM_U; // viscosity
+			const float T = PARAM_T; // time
+			const float TERM1 = ( 4.0f - 8.0f*C*C*T*T/(D*D) ) / (U*T+2) ;
+			const float TERM2 = ( U*T-2.0f ) / (U*T+2.0f) ;
+			const float TERM3 = ( 2.0f * C*C*T*T/(D*D) ) / (U*T+2) ;
+
+			// Scale simulation speed anisotropically to roughly compensate for the unequal vertices distribution
+			const float k = gLaneLength / m_curKeyframe.precomp.capsulePerimeter;
+			const vec2 scaledTerm3 = TERM3 * vec2(4.0f * k / (1+1+k+k), 4.0f / (1+1+k+k));
 
 			waterSimulationProgram->sendUniform("gTerm1", TERM1);
 			waterSimulationProgram->sendUniform("gTerm2", TERM2);
-			waterSimulationProgram->sendUniform("gTerm3", TERM3);
+			waterSimulationProgram->sendUniform("gTerm3", scaledTerm3);
 
 			glDrawArrays(GL_TRIANGLES, 0, 3*2);
 
@@ -728,8 +735,8 @@ void Lane::updateWaterOnGPU()
 		glBindTexture(GL_TEXTURE_2D, m_heightsTexId[m_curBufferIdx]);
 		waterNormalsProgram->sendUniform("texHeights", 0);
 
-		waterNormalsProgram->sendUniform("gTexelSize", vec2(1.f/gSideNbVtx.x, 1.f/gSideNbVtx.y));
-		waterNormalsProgram->sendUniform("gDistBetweenTexels", vec2(kf.precomp.capsulePerimeter / gSideNbVtx.x, kf.precomp.capsulePerimeter / gSideNbVtx.y));
+		waterNormalsProgram->sendUniform("gTexelSize", vec2(1.f/gNbVerticesPerRing, 1.f/gNbRings));
+		waterNormalsProgram->sendUniform("gDistBetweenTexels", vec2(kf.precomp.capsulePerimeter / gNbVerticesPerRing, kf.precomp.capsulePerimeter / gNbRings));
 
 		glDrawArrays(GL_TRIANGLES, 0, 3*2);
 	}
