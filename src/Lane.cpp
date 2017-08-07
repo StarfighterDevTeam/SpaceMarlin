@@ -523,6 +523,7 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 	textureSlot++;
 
 	laneProgram->sendUniform("gLaneLength", gLaneLength);
+	laneProgram->sendUniform("gSizeOfKeyframeInFloats", (GLint)(sizeof(GPULaneKeyframe)/sizeof(float)), Hash::AT_RUNTIME);
 
 	const LaneKeyframe& kf = m_curKeyframe;
 
