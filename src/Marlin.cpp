@@ -6,12 +6,12 @@
 Marlin::Marlin()
 {
 	m_surfaceSpeedLateral					= +6.0f;//angular speed
-	m_airSpeedLateral						= +5.0f;
+	m_airSpeedLateral						= +6.0f;
 	m_diveSpeedLateral						= +3.5f;
 
-	m_jumpSpeedVertical						= +200.f;//acceleration
+	m_jumpSpeedVertical						= +600.f;//acceleration
 	m_diveSpeedVertical						= -150.f;//acceleration
-	m_gravityAccelerationVertical			= -35.f;
+	m_gravityAccelerationVertical			= -42.f;
 	m_speedMax								= 20.f;
 
 	m_speed									= vec3(0, 0, 0);
@@ -27,6 +27,11 @@ Marlin::Marlin()
 										2.f,//altitude
 										0.f));
 }
+
+#define ALTITUDE_TO_ENTER_GRAVITY				15.f
+#define ALTITUDE_TO_MOVE_ALONG_SURFACE			0.6f
+#define ALTITUDE_TO_JUMP_OR_DIVE				0.4f
+#define SPEED_TO_GET_STABILIZED_ON_SURFACE		5.f
 
 bool Marlin::init()
 {
@@ -66,11 +71,6 @@ void Marlin::addLane(const Lane* lane)
 	m_lanes.push_back(lane);
 }
 
-#define ALTITUDE_TO_ENTER_GRAVITY				15.f
-#define ALTITUDE_TO_MOVE_ALONG_SURFACE			0.6f
-#define ALTITUDE_TO_JUMP_OR_DIVE				0.4f
-#define SPEED_TO_GET_STABILIZED_ON_SURFACE		5.f
-
 void Marlin::update()
 {
 	if (m_lastAnimationTimeSecs < 0.f)
@@ -86,7 +86,6 @@ void Marlin::update()
 		m_speedMoveLateral = vec3(0, 0, 0);
 		m_state = STATE_IDLE;
 
-		//Test
 		if (!m_lanes.empty())
 		{
 			//find the closest lane (size of the normal vector to lane)
@@ -117,14 +116,16 @@ void Marlin::update()
 
 				vec3 gravityVector, tangentToGravity, uselessVector;
 				lane->getCoordinateSystem(getPosition(), tangentToGravity, gravityVector, uselessVector);
+				//test
+				gravityVector = vec3(0, 1, 0);
+				tangentToGravity = vec3(1, 0, 0);
 
 				//Jump
-				if (gData.inputMgr->isUpPressed())
+				if (gData.inputMgr->isUpPressed() && m_state != STATE_JUMPING)
 				{
 					if (abs(altitude) < ALTITUDE_TO_JUMP_OR_DIVE)//Bob must be on the surface to jump
 					{
 						m_speed += gravityVector * m_jumpSpeedVertical * 1.0f / ANIMATIONS_PER_SECOND;
-						m_state = STATE_JUMPING;
 						m_tangentToGravityAtJumpTime = tangentToGravity;//save the system at the moment of jump to keep moving in this system while in the air
 					}
 				}
@@ -200,7 +201,9 @@ void Marlin::update()
 
 				//printf("altitude: %f", altitude);
 				//const vec3 gravityVectorNew = normalize(getPosition() - lane->getPosition());
-				const vec3 gravityVectorNew = lane->getNormalToSurface(getPosition());
+				vec3 gravityVectorNew = lane->getNormalToSurface(getPosition());
+				//test
+				gravityVectorNew = vec3(0, 1, 0);
 
 				if ((altitude > 0 && altitudeNew <= 0)//moving through lane's surface?
 					|| (altitude < 0 && altitudeNew >= 0))
@@ -233,6 +236,13 @@ void Marlin::update()
 				
 				m_localToWorldMtx[1] = vec4(newUpVector,0);
 				m_localToWorldMtx[0] = vec4(cross(newUpVector, vec3(m_localToWorldMtx[2])), 0);
+			}
+
+			//Death & respawn
+			if (getPosition().y < -10.f)
+			{
+				setPosition(vec3(0.f, 4.f, 0.f));
+				m_speed = vec3(0.f, 0.f, 0.f);
 			}
 		}
 
