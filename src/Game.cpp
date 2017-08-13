@@ -98,12 +98,6 @@ bool Game::init(sf::RenderWindow* window)
 	if(!m_scenes[m_curScene]->init())
 		return false;
 
-
-	//Music
-	gData.soundMgr->setNextMusic("./media/sounds/Andy_Hunter-Angelic.ogg", 135.38f);
-	m_beatCount = 0;
-	m_measureCount = 0;
-
 	return true;
 }
 
@@ -192,13 +186,6 @@ void Game::update()
 	{
 		static float sNbSeconds = 0.1f;
 		sf::sleep(sf::seconds(sNbSeconds));
-	}
-
-	m_beatCount = (int)(m_beatClock.getElapsedTime().asSeconds() * gData.soundMgr->getBPM() / 60.f) - (m_measureCount * 4);
-	while (m_beatCount > 4)
-	{
-		m_beatCount -= 4;
-		m_measureCount++;
 	}
 
 	gData.gpuProgramMgr->update();

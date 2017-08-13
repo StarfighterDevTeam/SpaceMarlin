@@ -83,6 +83,7 @@ bool MainScene::init()
 	m_postProcessTriangle.init();
 
 	//Music
+	gData.soundMgr->setNextMusic("./media/sounds/Andy_Hunter-Angelic.ogg", 135.38f);
 	m_curScoreTime = sf::seconds(0.f);
 	m_beatCount = 0;
 	m_measureCount = 0;
