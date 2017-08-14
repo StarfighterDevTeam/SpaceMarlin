@@ -27,6 +27,8 @@
 	#define TW_STATIC
 	#define TW_NO_LIB_PRAGMA
 	#include <AntTweakBar.h>
+#else
+	class TwBar;
 #endif
 
 #include <SFML/Config.hpp>

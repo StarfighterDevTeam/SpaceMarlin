@@ -21,18 +21,34 @@ private:
 	Skybox				m_skybox;
 	Marlin				m_bob;
 	Score				m_score;
-	sf::Time			m_curScoreTime;
 	std::vector<Lane>	m_lanes;
 	FollowCamera*		m_camera;
 	ModelResource		m_atomBlueprint;
 	std::vector<Atom>	m_atoms;
 
+	// Score playing
+	sf::Time			m_curScoreTime;
+	int					m_beatCount;
+	int					m_measureCount;
+	float				m_beatsPerMinute;
+
+	// Low-level rendering
 	GLuint				m_sceneRefractionTexId;
 	GLuint				m_sceneFboId;
 	GLuint				m_sceneTexId;
 	GLuint				m_sceneDepthRenderbufferId;
 
 	FullScreenTriangle	m_postProcessTriangle;
+
+#ifdef _USE_ANTTWEAKBAR
+	// Edition
+	TwBar*				m_editionBar;
+	bool				m_editionMode;
+
+	// Debug
+	TwBar*				m_debugBar;
+	bool				m_bDebugDrawRefraction;
+#endif
 
 public:
 	virtual bool	init() override;
@@ -46,9 +62,6 @@ public:
 private:
 	void			initSceneFBO();
 	void			shutSceneFBO();
-
-	int					m_beatCount;
-	int					m_measureCount;
 };
 
 #endif // _MAIN_SCENE_H

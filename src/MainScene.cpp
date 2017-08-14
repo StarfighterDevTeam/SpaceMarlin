@@ -19,6 +19,47 @@ bool MainScene::init()
 	if(!Scene::init())
 		return false;
 
+	m_bDebugDrawRefraction = false;
+
+	m_editionMode = false;
+
+#ifdef _USE_ANTTWEAKBAR
+	{
+		char str[1024];
+		const int margin = 20;
+
+		// Edition
+		const int editionBarSx = 200;
+		const int editionBarSy = 600;
+
+		m_editionBar = TwNewBar("editionbar");
+		TwDefine(" editionbar label='Edition' ");
+
+		sprintf_s(str, " editionbar position='%d %d' ", margin, margin);
+		TwDefine(str);
+
+		sprintf_s(str, " editionbar size='%d %d' ", editionBarSx, editionBarSy);
+		TwDefine(str);
+
+		TwAddVarRW(m_editionBar, "Edition mode", TW_TYPE_BOOLCPP, &m_editionMode, "");
+	
+		// Debug
+		const int debugBarSx = 300;
+		const int debugBarSy = 250;
+
+		m_debugBar = TwNewBar("debugbar");
+		TwDefine(" debugbar label='Debug' ");
+
+		sprintf_s(str, " debugbar position='%d %d' ", gData.winSizeX-300-margin, margin);
+		TwDefine(str);
+
+		sprintf_s(str, " debugbar size='%d %d' ", debugBarSx, debugBarSy);
+		TwDefine(str);
+
+		TwAddVarRW(m_debugBar, "Draw refraction", TW_TYPE_BOOLCPP, &m_bDebugDrawRefraction, "group='Debug draw'");
+	}
+#endif
+
 	// Skybox
 	std::string cubemapFilenames[6] = {
 		gData.assetsPath + SDIR_SEP "textures" SDIR_SEP "purple-nebula-complex_left2.png",
@@ -65,7 +106,7 @@ bool MainScene::init()
 	m_lanes.resize(m_score.getLaneTrackCount());
 	for (int i = 0; i < (int)m_score.getLaneTrackCount() ; i++)
 	{
-		m_lanes[i].init(&m_score.getLaneTrack(i), i, &m_atomBlueprint);
+		m_lanes[i].init(&m_score.getLaneTrack(i), i, &m_atomBlueprint, m_editionBar, m_debugBar);
 		m_bob.addLane(&m_lanes[i]);
 	}
 	
@@ -82,11 +123,12 @@ bool MainScene::init()
 
 	m_postProcessTriangle.init();
 
-	//Music
-	gData.soundMgr->setNextMusic("./media/sounds/Andy_Hunter-Angelic.ogg", 135.38f);
+	// Music & score playing
+	gData.soundMgr->setNextMusic("./media/sounds/Andy_Hunter-Angelic.ogg");
 	m_curScoreTime = sf::seconds(0.f);
 	m_beatCount = 0;
 	m_measureCount = 0;
+	m_beatsPerMinute = 135.38f;
 
 	return true;
 }
@@ -94,6 +136,20 @@ bool MainScene::init()
 void MainScene::shut()
 {
 	Scene::shut();
+
+#ifdef _USE_ANTTWEAKBAR
+	TwDeleteBar(m_debugBar);	m_debugBar=NULL;
+	TwDeleteBar(m_editionBar);	m_editionBar=NULL;
+	// BOUM TODO
+	//assert(gDebugBar);
+	//TwRemoveVar(gDebugBar, getLaneNameForDebugBar(m_id));
+	//gDebugNbLaneInstances--;
+	//if(gDebugNbLaneInstances == 0)
+	//{
+	//	TwDeleteBar(gDebugBar);
+	//	gDebugBar = NULL;
+	//}
+#endif
 
 	m_skybox.unload();
 	m_bob.shut();
@@ -122,6 +178,7 @@ void MainScene::update()
 	for (size_t i = 0; i < lanesVectorSize; i++)
 	{
 		m_lanes[i].setCurTime(m_curScoreTime);
+		m_lanes[i].setEditionMode(m_editionMode);
 		m_lanes[i].update();
 	}
 
@@ -136,7 +193,7 @@ void MainScene::update()
 	m_bob.update();
 
 	//Music
-	m_beatCount = (int)(gData.soundMgr->getCurMusic().getPlayingOffset().asSeconds() * gData.soundMgr->getBPM() / 60.f) - (m_measureCount * 4);
+	m_beatCount = (int)(gData.soundMgr->getCurMusic().getPlayingOffset().asSeconds() * m_beatsPerMinute / 60.f) - (m_measureCount * 4);
 	while (m_beatCount > 4)
 	{
 		m_beatCount -= 4;
@@ -221,10 +278,12 @@ void MainScene::drawAfter()
 		glDepthMask(GL_TRUE);
 	}
 
-	// BEGIN TEST
-	vec2 debugSize = vec2(gData.winSizeX/4.f, gData.winSizeY/4.f);
-	gData.drawer->draw2DTexturedQuad(m_sceneRefractionTexId, vec2(gData.winSizeX - debugSize.x - 10, 10), debugSize);
-	// END TEST
+	// Debug
+	if(m_bDebugDrawRefraction)
+	{
+		vec2 debugSize = vec2(gData.winSizeX/4.f, gData.winSizeY/4.f);
+		gData.drawer->draw2DTexturedQuad(m_sceneRefractionTexId, vec2(gData.winSizeX - debugSize.x - 10, 10), debugSize);
+	}
 }
 
 void MainScene::onEvent(const sf::Event& event)

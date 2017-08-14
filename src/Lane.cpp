@@ -9,23 +9,6 @@
 static const int	gNbVerticesPerRing = 100;
 static const int	gNbRings = 100;
 static const float	gLaneLength = 100.f;	// in meters
-static bool			gbDebugDrawNormals = false;
-static bool			gbDebugDrawCoordinateSystems = false;
-static bool			gbDebugDrawDistToSurface = false;
-static bool			gbDebugDrawWaterBuffers = false;
-static bool			gbDebugMoveLane = false;
-#ifdef _USE_ANTTWEAKBAR
-static TwBar*		gDebugBar = NULL;
-static int			gDebugNbLaneInstances = 0;
-LaneKeyframe		gDebugKeyframe;
-
-static const char* getLaneNameForDebugBar(int laneId)
-{
-	static char str[256];
-	sprintf_s(str, "Lane #%d", laneId);
-	return str;
-}
-#endif
 
 void LaneKeyframe::PrecomputedData::update(float& dist, float& r0, float& r1, float& yaw, float& pitch, float& roll, vec3& pos)
 {
@@ -136,27 +119,16 @@ void LaneKeyframe::toGPULaneKeyframe(GPULaneKeyframe& gpuKeyframe) const
 	gpuKeyframe.gKeyframeTrans					= vec3(precomp.localToWorldMtx[3]);
 }
 
-Lane::Lane()
+void Lane::init(const LaneTrack* track, int id, ModelResource* atomBlueprint, TwBar* editionBar, TwBar* debugBar)
 {
-	for(GLuint& texId : m_heightsTexId)
-		texId = INVALID_GL_ID;
-	for(GLuint& fboId : m_waterFboId)
-		fboId = INVALID_GL_ID;
-	m_waterNormalsTexId = INVALID_GL_ID;
-	m_waterNormalsFboId = INVALID_GL_ID;
-	m_keyframesBufferId = INVALID_GL_ID;
-	m_keyframesTexId = INVALID_GL_ID;
-
-	m_atomBlueprint = NULL;
-	m_id = -1;
-}
-
-void Lane::init(const LaneTrack* track, int id, ModelResource* atomBlueprint)
-{
-	assert(m_heightsTexId[0] == INVALID_GL_ID);
-
+	assert(m_id == -1);
 	m_track = track;
 	m_id = id;
+
+	char str[256];
+	sprintf_s(str, "Lane#%02d", id);
+	m_name = str;
+
 	m_atomBlueprint = atomBlueprint;
 
 	m_curBufferIdx = 0;
@@ -402,30 +374,49 @@ void Lane::init(const LaneTrack* track, int id, ModelResource* atomBlueprint)
 	}
 
 	m_curKeyframe = m_track->keyframes[0];
-	
-#ifdef _USE_ANTTWEAKBAR
-	gDebugNbLaneInstances++;
-	if(!gDebugBar)
+
+	// Edition
+	m_editionMode = false;
+	auto addEditionVar = [&](const char* text, float* ptr, const char* def)
 	{
-		gDebugBar = TwNewBar("Lane");
-		TwAddVarRW(gDebugBar, "Dist",			TW_TYPE_FLOAT,		&gDebugKeyframe.dist,	"min=0.1 max=20 step=0.05 group=Keyframe");
-		TwAddVarRW(gDebugBar, "R0",				TW_TYPE_FLOAT,		&gDebugKeyframe.r0,		"min=0.1 max=20 step=0.05 group=Keyframe");
-		TwAddVarRW(gDebugBar, "R1",				TW_TYPE_FLOAT,		&gDebugKeyframe.r1,		"min=0.1 max=20 step=0.05 group=Keyframe");
-		TwAddVarRW(gDebugBar, "Yaw",			TW_TYPE_FLOAT,		&gDebugKeyframe.yaw,	"min=-10 max=10 step=0.01 group=Keyframe");
-		TwAddVarRW(gDebugBar, "Pitch",			TW_TYPE_FLOAT,		&gDebugKeyframe.pitch,	"min=-10 max=10 step=0.01 group=Keyframe");
-		TwAddVarRW(gDebugBar, "Roll",			TW_TYPE_FLOAT,		&gDebugKeyframe.roll,	"min=-10 max=10 step=0.01 group=Keyframe");
-		TwAddVarRW(gDebugBar, "PosX",			TW_TYPE_FLOAT,		&gDebugKeyframe.pos.x,	"min=-20 max=20 step=0.05 group=Keyframe");
-		TwAddVarRW(gDebugBar, "PosY",			TW_TYPE_FLOAT,		&gDebugKeyframe.pos.y,	"min=-20 max=20 step=0.05 group=Keyframe");
-		TwAddVarRW(gDebugBar, "PosZ",			TW_TYPE_FLOAT,		&gDebugKeyframe.pos.z,	"min=-20 max=20 step=0.05 group=Keyframe");
-		TwAddVarRW(gDebugBar, "Draw SDF",		TW_TYPE_BOOLCPP,	&gbDebugDrawDistToSurface,		"group=Debug");
-		TwAddVarRW(gDebugBar, "Draw normals",	TW_TYPE_BOOLCPP,	&gbDebugDrawNormals,			"group=Debug");
-		TwAddVarRW(gDebugBar, "Draw coordsys",	TW_TYPE_BOOLCPP,	&gbDebugDrawCoordinateSystems,	"group=Debug");
-		TwAddVarRW(gDebugBar, "Draw water",		TW_TYPE_BOOLCPP,	&gbDebugDrawWaterBuffers,		"group=Debug");
-		TwAddVarRW(gDebugBar, "Move lane",		TW_TYPE_BOOLCPP,	&gbDebugMoveLane,				"group=Debug");
-	}
-	m_debugTweaking = false;
-	TwAddVarRW(gDebugBar, getLaneNameForDebugBar(m_id), TW_TYPE_BOOLCPP, &m_debugTweaking, "group=Tweaking");
-#endif
+	#ifdef _USE_ANTTWEAKBAR
+		char finalDef[1024];
+		sprintf_s(finalDef, "%s group='%s'", def, getName());
+
+		char finalText[256];
+		sprintf_s(finalText, "[%02d] %s", m_id, text);
+
+		TwAddVarRW(editionBar, finalText, TW_TYPE_FLOAT, ptr, finalDef);
+	#endif
+	};
+	addEditionVar("Dist",	&m_editionLaneKeyframe.dist,	"min=0.1 max=20 step=0.05");
+	addEditionVar("R0",		&m_editionLaneKeyframe.r0,		"min=0.1 max=20 step=0.05");
+	addEditionVar("R1",		&m_editionLaneKeyframe.r1,		"min=0.1 max=20 step=0.05");
+	addEditionVar("Yaw",	&m_editionLaneKeyframe.yaw,		"min=-10 max=10 step=0.01");
+	addEditionVar("Pitch",	&m_editionLaneKeyframe.pitch,	"min=-10 max=10 step=0.01");
+	addEditionVar("Roll",	&m_editionLaneKeyframe.roll,	"min=-10 max=10 step=0.01");
+	addEditionVar("PosX",	&m_editionLaneKeyframe.pos.x,	"min=-20 max=20 step=0.05");
+	addEditionVar("PosY",	&m_editionLaneKeyframe.pos.y,	"min=-20 max=20 step=0.05");
+	addEditionVar("PosZ",	&m_editionLaneKeyframe.pos.z,	"min=-20 max=20 step=0.05");
+	
+	// Debug
+	auto addDebugVar = [&](const char* text, bool* ptr)
+	{
+		*ptr = false;
+	#ifdef _USE_ANTTWEAKBAR
+		char finalDef[1024];
+		sprintf_s(finalDef, "group='Debug draw %s'", getName());
+
+		char finalText[256];
+		sprintf_s(finalText, "[%02d] %s", m_id, text);
+
+		TwAddVarRW(debugBar, finalText, TW_TYPE_BOOLCPP, ptr, finalDef);
+	#endif
+	};
+	addDebugVar("Draw normals",		&m_bDebugDrawNormals);
+	addDebugVar("Draw coordsys",	&m_bDebugDrawCoordinateSystems);
+	addDebugVar("Draw SDF",			&m_bDebugDrawDistToSurface);
+	addDebugVar("Draw water",		&m_bDebugDrawWaterBuffers);
 }
 
 void Lane::shut()
@@ -466,17 +457,6 @@ void Lane::shut()
 	glDeleteBuffers(1, &m_keyframesBufferId);
 	glDeleteTextures(1, &m_keyframesTexId);
 	
-#ifdef _USE_ANTTWEAKBAR
-	assert(gDebugBar);
-	TwRemoveVar(gDebugBar, getLaneNameForDebugBar(m_id));
-	gDebugNbLaneInstances--;
-	if(gDebugNbLaneInstances == 0)
-	{
-		TwDeleteBar(gDebugBar);
-		gDebugBar = NULL;
-	}
-#endif
-
 	m_id = -1;
 }
 
@@ -552,7 +532,7 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 
 void Lane::debugDraw(const Camera& camera)
 {
-	if(gbDebugDrawWaterBuffers)
+	if(m_bDebugDrawWaterBuffers)
 	{
 		const GLuint texIds[_countof(m_heightsTexId)+1] = {
 			m_heightsTexId[0],
@@ -564,7 +544,7 @@ void Lane::debugDraw(const Camera& camera)
 			gData.drawer->draw2DTexturedQuad(texIds[i], vec2(i*(10+gNbVerticesPerRing),10), vec2(gNbVerticesPerRing, gNbRings));
 	}
 
-	if(gbDebugDrawNormals)
+	if(m_bDebugDrawNormals)
 	{
 		for(float y=-5.f ; y <= 5.f; y += 0.25f)
 		{
@@ -576,9 +556,9 @@ void Lane::debugDraw(const Camera& camera)
 				gData.drawer->drawLine(camera, worldSpacePos, COLOR_RED, worldSpacePos + gfDebugNormalSize * worldSpaceNormal, COLOR_WHITE);
 			}
 		}
-}
+	}
 
-	if(gbDebugDrawCoordinateSystems)
+	if(m_bDebugDrawCoordinateSystems)
 	{
 		for(float y=-5.f ; y <= 5.f; y += 0.25f)
 		{
@@ -595,7 +575,7 @@ void Lane::debugDraw(const Camera& camera)
 		}
 	}
 
-	if(gbDebugDrawDistToSurface)
+	if(m_bDebugDrawDistToSurface)
 	{
 		for(float y=-5.f ; y <= 5.f; y += 0.25f)
 		{
@@ -614,11 +594,9 @@ void Lane::debugDraw(const Camera& camera)
 
 void Lane::update()
 {
-#ifdef _USE_ANTTWEAKBAR
-	if(m_debugTweaking)
-		m_curKeyframe = gDebugKeyframe;
+	if(m_editionMode)
+		m_curKeyframe = m_editionLaneKeyframe;
 	else
-#endif
 	{
 		// Find previous and next keyframes
 		int idxPrev = 0;
@@ -628,21 +606,6 @@ void Lane::update()
 		idxPrev = std::max(0, idxNext-1);
 
 		m_curKeyframe.setFromKeyframes(m_track->keyframes[idxPrev], m_track->keyframes[idxNext], m_curKeyframe.t);
-	}
-
-	if(gbDebugMoveLane)
-	{
-		static vec3 debugPos = vec3(0, 0, 0);
-		static float gfDebugAngle = 0.f;
-		static bool gbDebugUseTime = true;
-		if(gbDebugUseTime)
-		{
-			static float gfSpeed = 0.001f;
-			gfDebugAngle += gfSpeed * gData.dTime.asMilliseconds();
-		}
-		
-		m_curKeyframe.roll = gfDebugAngle;
-		m_curKeyframe.pos = debugPos;
 	}
 
 	m_curKeyframe.updatePrecomputedData();

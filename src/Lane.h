@@ -80,9 +80,9 @@ struct LaneKeyframe
 class Lane
 {
 public:
-	Lane();
+	Lane() : m_id(-1) {}
 
-	void		init(const LaneTrack* track, int id, ModelResource* atomBlueprint);
+	void		init(const LaneTrack* track, int id, ModelResource* atomBlueprint, TwBar* editionBar, TwBar* debugBar);
 	void		shut();
 	void		draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexId);
 	void		update();
@@ -94,9 +94,13 @@ public:
 	float		getDistToSurface(const vec3& worldSpacePos) const;
 	vec3        getGravityVector(const vec3& worldSpacePos) const;
 
+	void		setEditionMode(bool editionMode)	{m_editionMode = editionMode;}
+
 	void		setCurTime(const sf::Time& t);
 
 	void		setupAtom(Atom* pAtom);
+
+	const char* getName() const	{return m_name.c_str();}
 
 private:
 	void		getLocalSpaceCoordinateSystem(const vec3& localSpacePos, vec3& localSpaceRight, vec3& localSpaceNormal, vec3& localSpaceBack) const;
@@ -133,12 +137,17 @@ private:
 	GLuint						m_indexBufferId;
 	GLuint						m_vertexBufferId;
 
-private:
+	// Edition
+	std::string					m_name;
+	bool						m_editionMode;
+	LaneKeyframe				m_editionLaneKeyframe;
 	LaneKeyframe				m_curKeyframe;
 
-#ifdef _USE_ANTTWEAKBAR
-	bool						m_debugTweaking;
-#endif
+	// Debug
+	bool						m_bDebugDrawNormals;
+	bool						m_bDebugDrawCoordinateSystems;
+	bool						m_bDebugDrawDistToSurface;
+	bool						m_bDebugDrawWaterBuffers;
 };
 
 #endif
