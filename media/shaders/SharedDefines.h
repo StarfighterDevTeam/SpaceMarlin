@@ -50,6 +50,13 @@
 #define HANDLE_UNIFORM_DECLARE(type, varName)	\
 	uniform type varName;
 
+#define dimension_float	1
+#define dimension_vec2	2
+#define dimension_vec3	3
+#define dimension_vec4	4
+#define HANDLE_UNIFORM_ADD_DIMENSION(type, varName)	\
+	+ dimension_##type
+
 #define HANDLE_ATTRIBUTE_NO_ACTION(vtxStructType, varType, componentType, componentTypeEnum, normalized, varName, loc)
 
 #define HANDLE_ATTRIBUTE_DECLARE(vtxStructType, varType, componentType, componentTypeEnum, normalized, varName, loc)	\
@@ -260,34 +267,7 @@ struct GPULaneKeyframe
 	}
 #endif
 };
-
-#ifdef _GLSL
-float texelFetch_float(samplerBuffer tex, inout int offset)	{return			texelFetch(tex,offset+0).r;		offset+=1;}
-
-vec2 texelFetch_vec2(samplerBuffer tex, inout int offset)	{return vec2(	texelFetch(tex,offset+0).r,
-																			texelFetch(tex,offset+1).r);	offset+=2;}
-
-vec3 texelFetch_vec3(samplerBuffer tex, inout int offset)	{return vec3(	texelFetch(tex,offset+0).r,
-																			texelFetch(tex,offset+1).r,
-																			texelFetch(tex,offset+2).r);	offset+=3;}
-
-vec4 texelFetch_vec4(samplerBuffer tex, inout int offset)	{return vec4(	texelFetch(tex,offset+0).r,
-																			texelFetch(tex,offset+1).r,
-																			texelFetch(tex,offset+2).r,
-																			texelFetch(tex,offset+3).r);	offset+=4;}
-
-GPULaneKeyframe readGPULaneKeyframeAtOffset(samplerBuffer tex, int offset)
-{
-	GPULaneKeyframe kf;
-	int curOffset = offset;
-#define HANDLE_UNIFORM_TEXEL_FETCH(type, varName)	\
-		kf.varName = texelFetch_##type(tex, curOffset);
-		
-	FOREACH_LANE_KEYFRAME_MEMBER(HANDLE_UNIFORM_TEXEL_FETCH)
-	
-	return kf;
-}
-#endif
+#define dimension_GPULaneKeyframe ( 0 FOREACH_LANE_KEYFRAME_MEMBER(HANDLE_UNIFORM_ADD_DIMENSION) )
 
 #endif	// _SHARED_DEFINES_H
 
