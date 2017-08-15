@@ -64,10 +64,10 @@ vec4 texelFetch_vec4(samplerBuffer tex, inout int offset)	{	int off=offset;
 																				texelFetch(tex,off+3).r);}
 
 
-GPULaneKeyframe readKeyframeAtOffset(samplerBuffer tex, int offset)
+GPULaneKeyframe readKeyframe(samplerBuffer tex, int index)
 {
 	GPULaneKeyframe kf;
-	int curOffset = offset;
+	int curOffset = index * dimension_GPULaneKeyframe;
 #define HANDLE_UNIFORM_TEXEL_FETCH(type, varName)	\
 		kf.varName = texelFetch_##type(tex, curOffset);
 		
@@ -76,6 +76,50 @@ GPULaneKeyframe readKeyframeAtOffset(samplerBuffer tex, int offset)
 	return kf;
 }
 #pragma custom_preprocessor_on
+
+void compute2DPosAndNormal(in vec2 uv, in GPULaneKeyframe kf, out vec2 oPos, out vec2 oNormal)
+{
+	const float _2pi = 2*M_PI;
+	float posOnCapsule = uv.x*kf.gKeyframeCapsulePerimeter;
+
+	if(posOnCapsule < kf.gKeyframeThreshold0)
+	{
+		float curAngleOnC1 = posOnCapsule / kf.gKeyframeR1;
+		oPos.x = kf.gKeyframeHalfDist + cos(curAngleOnC1) * kf.gKeyframeR1;
+		oPos.y = sin(curAngleOnC1) * kf.gKeyframeR1;
+		oNormal = vec2(cos(curAngleOnC1), sin(curAngleOnC1));
+	}
+	else if(posOnCapsule < kf.gKeyframeThreshold1)
+	{
+		float t = (posOnCapsule - kf.gKeyframeThreshold0) / kf.gKeyframeThreshold0to1;
+		oPos.xy = kf.gKeyframeTopRightPos*(1-t) + t*kf.gKeyframeTopLeftPos;
+
+		vec2 tangentVector = kf.gKeyframeTopTangentVector;
+		oNormal = vec2(tangentVector.y, -tangentVector.x);
+	}
+	else if(posOnCapsule < kf.gKeyframeThreshold2)
+	{
+		float curAngleOnC0 = kf.gKeyframeTheta + ((posOnCapsule-kf.gKeyframeThreshold1) / kf.gKeyframeR0);
+		oPos.x = -kf.gKeyframeHalfDist + cos(curAngleOnC0) * kf.gKeyframeR0;
+		oPos.y = sin(curAngleOnC0) * kf.gKeyframeR0;
+		oNormal = vec2(cos(curAngleOnC0), sin(curAngleOnC0));
+	}
+	else if(posOnCapsule < kf.gKeyframeThreshold3)
+	{
+		float t = (posOnCapsule - kf.gKeyframeThreshold2) / kf.gKeyframeThreshold2to3;
+		oPos.xy = kf.gKeyframeBottomLeftPos*(1-t) + t*kf.gKeyframeBottomRightPos;
+
+		vec2 tangentVector = kf.gKeyframeBottomTangentVector;
+		oNormal = vec2(tangentVector.y, -tangentVector.x);
+	}
+	else
+	{
+		float curAngleOnC1 = _2pi - kf.gKeyframeTheta + ((posOnCapsule-kf.gKeyframeThreshold3) / kf.gKeyframeR1);
+		oPos.x = kf.gKeyframeHalfDist + cos(curAngleOnC1) * kf.gKeyframeR1;
+		oPos.y = sin(curAngleOnC1) * kf.gKeyframeR1;
+		oNormal = vec2(cos(curAngleOnC1), sin(curAngleOnC1));
+	}
+}
 
 void main()
 {
@@ -86,51 +130,14 @@ void main()
 	float waterHeight	= textureLod(texHeights, uv, 0).r;
 	vec3 waterNormal = textureLod(texNormals, uv, 0).rgb;
 
-	GPULaneKeyframe kf = readKeyframeAtOffset(texKeyframes, 10 * dimension_GPULaneKeyframe);
+	//GPULaneKeyframe kf = readKeyframe(texKeyframes, 10);
+	GPULaneKeyframe kf = readKeyframe(texKeyframes, int(uv.y*19));
 
-	const float _2pi = 2*M_PI;
-	float posOnCapsule = uv.x*kf.gKeyframeCapsulePerimeter;
+	compute2DPosAndNormal(uv, kf, lPos.xy, lNormal.xy);
 	
 	//lPos.z = pos.z * kf.gKeyframeCapsulePerimeter;
 	lPos.z = -uv.y * gLaneLength;
-
-	if(posOnCapsule < kf.gKeyframeThreshold0)
-	{
-		float curAngleOnC1 = posOnCapsule / kf.gKeyframeR1;
-		lPos.x = kf.gKeyframeHalfDist + cos(curAngleOnC1) * kf.gKeyframeR1;
-		lPos.y = sin(curAngleOnC1) * kf.gKeyframeR1;
-		lNormal = vec3(cos(curAngleOnC1), sin(curAngleOnC1), 0);
-	}
-	else if(posOnCapsule < kf.gKeyframeThreshold1)
-	{
-		float t = (posOnCapsule - kf.gKeyframeThreshold0) / kf.gKeyframeThreshold0to1;
-		lPos.xy = kf.gKeyframeTopRightPos*(1-t) + t*kf.gKeyframeTopLeftPos;
-
-		vec2 tangentVector = kf.gKeyframeTopTangentVector;
-		lNormal = vec3(tangentVector.y, -tangentVector.x, 0);
-	}
-	else if(posOnCapsule < kf.gKeyframeThreshold2)
-	{
-		float curAngleOnC0 = kf.gKeyframeTheta + ((posOnCapsule-kf.gKeyframeThreshold1) / kf.gKeyframeR0);
-		lPos.x = -kf.gKeyframeHalfDist + cos(curAngleOnC0) * kf.gKeyframeR0;
-		lPos.y = sin(curAngleOnC0) * kf.gKeyframeR0;
-		lNormal = vec3(cos(curAngleOnC0), sin(curAngleOnC0), 0);
-	}
-	else if(posOnCapsule < kf.gKeyframeThreshold3)
-	{
-		float t = (posOnCapsule - kf.gKeyframeThreshold2) / kf.gKeyframeThreshold2to3;
-		lPos.xy = kf.gKeyframeBottomLeftPos*(1-t) + t*kf.gKeyframeBottomRightPos;
-
-		vec2 tangentVector = kf.gKeyframeBottomTangentVector;
-		lNormal = vec3(tangentVector.y, -tangentVector.x, 0);
-	}
-	else
-	{
-		float curAngleOnC1 = _2pi - kf.gKeyframeTheta + ((posOnCapsule-kf.gKeyframeThreshold3) / kf.gKeyframeR1);
-		lPos.x = kf.gKeyframeHalfDist + cos(curAngleOnC1) * kf.gKeyframeR1;
-		lPos.y = sin(curAngleOnC1) * kf.gKeyframeR1;
-		lNormal = vec3(cos(curAngleOnC1), sin(curAngleOnC1), 0);
-	}
+	lNormal.z = 0;
 
 	//lPos.y += uv.y*uv.y*10;
 
@@ -159,8 +166,9 @@ void main()
 	gl_Position = gWorldToProjMtx * worldSpacePos;
 
 	varDebug = vec3(
-		texelFetch(texKeyframes, 3*2 + 0).r,
-		texelFetch(texKeyframes, 3*2 + 1).r,
-		texelFetch(texKeyframes, 3*2 + 2).r
+		//texelFetch(texKeyframes, 3*2 + 0).r,
+		//texelFetch(texKeyframes, 3*2 + 1).r,
+		//texelFetch(texKeyframes, 3*2 + 2).r
+		uv.y,0,0
 		);
 }
