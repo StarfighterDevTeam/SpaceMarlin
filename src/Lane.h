@@ -143,7 +143,8 @@ private:
 	bool						m_prevEditionMode;
 	bool						m_editionMode;
 	LaneKeyframe				m_editionLaneKeyframe;
-	int							m_editedKeyframeIdx;
+	int							m_prevEditedBeat;
+	int							m_editedBeat;
 	LaneKeyframe				m_curKeyframe;
 
 	// Debug

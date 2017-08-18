@@ -178,6 +178,7 @@
 	HANDLE_UNIFORM(sampler2D, texHeights)									\
 	HANDLE_UNIFORM(sampler2D, texNormals)									\
 	HANDLE_UNIFORM(float, gLaneLength)										\
+	HANDLE_UNIFORM(int, gLaneLengthInKeyframes)								\
 	HANDLE_UNIFORM(int, gSizeOfKeyframeInFloats)							\
 	/* attributes */														\
 	HANDLE_ATTRIBUTE(VtxLane, vec3, float, GL_FLOAT, GL_FALSE, pos,		0)	\

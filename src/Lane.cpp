@@ -379,8 +379,9 @@ void Lane::init(LaneTrack* track, int id, ModelResource* atomBlueprint, TwBar* e
 	// Edition
 	m_prevEditionMode = false;
 	m_editionMode = false;
-	m_editedKeyframeIdx = 0;
-	auto addEditionVar = [&](const char* text, float* ptr, const char* def)
+	m_prevEditedBeat = 0;
+	m_editedBeat = 0;
+	auto addEditionVar = [&](const char* text, TwType type, void* ptr, const char* def)
 	{
 	#ifdef _USE_ANTTWEAKBAR
 		char finalDef[1024];
@@ -389,17 +390,18 @@ void Lane::init(LaneTrack* track, int id, ModelResource* atomBlueprint, TwBar* e
 		char finalText[256];
 		sprintf_s(finalText, "[%02d] %s", m_id, text);
 
-		TwAddVarRW(editionBar, finalText, TW_TYPE_FLOAT, ptr, finalDef);
+		TwAddVarRW(editionBar, finalText, type, ptr, finalDef);
 	#endif
 	};
-	addEditionVar("Dist",	&m_editionLaneKeyframe.dist,		"min=0.1 max=20 step=0.05");
-	addEditionVar("R0",		&m_editionLaneKeyframe.r0,			"min=0.1 max=20 step=0.05");
-	addEditionVar("R1",		&m_editionLaneKeyframe.r1,			"min=0.1 max=20 step=0.05");
-	addEditionVar("Yaw",	&m_editionLaneKeyframe.yaw,			"min=-10 max=10 step=0.01");
-	addEditionVar("Pitch",	&m_editionLaneKeyframe.pitch,		"min=-10 max=10 step=0.01");
-	addEditionVar("Roll",	&m_editionLaneKeyframe.roll,		"min=-10 max=10 step=0.01");
-	addEditionVar("OffsetX",&m_editionLaneKeyframe.offset.x,	"min=-20 max=20 step=0.05");
-	addEditionVar("OffsetY",&m_editionLaneKeyframe.offset.y,	"min=-20 max=20 step=0.05");
+	addEditionVar("Beat",	 TW_TYPE_INT32, &m_editedBeat,				"");
+	addEditionVar("Dist",	 TW_TYPE_FLOAT, &m_editionLaneKeyframe.dist,		"min=0.1 max=20 step=0.05");
+	addEditionVar("R0",		 TW_TYPE_FLOAT, &m_editionLaneKeyframe.r0,			"min=0.1 max=20 step=0.05");
+	addEditionVar("R1",		 TW_TYPE_FLOAT, &m_editionLaneKeyframe.r1,			"min=0.1 max=20 step=0.05");
+	addEditionVar("Yaw",	 TW_TYPE_FLOAT, &m_editionLaneKeyframe.yaw,			"min=-10 max=10 step=0.01");
+	addEditionVar("Pitch",	 TW_TYPE_FLOAT, &m_editionLaneKeyframe.pitch,		"min=-10 max=10 step=0.01");
+	addEditionVar("Roll",	 TW_TYPE_FLOAT, &m_editionLaneKeyframe.roll,		"min=-10 max=10 step=0.01");
+	addEditionVar("OffsetX", TW_TYPE_FLOAT, &m_editionLaneKeyframe.offset.x,	"min=-20 max=20 step=0.05");
+	addEditionVar("OffsetY", TW_TYPE_FLOAT, &m_editionLaneKeyframe.offset.y,	"min=-20 max=20 step=0.05");
 	
 	// Debug
 	auto addDebugVar = [&](const char* text, bool* ptr)
@@ -505,6 +507,7 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 	textureSlot++;
 
 	laneProgram->sendUniform("gLaneLength", gLaneLength);
+	laneProgram->sendUniform("gLaneLengthInKeyframes", (int)m_track->normalizedKeyframes.size(), Hash::AT_RUNTIME);
 	laneProgram->sendUniform("gSizeOfKeyframeInFloats", (GLint)(sizeof(GPULaneKeyframe)/sizeof(float)), Hash::AT_RUNTIME);
 
 	glBindVertexArray(m_vertexArrayId);
@@ -589,9 +592,15 @@ void Lane::debugDraw(const Camera& camera)
 
 void Lane::update()
 {
-	// Switching to edition mode
-	if(!m_prevEditionMode && m_editionMode)
-		m_editionLaneKeyframe = m_track->keyframes[m_editedKeyframeIdx];
+	if(m_editionMode)
+	{
+		// Clamp edited beat
+		m_editedBeat = clamp(m_editedBeat, 0, (int)m_track->keyframes.size()-1);
+
+		// Reinitializing edition keyframe values
+		if(m_prevEditionMode != m_editionMode || m_prevEditedBeat != m_editedBeat)
+			m_editionLaneKeyframe = m_track->keyframes[m_editedBeat];
+	}
 
 	{
 		// Find previous and next keyframes
@@ -608,13 +617,14 @@ void Lane::update()
 	{
 		m_curKeyframe = m_editionLaneKeyframe;
 		m_editionLaneKeyframe.updatePrecomputedData();
-		m_track->keyframes[m_editedKeyframeIdx] = m_editionLaneKeyframe;
+		m_track->keyframes[m_editedBeat] = m_editionLaneKeyframe;
 		m_track->computeNormalizedKeyframes();
 		uploadTrackKeyframesToGPU();
 	}
 
 	m_curKeyframe.updatePrecomputedData();
 	m_prevEditionMode = m_editionMode;
+	m_prevEditedBeat = m_editedBeat;
 }
 
 void Lane::uploadTrackKeyframesToGPU()

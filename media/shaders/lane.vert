@@ -102,7 +102,7 @@ void main()
 	vec3 waterNormal = textureLod(texNormals, uv, 0).rgb;
 
 	//GPULaneKeyframe kf = readKeyframe(texKeyframes, 10);
-	GPULaneKeyframe kf = readKeyframe(texKeyframes, int(uv.y*0));
+	GPULaneKeyframe kf = readKeyframe(texKeyframes, int(uv.y*(gLaneLengthInKeyframes-1)));
 
 	compute2DPosAndNormal(uv, kf, lPos.xy, lNormal.xy);
 	
