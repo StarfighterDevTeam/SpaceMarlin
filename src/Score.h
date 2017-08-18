@@ -5,10 +5,18 @@
 #include "Globals.h"
 #include "Lane.h"
 
+class Score;
+
 struct LaneTrack
 {
 	std::vector<LaneKeyframe>	keyframes;
 	std::vector<LaneKeyframe>	normalizedKeyframes;
+
+	void	computeNormalizedKeyframes();
+
+private:
+	Score* pScore;	// TEMP TO BE REMOVED
+	friend class Score;
 };
 
 class Score
@@ -23,9 +31,11 @@ public:
 	bool				save(const char* fileName);
 	void				unload();
 
-	const sf::Time&		getDuration() const {return m_duration;}
-	int					getLaneTrackCount() const {return (int)m_laneTracks.size();}
-	const LaneTrack&	getLaneTrack(int laneId) const {return m_laneTracks[laneId];}
+	const sf::Time&		getDuration() const				{return m_duration;}
+	const sf::Time&		getTimeBetweenKeyframes() const	{return m_timeBetweenKeyframes;}
+	int					getLaneTrackCount() const		{return (int)m_laneTracks.size();}
+	const LaneTrack&	getLaneTrack(int laneId) const	{return m_laneTracks[laneId];}
+	LaneTrack&			getLaneTrack(int laneId)		{return m_laneTracks[laneId];}
 
 private:
 	void				createNormalizedKeyframes();

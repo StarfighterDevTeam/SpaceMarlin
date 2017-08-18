@@ -10,7 +10,7 @@ static const int	gNbVerticesPerRing = 100;
 static const int	gNbRings = 100;
 static const float	gLaneLength = 100.f;	// in meters
 
-void LaneKeyframe::PrecomputedData::update(float& dist, float& r0, float& r1, float& yaw, float& pitch, float& roll, vec3& pos)
+void LaneKeyframe::PrecomputedData::update(float& dist, float& r0, float& r1, float& yaw, float& pitch, float& roll, vec2& offset)
 {
 	// Avoid stupid distances between C0 and C1
 	const float minDist			= std::max(abs(r0-r1), 0.0001f);
@@ -49,10 +49,11 @@ void LaneKeyframe::PrecomputedData::update(float& dist, float& r0, float& r1, fl
 	bottomRightPos		= vec2(halfDist + xOffsetOnC1, -yOffsetOnC1);
 	bottomTangentVector	= glm::normalize(bottomRightPos - bottomLeftPos);
 
+	// TODO
 	localToWorldMtx = glm::yawPitchRoll(yaw, pitch, roll);
-	localToWorldMtx[3].x = pos.x;
-	localToWorldMtx[3].y = pos.y;
-	localToWorldMtx[3].z = pos.z;
+	localToWorldMtx[3].x = offset.x;
+	localToWorldMtx[3].y = offset.y;
+	localToWorldMtx[3].z = 0.f;
 	worldToLocalMtx = glm::inverse(localToWorldMtx);	// TODO: overkill...
 }
 
@@ -85,30 +86,30 @@ void LaneKeyframe::setFromKeyframes(const LaneKeyframe& kf0, const LaneKeyframe&
 	yaw		= glm::lerp(	kf0.yaw,	kf1.yaw,	u);
 	pitch	= glm::lerp(	kf0.pitch,	kf1.pitch,	u);
 	roll	= glm::lerp(	kf0.roll,	kf1.roll,	u);
-	pos		= glm::lerp(	kf0.pos,	kf1.pos,	u);
+	offset	= glm::lerp(	kf0.offset,	kf1.offset,	u);
 
 	updatePrecomputedData();
 }
 
 void LaneKeyframe::toGPULaneKeyframe(GPULaneKeyframe& gpuKeyframe) const
 {
-	gpuKeyframe.r0						= r0;
-	gpuKeyframe.r1						= r1;
-	gpuKeyframe.halfDist				= precomp.halfDist;
-	gpuKeyframe.theta					= precomp.theta;
-	gpuKeyframe.capsulePerimeter		= precomp.capsulePerimeter;
-	gpuKeyframe.threshold0				= precomp.threshold0;
-	gpuKeyframe.threshold1				= precomp.threshold1;
-	gpuKeyframe.threshold2				= precomp.threshold2;
-	gpuKeyframe.threshold3				= precomp.threshold3;
-	gpuKeyframe.threshold0to1			= precomp.threshold0to1;
-	gpuKeyframe.threshold2to3			= precomp.threshold2to3;
+	gpuKeyframe.r0							= r0;
+	gpuKeyframe.r1							= r1;
+	gpuKeyframe.halfDist					= precomp.halfDist;
+	gpuKeyframe.theta						= precomp.theta;
+	gpuKeyframe.capsulePerimeter			= precomp.capsulePerimeter;
+	gpuKeyframe.threshold0					= precomp.threshold0;
+	gpuKeyframe.threshold1					= precomp.threshold1;
+	gpuKeyframe.threshold2					= precomp.threshold2;
+	gpuKeyframe.threshold3					= precomp.threshold3;
+	gpuKeyframe.threshold0to1				= precomp.threshold0to1;
+	gpuKeyframe.threshold2to3				= precomp.threshold2to3;
 
-	gpuKeyframe.topRightPos			= precomp.topRightPos;
-	gpuKeyframe.topLeftPos			= precomp.topLeftPos;
-	gpuKeyframe.bottomLeftPos		= precomp.bottomLeftPos;
-	gpuKeyframe.bottomRightPos		= precomp.bottomRightPos;
-	gpuKeyframe.topTangentVector	= precomp.topTangentVector;
+	gpuKeyframe.topRightPos					= precomp.topRightPos;
+	gpuKeyframe.topLeftPos					= precomp.topLeftPos;
+	gpuKeyframe.bottomLeftPos				= precomp.bottomLeftPos;
+	gpuKeyframe.bottomRightPos				= precomp.bottomRightPos;
+	gpuKeyframe.topTangentVector			= precomp.topTangentVector;
 	gpuKeyframe.keyframeBottomTangentVector	= precomp.bottomTangentVector;
 
 	quat localToWorldRot(precomp.localToWorldMtx);
@@ -119,7 +120,7 @@ void LaneKeyframe::toGPULaneKeyframe(GPULaneKeyframe& gpuKeyframe) const
 	gpuKeyframe.localToWorldTrans			= vec3(precomp.localToWorldMtx[3]);
 }
 
-void Lane::init(const LaneTrack* track, int id, ModelResource* atomBlueprint, TwBar* editionBar, TwBar* debugBar)
+void Lane::init(LaneTrack* track, int id, ModelResource* atomBlueprint, TwBar* editionBar, TwBar* debugBar)
 {
 	assert(m_id == -1);
 	m_track = track;
@@ -358,12 +359,12 @@ void Lane::init(const LaneTrack* track, int id, ModelResource* atomBlueprint, Tw
 		glGenBuffers(1, &m_keyframesBufferId);
 		glBindBuffer(GL_TEXTURE_BUFFER, m_keyframesBufferId);
 		
-		std::vector<GPULaneKeyframe> gpuKeyframes;
+		std::vector<GPULaneKeyframe>	gpuKeyframes;
 		gpuKeyframes.resize(track->normalizedKeyframes.size());
 		for(int i=0 ; i < (int)gpuKeyframes.size() ; i++)
 			track->normalizedKeyframes[i].toGPULaneKeyframe(gpuKeyframes[i]);
 
-		glBufferData(GL_TEXTURE_BUFFER, gpuKeyframes.size() * sizeof(gpuKeyframes[0]), (float*)(&gpuKeyframes[0]), GL_STATIC_DRAW);
+		glBufferData(GL_TEXTURE_BUFFER, gpuKeyframes.size() * sizeof(gpuKeyframes[0]), (float*)(&gpuKeyframes[0]), GL_STREAM_DRAW);
 
 		// Create the associated texture and link to the buffer
 		glGenTextures(1, &m_keyframesTexId);
@@ -374,9 +375,11 @@ void Lane::init(const LaneTrack* track, int id, ModelResource* atomBlueprint, Tw
 	}
 
 	m_curKeyframe = m_track->keyframes[0];
-
+	
 	// Edition
+	m_prevEditionMode = false;
 	m_editionMode = false;
+	m_editedKeyframeIdx = 0;
 	auto addEditionVar = [&](const char* text, float* ptr, const char* def)
 	{
 	#ifdef _USE_ANTTWEAKBAR
@@ -389,15 +392,14 @@ void Lane::init(const LaneTrack* track, int id, ModelResource* atomBlueprint, Tw
 		TwAddVarRW(editionBar, finalText, TW_TYPE_FLOAT, ptr, finalDef);
 	#endif
 	};
-	addEditionVar("Dist",	&m_editionLaneKeyframe.dist,	"min=0.1 max=20 step=0.05");
-	addEditionVar("R0",		&m_editionLaneKeyframe.r0,		"min=0.1 max=20 step=0.05");
-	addEditionVar("R1",		&m_editionLaneKeyframe.r1,		"min=0.1 max=20 step=0.05");
-	addEditionVar("Yaw",	&m_editionLaneKeyframe.yaw,		"min=-10 max=10 step=0.01");
-	addEditionVar("Pitch",	&m_editionLaneKeyframe.pitch,	"min=-10 max=10 step=0.01");
-	addEditionVar("Roll",	&m_editionLaneKeyframe.roll,	"min=-10 max=10 step=0.01");
-	addEditionVar("PosX",	&m_editionLaneKeyframe.pos.x,	"min=-20 max=20 step=0.05");
-	addEditionVar("PosY",	&m_editionLaneKeyframe.pos.y,	"min=-20 max=20 step=0.05");
-	addEditionVar("PosZ",	&m_editionLaneKeyframe.pos.z,	"min=-20 max=20 step=0.05");
+	addEditionVar("Dist",	&m_editionLaneKeyframe.dist,		"min=0.1 max=20 step=0.05");
+	addEditionVar("R0",		&m_editionLaneKeyframe.r0,			"min=0.1 max=20 step=0.05");
+	addEditionVar("R1",		&m_editionLaneKeyframe.r1,			"min=0.1 max=20 step=0.05");
+	addEditionVar("Yaw",	&m_editionLaneKeyframe.yaw,			"min=-10 max=10 step=0.01");
+	addEditionVar("Pitch",	&m_editionLaneKeyframe.pitch,		"min=-10 max=10 step=0.01");
+	addEditionVar("Roll",	&m_editionLaneKeyframe.roll,		"min=-10 max=10 step=0.01");
+	addEditionVar("OffsetX",&m_editionLaneKeyframe.offset.x,	"min=-20 max=20 step=0.05");
+	addEditionVar("OffsetY",&m_editionLaneKeyframe.offset.y,	"min=-20 max=20 step=0.05");
 	
 	// Debug
 	auto addDebugVar = [&](const char* text, bool* ptr)
@@ -587,9 +589,10 @@ void Lane::debugDraw(const Camera& camera)
 
 void Lane::update()
 {
-	if(m_editionMode)
-		m_curKeyframe = m_editionLaneKeyframe;
-	else
+	// Switching to edition mode
+	if(!m_prevEditionMode && m_editionMode)
+		m_editionLaneKeyframe = m_track->keyframes[m_editedKeyframeIdx];
+
 	{
 		// Find previous and next keyframes
 		int idxPrev = 0;
@@ -597,11 +600,35 @@ void Lane::update()
 		while(m_track->keyframes[idxNext].t < m_curKeyframe.t && idxNext < (int)m_track->keyframes.size()-1)
 			idxNext++;
 		idxPrev = std::max(0, idxNext-1);
-
+	
 		m_curKeyframe.setFromKeyframes(m_track->keyframes[idxPrev], m_track->keyframes[idxNext], m_curKeyframe.t);
 	}
 
+	if(m_editionMode)
+	{
+		m_curKeyframe = m_editionLaneKeyframe;
+		m_editionLaneKeyframe.updatePrecomputedData();
+		m_track->keyframes[m_editedKeyframeIdx] = m_editionLaneKeyframe;
+		m_track->computeNormalizedKeyframes();
+		uploadTrackKeyframesToGPU();
+	}
+
 	m_curKeyframe.updatePrecomputedData();
+	m_prevEditionMode = m_editionMode;
+}
+
+void Lane::uploadTrackKeyframesToGPU()
+{
+	glBindBuffer(GL_TEXTURE_BUFFER, m_keyframesBufferId);
+		
+	std::vector<GPULaneKeyframe>	gpuKeyframes;
+	gpuKeyframes.resize(m_track->normalizedKeyframes.size());
+	for(int i=0 ; i < (int)gpuKeyframes.size() ; i++)
+		m_track->normalizedKeyframes[i].toGPULaneKeyframe(gpuKeyframes[i]);
+
+	glBufferData(GL_TEXTURE_BUFFER, gpuKeyframes.size() * sizeof(gpuKeyframes[0]), (float*)(&gpuKeyframes[0]), GL_STREAM_DRAW);
+
+	glBindBuffer(GL_TEXTURE_BUFFER, 0);	// unbind the buffer
 }
 
 void Lane::updateWaterOnGPU()

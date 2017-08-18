@@ -19,7 +19,7 @@ struct LaneKeyframe
 	float		r0;		// radius of the left circle of the capsule
 	float		r1;		// radius of the right circle of the capsule
 	float		yaw,pitch,roll;	// rotation of the lane
-	vec3		pos;	// position of the center of the capsule
+	vec2		offset;	// 2D position of the center of the capsule
 
 	// Precomputed values
 	struct PrecomputedData
@@ -57,7 +57,7 @@ struct LaneKeyframe
 		quat	qWorldToLocal;
 
 	private:
-		void update(float& dist, float& r0, float& r1, float& yaw, float& pitch, float& roll, vec3& pos);
+		void update(float& dist, float& r0, float& r1, float& yaw, float& pitch, float& roll, vec2& offset);
 	public:
 		friend struct LaneKeyframe;
 	};
@@ -67,13 +67,13 @@ struct LaneKeyframe
 		dist(1.f),
 		r0(1.f), r1(1.f),
 		yaw(0.f), pitch(0.f), roll(0.f),
-		pos(0.f,0.f,0.f)
+		offset(0.f,0.f)
 	{
 		updatePrecomputedData();
 	}
 
 	void	setFromKeyframes(const LaneKeyframe& kf0, const LaneKeyframe& kf1, const sf::Time& newTime);
-	void	updatePrecomputedData() {precomp.update(dist, r0, r1, yaw, pitch, roll, pos);}
+	void	updatePrecomputedData() {precomp.update(dist, r0, r1, yaw, pitch, roll, offset);}
 	void	toGPULaneKeyframe(GPULaneKeyframe& gpuKeyframe) const;
 };
 
@@ -82,7 +82,7 @@ class Lane
 public:
 	Lane() : m_id(-1) {}
 
-	void		init(const LaneTrack* track, int id, ModelResource* atomBlueprint, TwBar* editionBar, TwBar* debugBar);
+	void		init(LaneTrack* track, int id, ModelResource* atomBlueprint, TwBar* editionBar, TwBar* debugBar);
 	void		shut();
 	void		draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexId);
 	void		update();
@@ -105,12 +105,13 @@ public:
 private:
 	void		getLocalSpaceCoordinateSystem(const vec3& localSpacePos, vec3& localSpaceRight, vec3& localSpaceNormal, vec3& localSpaceBack) const;
 	void		debugDraw(const Camera& camera);
+	void		uploadTrackKeyframesToGPU();
 	void		updateWaterOnGPU();
-
+	
 	std::vector<unsigned short>	m_indices;
 
 	ModelResource*				m_atomBlueprint;
-	const LaneTrack*			m_track;
+	LaneTrack*					m_track;
 	int							m_id;
 
 	// GPU resources for simulating water
@@ -139,8 +140,10 @@ private:
 
 	// Edition
 	std::string					m_name;
+	bool						m_prevEditionMode;
 	bool						m_editionMode;
 	LaneKeyframe				m_editionLaneKeyframe;
+	int							m_editedKeyframeIdx;
 	LaneKeyframe				m_curKeyframe;
 
 	// Debug
