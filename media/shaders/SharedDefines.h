@@ -146,26 +146,26 @@
 	/* done */
 
 // -------- Lane --------
-#define FOREACH_LANE_KEYFRAME_MEMBER(HANDLE_UNIFORM)						\
-	HANDLE_UNIFORM(float, gKeyframeR0)										\
-	HANDLE_UNIFORM(float, gKeyframeR1)										\
-	HANDLE_UNIFORM(float, gKeyframeHalfDist)								\
-	HANDLE_UNIFORM(float, gKeyframeTheta)									\
-	HANDLE_UNIFORM(float, gKeyframeCapsulePerimeter)						\
-	HANDLE_UNIFORM(float, gKeyframeThreshold0)								\
-	HANDLE_UNIFORM(float, gKeyframeThreshold1)								\
-	HANDLE_UNIFORM(float, gKeyframeThreshold2)								\
-	HANDLE_UNIFORM(float, gKeyframeThreshold3)								\
-	HANDLE_UNIFORM(float, gKeyframeThreshold0to1)							\
-	HANDLE_UNIFORM(float, gKeyframeThreshold2to3)							\
-	HANDLE_UNIFORM(vec2, gKeyframeTopRightPos)								\
-	HANDLE_UNIFORM(vec2, gKeyframeTopLeftPos)								\
-	HANDLE_UNIFORM(vec2, gKeyframeBottomLeftPos)							\
-	HANDLE_UNIFORM(vec2, gKeyframeBottomRightPos)							\
-	HANDLE_UNIFORM(vec2, gKeyframeTopTangentVector)							\
-	HANDLE_UNIFORM(vec2, gKeyframeBottomTangentVector)						\
-	HANDLE_UNIFORM(vec4, gKeyframeRot)										\
-	HANDLE_UNIFORM(vec3, gKeyframeTrans)									\
+#define FOREACH_LANE_KEYFRAME_MEMBER(HANDLE_UNIFORM)				\
+	HANDLE_UNIFORM(float, r0)										\
+	HANDLE_UNIFORM(float, r1)										\
+	HANDLE_UNIFORM(float, halfDist)									\
+	HANDLE_UNIFORM(float, theta)									\
+	HANDLE_UNIFORM(float, capsulePerimeter)							\
+	HANDLE_UNIFORM(float, threshold0)								\
+	HANDLE_UNIFORM(float, threshold1)								\
+	HANDLE_UNIFORM(float, threshold2)								\
+	HANDLE_UNIFORM(float, threshold3)								\
+	HANDLE_UNIFORM(float, threshold0to1)							\
+	HANDLE_UNIFORM(float, threshold2to3)							\
+	HANDLE_UNIFORM(vec2, topRightPos)								\
+	HANDLE_UNIFORM(vec2, topLeftPos)								\
+	HANDLE_UNIFORM(vec2, bottomLeftPos)								\
+	HANDLE_UNIFORM(vec2, bottomRightPos)							\
+	HANDLE_UNIFORM(vec2, topTangentVector)							\
+	HANDLE_UNIFORM(vec2, keyframeBottomTangentVector)				\
+	HANDLE_UNIFORM(vec4, localToWorldRot)							\
+	HANDLE_UNIFORM(vec3, localToWorldTrans)							\
 	/* done */
 
 #define HANDLE_PROG_LANE(BEGIN_PROGRAM, HANDLE_UNIFORM, HANDLE_ATTRIBUTE)	\
@@ -179,8 +179,6 @@
 	HANDLE_UNIFORM(sampler2D, texNormals)									\
 	HANDLE_UNIFORM(float, gLaneLength)										\
 	HANDLE_UNIFORM(int, gSizeOfKeyframeInFloats)							\
-	/* uniform keyframes */													\
-	FOREACH_LANE_KEYFRAME_MEMBER(HANDLE_UNIFORM)							\
 	/* attributes */														\
 	HANDLE_ATTRIBUTE(VtxLane, vec3, float, GL_FLOAT, GL_FALSE, pos,		0)	\
 	HANDLE_ATTRIBUTE(VtxLane, vec3, float, GL_FLOAT, GL_FALSE, normal,	1)	\
@@ -256,16 +254,6 @@ struct GPULaneKeyframe
 		type varName;
 
 	FOREACH_LANE_KEYFRAME_MEMBER(HANDLE_UNIFORM_DECLARE_LANE_KEYFRAME_MEMBER)
-
-#ifdef __cplusplus
-	void sendUniforms(const GPUProgram* program)
-	{
-	#define HANDLE_UNIFORM_SEND_UNIFORM(type, varName)	\
-		program->sendUniform(#varName, varName, Hash::AT_RUNTIME);
-
-	FOREACH_LANE_KEYFRAME_MEMBER(HANDLE_UNIFORM_SEND_UNIFORM)
-	}
-#endif
 };
 #define dimension_GPULaneKeyframe ( 0 FOREACH_LANE_KEYFRAME_MEMBER(HANDLE_UNIFORM_ADD_DIMENSION) )
 

@@ -11,35 +11,6 @@ out vec3 varWorldSpaceViewVec;
 
 out vec3 varDebug;
 
-/*
-GPULaneKeyframe setFromKeyframes(GPULaneKeyframe kf0, GPULaneKeyframe kf1, float u)
-{
-	GPULaneKeyframe kf;
-	// TODO
-	//kf.gKeyframeR0					=
-	//kf.gKeyframeR1					=
-	//kf.gKeyframeHalfDist			=
-	//kf.gKeyframeTheta				=
-	//kf.gKeyframeCapsulePerimeter	=
-	//kf.gKeyframeThreshold0			=
-	//kf.gKeyframeThreshold1			=
-	//kf.gKeyframeThreshold2			=
-	//kf.gKeyframeThreshold3			=
-	//kf.gKeyframeThreshold0to1		=
-	//kf.gKeyframeThreshold2to3		=
-	//kf.gKeyframeTopRightPos			=
-	//kf.gKeyframeTopLeftPos			=
-	//kf.gKeyframeBottomLeftPos		=
-	//kf.gKeyframeBottomRightPos		=
-	//kf.gKeyframeTopTangentVector	=
-	//kf.gKeyframeBottomTangentVector	=
-	//kf.gKeyframeRot					=
-	//kf.gKeyframeTrans				=
-	
-	return kf;
-}
-*/
-
 #pragma custom_preprocessor_off
 float texelFetch_float(samplerBuffer tex, inout int offset)	{	int off=offset;
 																offset+=1;
@@ -80,43 +51,43 @@ GPULaneKeyframe readKeyframe(samplerBuffer tex, int index)
 void compute2DPosAndNormal(in vec2 uv, in GPULaneKeyframe kf, out vec2 oPos, out vec2 oNormal)
 {
 	const float _2pi = 2*M_PI;
-	float posOnCapsule = uv.x*kf.gKeyframeCapsulePerimeter;
+	float posOnCapsule = uv.x*kf.capsulePerimeter;
 
-	if(posOnCapsule < kf.gKeyframeThreshold0)
+	if(posOnCapsule < kf.threshold0)
 	{
-		float curAngleOnC1 = posOnCapsule / kf.gKeyframeR1;
-		oPos.x = kf.gKeyframeHalfDist + cos(curAngleOnC1) * kf.gKeyframeR1;
-		oPos.y = sin(curAngleOnC1) * kf.gKeyframeR1;
+		float curAngleOnC1 = posOnCapsule / kf.r1;
+		oPos.x = kf.halfDist + cos(curAngleOnC1) * kf.r1;
+		oPos.y = sin(curAngleOnC1) * kf.r1;
 		oNormal = vec2(cos(curAngleOnC1), sin(curAngleOnC1));
 	}
-	else if(posOnCapsule < kf.gKeyframeThreshold1)
+	else if(posOnCapsule < kf.threshold1)
 	{
-		float t = (posOnCapsule - kf.gKeyframeThreshold0) / kf.gKeyframeThreshold0to1;
-		oPos.xy = kf.gKeyframeTopRightPos*(1-t) + t*kf.gKeyframeTopLeftPos;
+		float t = (posOnCapsule - kf.threshold0) / kf.threshold0to1;
+		oPos.xy = kf.topRightPos*(1-t) + t*kf.topLeftPos;
 
-		vec2 tangentVector = kf.gKeyframeTopTangentVector;
+		vec2 tangentVector = kf.topTangentVector;
 		oNormal = vec2(tangentVector.y, -tangentVector.x);
 	}
-	else if(posOnCapsule < kf.gKeyframeThreshold2)
+	else if(posOnCapsule < kf.threshold2)
 	{
-		float curAngleOnC0 = kf.gKeyframeTheta + ((posOnCapsule-kf.gKeyframeThreshold1) / kf.gKeyframeR0);
-		oPos.x = -kf.gKeyframeHalfDist + cos(curAngleOnC0) * kf.gKeyframeR0;
-		oPos.y = sin(curAngleOnC0) * kf.gKeyframeR0;
+		float curAngleOnC0 = kf.theta + ((posOnCapsule-kf.threshold1) / kf.r0);
+		oPos.x = -kf.halfDist + cos(curAngleOnC0) * kf.r0;
+		oPos.y = sin(curAngleOnC0) * kf.r0;
 		oNormal = vec2(cos(curAngleOnC0), sin(curAngleOnC0));
 	}
-	else if(posOnCapsule < kf.gKeyframeThreshold3)
+	else if(posOnCapsule < kf.threshold3)
 	{
-		float t = (posOnCapsule - kf.gKeyframeThreshold2) / kf.gKeyframeThreshold2to3;
-		oPos.xy = kf.gKeyframeBottomLeftPos*(1-t) + t*kf.gKeyframeBottomRightPos;
+		float t = (posOnCapsule - kf.threshold2) / kf.threshold2to3;
+		oPos.xy = kf.bottomLeftPos*(1-t) + t*kf.bottomRightPos;
 
-		vec2 tangentVector = kf.gKeyframeBottomTangentVector;
+		vec2 tangentVector = kf.keyframeBottomTangentVector;
 		oNormal = vec2(tangentVector.y, -tangentVector.x);
 	}
 	else
 	{
-		float curAngleOnC1 = _2pi - kf.gKeyframeTheta + ((posOnCapsule-kf.gKeyframeThreshold3) / kf.gKeyframeR1);
-		oPos.x = kf.gKeyframeHalfDist + cos(curAngleOnC1) * kf.gKeyframeR1;
-		oPos.y = sin(curAngleOnC1) * kf.gKeyframeR1;
+		float curAngleOnC1 = _2pi - kf.theta + ((posOnCapsule-kf.threshold3) / kf.r1);
+		oPos.x = kf.halfDist + cos(curAngleOnC1) * kf.r1;
+		oPos.y = sin(curAngleOnC1) * kf.r1;
 		oNormal = vec2(cos(curAngleOnC1), sin(curAngleOnC1));
 	}
 }
@@ -135,7 +106,7 @@ void main()
 
 	compute2DPosAndNormal(uv, kf, lPos.xy, lNormal.xy);
 	
-	//lPos.z = pos.z * kf.gKeyframeCapsulePerimeter;
+	//lPos.z = pos.z * kf.capsulePerimeter;
 	lPos.z = -uv.y * gLaneLength;
 	lNormal.z = 0;
 
@@ -150,7 +121,7 @@ void main()
 	//varDebug = lNewNormal;
 	lNormal = lNewNormal;
 	
-	mat4 localToWorldMtx = quatPosToMat4(kf.gKeyframeRot, kf.gKeyframeTrans);
+	mat4 localToWorldMtx = quatPosToMat4(kf.localToWorldRot, kf.localToWorldTrans);
 
 	vec4 worldSpacePos = localToWorldMtx * vec4(lPos, 1);
 	worldSpacePos.xyz /= worldSpacePos.w;

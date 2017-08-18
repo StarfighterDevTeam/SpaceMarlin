@@ -92,31 +92,31 @@ void LaneKeyframe::setFromKeyframes(const LaneKeyframe& kf0, const LaneKeyframe&
 
 void LaneKeyframe::toGPULaneKeyframe(GPULaneKeyframe& gpuKeyframe) const
 {
-	gpuKeyframe.gKeyframeR0						= r0;
-	gpuKeyframe.gKeyframeR1						= r1;
-	gpuKeyframe.gKeyframeHalfDist				= precomp.halfDist;
-	gpuKeyframe.gKeyframeTheta					= precomp.theta;
-	gpuKeyframe.gKeyframeCapsulePerimeter		= precomp.capsulePerimeter;
-	gpuKeyframe.gKeyframeThreshold0				= precomp.threshold0;
-	gpuKeyframe.gKeyframeThreshold1				= precomp.threshold1;
-	gpuKeyframe.gKeyframeThreshold2				= precomp.threshold2;
-	gpuKeyframe.gKeyframeThreshold3				= precomp.threshold3;
-	gpuKeyframe.gKeyframeThreshold0to1			= precomp.threshold0to1;
-	gpuKeyframe.gKeyframeThreshold2to3			= precomp.threshold2to3;
+	gpuKeyframe.r0						= r0;
+	gpuKeyframe.r1						= r1;
+	gpuKeyframe.halfDist				= precomp.halfDist;
+	gpuKeyframe.theta					= precomp.theta;
+	gpuKeyframe.capsulePerimeter		= precomp.capsulePerimeter;
+	gpuKeyframe.threshold0				= precomp.threshold0;
+	gpuKeyframe.threshold1				= precomp.threshold1;
+	gpuKeyframe.threshold2				= precomp.threshold2;
+	gpuKeyframe.threshold3				= precomp.threshold3;
+	gpuKeyframe.threshold0to1			= precomp.threshold0to1;
+	gpuKeyframe.threshold2to3			= precomp.threshold2to3;
 
-	gpuKeyframe.gKeyframeTopRightPos			= precomp.topRightPos;
-	gpuKeyframe.gKeyframeTopLeftPos				= precomp.topLeftPos;
-	gpuKeyframe.gKeyframeBottomLeftPos			= precomp.bottomLeftPos;
-	gpuKeyframe.gKeyframeBottomRightPos			= precomp.bottomRightPos;
-	gpuKeyframe.gKeyframeTopTangentVector		= precomp.topTangentVector;
-	gpuKeyframe.gKeyframeBottomTangentVector	= precomp.bottomTangentVector;
+	gpuKeyframe.topRightPos			= precomp.topRightPos;
+	gpuKeyframe.topLeftPos			= precomp.topLeftPos;
+	gpuKeyframe.bottomLeftPos		= precomp.bottomLeftPos;
+	gpuKeyframe.bottomRightPos		= precomp.bottomRightPos;
+	gpuKeyframe.topTangentVector	= precomp.topTangentVector;
+	gpuKeyframe.keyframeBottomTangentVector	= precomp.bottomTangentVector;
 
-	quat qRot(precomp.localToWorldMtx);
-	gpuKeyframe.gKeyframeRot.x					= qRot.x;
-	gpuKeyframe.gKeyframeRot.y					= qRot.y;
-	gpuKeyframe.gKeyframeRot.z					= qRot.z;
-	gpuKeyframe.gKeyframeRot.w					= qRot.w;
-	gpuKeyframe.gKeyframeTrans					= vec3(precomp.localToWorldMtx[3]);
+	quat localToWorldRot(precomp.localToWorldMtx);
+	gpuKeyframe.localToWorldRot.x			= localToWorldRot.x;
+	gpuKeyframe.localToWorldRot.y			= localToWorldRot.y;
+	gpuKeyframe.localToWorldRot.z			= localToWorldRot.z;
+	gpuKeyframe.localToWorldRot.w			= localToWorldRot.w;
+	gpuKeyframe.localToWorldTrans			= vec3(precomp.localToWorldMtx[3]);
 }
 
 void Lane::init(const LaneTrack* track, int id, ModelResource* atomBlueprint, TwBar* editionBar, TwBar* debugBar)
@@ -504,13 +504,6 @@ void Lane::draw(const Camera& camera, GLuint texCubemapId, GLuint refractionTexI
 
 	laneProgram->sendUniform("gLaneLength", gLaneLength);
 	laneProgram->sendUniform("gSizeOfKeyframeInFloats", (GLint)(sizeof(GPULaneKeyframe)/sizeof(float)), Hash::AT_RUNTIME);
-
-	const LaneKeyframe& kf = m_curKeyframe;
-
-	// Send keyframe information
-	GPULaneKeyframe gpuKf;
-	kf.toGPULaneKeyframe(gpuKf);
-	gpuKf.sendUniforms(laneProgram);
 
 	glBindVertexArray(m_vertexArrayId);
 
