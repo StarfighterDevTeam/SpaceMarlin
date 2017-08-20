@@ -97,6 +97,16 @@ inline float safeSign(float x)
 	return x >= 0.f ? 1.f : -1.f;
 }
 
+inline sf::Time bpmToBeatDuration(float bpm)
+{
+	return sf::seconds(60.f / bpm);
+}
+
+inline float beatDurationToBpm(const sf::Time& beatDuration)
+{
+	return 60.f / beatDuration.asSeconds();
+}
+
 #ifndef _WIN32
 	#define sprintf_s sprintf
 	#define strncpy_s strncpy

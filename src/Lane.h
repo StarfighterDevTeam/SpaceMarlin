@@ -14,7 +14,7 @@ struct GPULaneKeyframe;
 
 struct LaneKeyframe
 {
-	sf::Time	t;		// time at which the keyframe becomes the current one
+	float		beat;	// beat at which the keyframe becomes the current one
 	float		dist;	// distance between both circles of the capsule
 	float		r0;		// radius of the left circle of the capsule
 	float		r1;		// radius of the right circle of the capsule
@@ -72,7 +72,7 @@ struct LaneKeyframe
 		updatePrecomputedData();
 	}
 
-	void	setFromKeyframes(const LaneKeyframe& kf0, const LaneKeyframe& kf1, const sf::Time& newTime);
+	void	setFromKeyframes(const LaneKeyframe& kf0, const LaneKeyframe& kf1, float newBeat);
 	void	updatePrecomputedData() {precomp.update(dist, r0, r1, yaw, pitch, roll, offset);}
 	void	toGPULaneKeyframe(GPULaneKeyframe& gpuKeyframe) const;
 };
@@ -96,7 +96,7 @@ public:
 
 	void		setEditionMode(bool editionMode)	{m_editionMode = editionMode;}
 
-	void		setCurTime(const sf::Time& t);
+	void		setCurBeat(float curBeat);
 
 	void		setupAtom(Atom* pAtom);
 

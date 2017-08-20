@@ -125,10 +125,10 @@ bool MainScene::init()
 
 	// Music & score playing
 	gData.soundMgr->setNextMusic("./media/sounds/Andy_Hunter-Angelic.ogg");
+	m_curBeat = 0.f;
 	m_curScoreTime = sf::seconds(0.f);
-	m_beatCount = 0;
-	m_measureCount = 0;
-	m_beatsPerMinute = 135.38f;
+//	m_beatCount = 0;
+//	m_measureCount = 0;
 
 	return true;
 }
@@ -171,13 +171,14 @@ void MainScene::update()
 
 	// For now we keep repeating the score
 	m_curScoreTime += gData.dTime;
-	if(m_curScoreTime > m_score.getDuration())
-		m_curScoreTime -= m_score.getDuration();
+	if(m_curScoreTime > m_score.getScoreDuration())
+		m_curScoreTime -= m_score.getScoreDuration();
+	m_curBeat = m_curScoreTime / m_score.getBeatDuration();
 
 	size_t lanesVectorSize = m_lanes.size();
 	for (size_t i = 0; i < lanesVectorSize; i++)
 	{
-		m_lanes[i].setCurTime(m_curScoreTime);
+		m_lanes[i].setCurBeat(m_curBeat);
 		m_lanes[i].setEditionMode(m_editionMode);
 		m_lanes[i].update();
 	}
@@ -193,7 +194,7 @@ void MainScene::update()
 	m_bob.update();
 
 	//Music
-	m_beatCount = (int)(gData.soundMgr->getCurMusic().getPlayingOffset().asSeconds() * m_beatsPerMinute / 60.f) - (m_measureCount * 4);
+	m_beatCount = (int)(gData.soundMgr->getCurMusic().getPlayingOffset().asSeconds() / m_score.getBeatDuration().asSeconds()) - (m_measureCount * 4);
 	while (m_beatCount > 4)
 	{
 		m_beatCount -= 4;

@@ -27,10 +27,10 @@ private:
 	std::vector<Atom>	m_atoms;
 
 	// Score playing
+	float				m_curBeat;
 	sf::Time			m_curScoreTime;
 	int					m_beatCount;
 	int					m_measureCount;
-	float				m_beatsPerMinute;
 
 	// Low-level rendering
 	GLuint				m_sceneRefractionTexId;

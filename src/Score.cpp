@@ -6,18 +6,17 @@ void LaneTrack::computeNormalizedKeyframes()
 	normalizedKeyframes.clear();
 	normalizedKeyframes.reserve(prevSize);
 
-	const sf::Time duration = pScore->getDuration();
-	const sf::Time timeBetweenKeyframes = pScore->getTimeBetweenKeyframes();
-	for(sf::Time t=sf::microseconds(0ll) ; t < duration ; t+=timeBetweenKeyframes)
+	const float fNbBeats = (float)pScore->getNbBeats();
+	for(float curBeat=0.f ; curBeat < fNbBeats ; curBeat++)	// using floats this way is ok until 16,777,216 (see https://stackoverflow.com/questions/15094611/behavior-of-float-that-is-used-as-an-integer)
 	{
 		int idxPrev = 0;
 		int idxNext = 0;
-		while(keyframes[idxNext].t < t && idxNext < (int)keyframes.size()-1)
+		while(keyframes[idxNext].beat < curBeat && idxNext < (int)keyframes.size()-1)
 			idxNext++;
 		idxPrev = std::max(0, idxNext-1);
 
 		LaneKeyframe kf;
-		kf.setFromKeyframes(keyframes[idxPrev], keyframes[idxNext], t);
+		kf.setFromKeyframes(keyframes[idxPrev], keyframes[idxNext], curBeat);
 		normalizedKeyframes.push_back(kf);
 	}
 }
@@ -25,8 +24,8 @@ void LaneTrack::computeNormalizedKeyframes()
 bool Score::load(const char* fileName)
 {
 	// TODO: for now, use a hardcoded score for the lanes
-	m_duration = sf::seconds(5.f);
-	m_timeBetweenKeyframes = sf::seconds(0.25f);
+	m_nbBeats = 3;
+	m_beatDuration = bpmToBeatDuration(135.38f);
 
 	//const int nbLanes = 1;
 	const int nbLanes = 2;
@@ -41,7 +40,7 @@ bool Score::load(const char* fileName)
 		LaneKeyframe kf0;
 		LaneKeyframe kf1;
 
-		kf0.t = sf::seconds(0.f * m_duration.asSeconds());
+		kf0.beat = 0;
 		kf0.dist = 4.f;
 		kf0.r0 = 2.f;
 		kf0.r1 = 0.8f;
@@ -50,7 +49,7 @@ bool Score::load(const char* fileName)
 		keyframes.push_back(kf0);
 		
 		kf1 = kf0;
-		kf1.t = sf::seconds(0.5f * m_duration.asSeconds());
+		kf1.beat = 1;
 		kf1.dist = 2.f;
 		kf1.r0 = 0.8f;
 		kf1.r1 = 2.f;
@@ -59,12 +58,17 @@ bool Score::load(const char* fileName)
 		kf1.updatePrecomputedData();
 		keyframes.push_back(kf1);
 		
-		kf0.t = sf::seconds(1.f * m_duration.asSeconds());
+		kf0.beat = 2;
 		kf0.updatePrecomputedData();
 		keyframes.push_back(kf0);
 	}
 
-	createNormalizedKeyframes();
+	// Compute normalized keyframes:
+	// - lane tracks:
+	for(LaneTrack& track : m_laneTracks)
+		track.computeNormalizedKeyframes();
+
+	// - other tracks to come here
 	return true;
 }
 
@@ -77,13 +81,4 @@ bool Score::save(const char* fileName)
 void Score::unload()
 {
 	// TODO
-}
-
-void Score::createNormalizedKeyframes()
-{
-	// Lane track
-	for(LaneTrack& track : m_laneTracks)
-		track.computeNormalizedKeyframes();
-
-	// TODO: other tracks come here
 }

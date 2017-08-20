@@ -57,22 +57,28 @@ void LaneKeyframe::PrecomputedData::update(float& dist, float& r0, float& r1, fl
 	worldToLocalMtx = glm::inverse(localToWorldMtx);	// TODO: overkill...
 }
 
-void LaneKeyframe::setFromKeyframes(const LaneKeyframe& kf0, const LaneKeyframe& kf1, const sf::Time& newTime)
+void LaneKeyframe::setFromKeyframes(const LaneKeyframe& kf0, const LaneKeyframe& kf1, float newBeat)
 {
-	assert(kf0.t <= newTime);
-	assert(kf1.t >= newTime);
+	assert(kf0.beat <= newBeat);
+	assert(kf1.beat >= newBeat);
 
-	if(kf0.t == kf1.t)
+	if(kf0.beat == newBeat || kf0.beat == kf1.beat)
 	{
 		*this = kf0;
 		return;
 	}
 
-	const float timeDelta = kf1.t.asSeconds() - kf0.t.asSeconds();
-	assert(timeDelta > 0.0001f);
-	const float u = (newTime.asSeconds() - kf0.t.asSeconds()) / timeDelta;
+	if(kf1.beat == newBeat)
+	{
+		*this = kf1;
+		return;
+	}
 
-	t		= newTime;
+	const float beatDelta = (float)(kf1.beat - kf0.beat);
+	assert(beatDelta > 0.0001f);
+	const float u = (newBeat - (float)kf0.beat) / beatDelta;
+
+	beat	= newBeat;
 	dist	= glm::lerp(	kf0.dist,	kf1.dist,	u);
 	r0		= glm::lerp(	kf0.r0,		kf1.r0,		u);
 	r1		= glm::lerp(	kf0.r1,		kf1.r1,		u);
@@ -606,11 +612,11 @@ void Lane::update()
 		// Find previous and next keyframes
 		int idxPrev = 0;
 		int idxNext = 0;
-		while(m_track->keyframes[idxNext].t < m_curKeyframe.t && idxNext < (int)m_track->keyframes.size()-1)
+		while(m_track->keyframes[idxNext].beat < m_curKeyframe.beat && idxNext < (int)m_track->keyframes.size()-1)
 			idxNext++;
 		idxPrev = std::max(0, idxNext-1);
 	
-		m_curKeyframe.setFromKeyframes(m_track->keyframes[idxPrev], m_track->keyframes[idxNext], m_curKeyframe.t);
+		m_curKeyframe.setFromKeyframes(m_track->keyframes[idxPrev], m_track->keyframes[idxNext], m_curKeyframe.beat);
 	}
 
 	if(m_editionMode)
@@ -856,10 +862,11 @@ vec3 Lane::getGravityVector(const vec3& worldSpacePos) const
 	return getNormalToSurface(worldSpacePos);
 }
 
-void Lane::setCurTime(const sf::Time& t)
+void Lane::setCurBeat(float curBeat)
 {
 	assert(m_track);
-	m_curKeyframe.t = clamp(t, m_track->keyframes.front().t, m_track->keyframes.back().t);
+	m_curKeyframe.beat = clamp(curBeat, m_track->keyframes.front().beat, m_track->keyframes.back().beat);
+	// Rest of m_curKeyframe will be updated at update(), using m_curKeyframe.beat as the base
 }
 
 void Lane::setupAtom(Atom* pAtom)
